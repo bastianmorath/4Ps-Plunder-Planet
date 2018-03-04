@@ -13,7 +13,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv
 
-dir_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Logs/text_logs'))
+dir_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Python/Logs/text_logs'))
 file_expressions = [r'.{0,}.log',
                     r'.{0,}Flitz.{0,}.log',
                     r'(EK|FM|MH|MK|NK|PG|TW).{0,}Flitz.{0,}.log', 
