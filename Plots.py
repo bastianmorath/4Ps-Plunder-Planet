@@ -1,3 +1,5 @@
+# Deprecated -> old version
+# 
 import sys
 import os
 import re
@@ -8,6 +10,8 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from pandas import DataFrame, read_csv
+
+from Factory import Helpers
 
 '''Validating data and create plots'''
 
@@ -30,7 +34,6 @@ file_expressions = [r'.{0,}.log',
 
 rel_files = [f for f in sorted(os.listdir(dir_path)) if re.search(file_expressions[1], f)]
 logs = [dir_path + "/" +  s for s in rel_files]
-
 column_names = ['Time','Logtype','Gamemode','Points','Heartrate','physDifficulty','psyStress','psyDifficulty','obstacle']
 dataframes = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
 
@@ -80,17 +83,26 @@ for idx, df in enumerate(dataframes):
 
 '''Plot: Playing time per user 
 '''
+
+
 plt.ylabel('Playing time [s]')
-plt.title('Playing time per user')
+plt.title('Playing time per user per round')
+colors = Helpers.getColor(conc_dataframes)
+
 time_df = conc_dataframes.groupby(['userID', 'round'])['Time'].max()
-time_df.plot.bar()
+
+time_df.plot.bar(color=colors)
+plt.tight_layout()
 plt.savefig('Playing_time_per_user.pdf')
+
 
 
 '''Plot: Heartrate 
 '''
 plt.figure()
 plt.ylabel('Heartrate [bpm]')
+plt.xlabel('Playing time [s]')
+
 plt.title('Heartrate of all users')
 
 for idx, df in enumerate(dataframes):
@@ -98,6 +110,20 @@ for idx, df in enumerate(dataframes):
         df['Heartrate'].plot( title='Heartrate')
 
 plt.savefig('Heartrate_series.pdf')
+
+'''Plot: Heartrate correlated with Difficulty-Level
+'''
+plt.figure()
+plt.ylabel('Heartrate [bpm]')
+plt.xlabel('Playing time [s]')
+plt.title('Heartrate correlated with Difficulty-Level')
+
+
+df = next( (x for x in dataframes if not (x['Heartrate']==-1).all())) #get first dataframe that has HB measurements
+
+
+plt.savefig('Heartrate_With_Difficulty.pdf')
+
 
 '''Plot: Mean and std bpm per user in a box-chart
 '''
@@ -107,6 +133,8 @@ conc_dataframes[['Heartrate','userID']].boxplot(by='userID', grid=False)
 plt.ylabel('Heartrate [bpm]')
 plt.title('')
 plt.savefig('Mean_heartrate.pdf')
+
+
 
 
 plt.show()
