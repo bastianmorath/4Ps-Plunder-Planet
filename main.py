@@ -1,13 +1,6 @@
 # main.py
 
-import glob
-import re
-
-import numpy as np
-import pandas as pd
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-from pandas import DataFrame, read_csv
 
 import settings
 from factory import Helpers, Filter
@@ -32,7 +25,7 @@ time_df = conc_dataframes.groupby(['userID', 'round'])['Time'].max()
 
 time_df.plot.bar(color=Helpers.getColors())
 plt.tight_layout()
-plt.savefig('Playing_time_per_user.pdf')
+plt.savefig(settings.svn_base_path + '/Plots/Playing_time_per_user.pdf')
 
 
 '''Plot: Heartrate 
@@ -44,10 +37,10 @@ plt.xlabel('Playing time [s]')
 plt.title('Heartrate of all users')
 
 for idx, df in enumerate(dataframes):
-    if not (df['Heartrate']==-1).all():# Filter out dataframes without HR measurements
+    if not (df['Heartrate']==-1).all():  #Filter out dataframes without HR measurements
         df['Heartrate'].plot( title='Heartrate')
 
-plt.savefig('Heartrate_series.pdf')
+plt.savefig(settings.svn_base_path + '/Plots/Heartrate_series.pdf')
 
 '''Plot: Heartrate correlated with Difficulty-Level
 '''
@@ -56,11 +49,8 @@ plt.ylabel('Heartrate [bpm]')
 plt.xlabel('Playing time [s]')
 plt.title('Heartrate correlated with Difficulty-Level')
 
-
-df = next( (x for x in dataframes if not (x['Heartrate']==-1).all())) #get first dataframe that has HB measurements
-
-
-plt.savefig('Heartrate_With_Difficulty.pdf')
+df = next( (x for x in dataframes if not (x['Heartrate']==-1).all()))  #get first dataframe that has HB measurements
+plt.savefig(settings.svn_base_path + '/Plots/PlotsHeartrate_With_Difficulty.pdf')
 
 
 '''Plot: Mean and std bpm per user in a box-chart
@@ -70,7 +60,7 @@ df2.columns = df2.columns.droplevel()
 conc_dataframes[['Heartrate','userID']].boxplot(by='userID', grid=False)
 plt.ylabel('Heartrate [bpm]')
 plt.title('')
-plt.savefig('Mean_heartrate.pdf')
+plt.savefig(settings.svn_base_path + '/Plots/Mean_heartrate.pdf')
 
 
 plt.show()

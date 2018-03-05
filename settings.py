@@ -6,13 +6,13 @@ import re
 import pandas as pd
 import numpy as np
 
-from factory import Filter
-
 file_expressions = [r'.{0,}.log',
-                        r'.{0,}Flitz.{0,}.log',
-                        r'.{0,}Kinect.{0,}.log',
+                    r'.{0,}Flitz.{0,}.log',
+                    r'.{0,}Kinect.{0,}.log',
                     ]
-dir_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Python/Logs/text_logs'))
+local_base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+svn_base_path = local_base_path + '/Code/plunder planet'
+logs_path = local_base_path + '/Logs/text_logs'
 rel_files= []
 dataframes = []
 conc_dataframes = []
@@ -27,24 +27,25 @@ def init():
     addUserAndRound()
     conc_dataframes = pd.concat(dataframes, ignore_index=True)
 
-def initRelFiles():
-    return [f for f in sorted(os.listdir(dir_path)) if re.search(file_expressions[1], f)]
-
-def initDataframes():
-    '''
-        I differentiate between log data that:
+''' I differentiate between log data that:
         - is from FBMC
         - is from Kinect 
 
         file_expressions: 0 -> All files, 
                         1-> FBMC
                         4-> Kinect
-    ''' 
-    logs = [dir_path + "/" +  s for s in rel_files]
+'''
+def initRelFiles():
+    return [f for f in sorted(os.listdir(logs_path)) if re.search(file_expressions[1], f)]
+
+def initDataframes():
+
+    logs = [logs_path + "/" +  s for s in rel_files]
     column_names = ['Time','Logtype','Gamemode','Points','Heartrate','physDifficulty','psyStress','psyDifficulty','obstacle']
     addUserAndRound()
     return list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
-    
+
+
 ''' Add user_id and round (1 or 2) as extra column
 '''
 def addUserAndRound():
