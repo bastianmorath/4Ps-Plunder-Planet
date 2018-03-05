@@ -28,15 +28,23 @@ file_expressions = [r'.{0,}.log',
                     ]
 
 
-rel_files = [f for f in os.listdir(dir_path) if re.search(file_expressions[1], f)]
+rel_files = [f for f in sorted(os.listdir(dir_path)) if re.search(file_expressions[1], f)]
 logs = [dir_path + "/" +  s for s in rel_files]
+
 column_names = ['Time','Logtype','Gamemode','Points','Heartrate','physDifficulty','psyStress','psyDifficulty','obstacle']
 dataframes = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
 
-''' Add user_id as column for entire dataframe
+''' Add user_id and round (1 or 2) as extra column
 '''
 for idx, df in enumerate(dataframes):
-    df.insert(9, 'userID', np.full( (len(df.index),1), idx))
+    df.insert(9, 'userID', np.full( (len(df.index),1), int(np.floor(idx/2))))
+    m = re.search(r'(\d)_[0,1]', rel_files[idx], re.IGNORECASE)
+    match = re.search('(\d)_(\d+)', rel_files[idx]) # add if round 0 or 1
+    if match:
+        df.insert(10, 'round', np.full( (len(df.index),1), match.group(1)))
+    else:
+        df.insert(10, 'round', np.full( (len(df.index),1), 0))
+
 
 
 conc_dataframes = pd.concat(dataframes, ignore_index=True)
@@ -74,7 +82,7 @@ for idx, df in enumerate(dataframes):
 '''
 plt.ylabel('Playing time [s]')
 plt.title('Playing time per user')
-time_df = conc_dataframes.groupby(['userID'])['Time'].max()
+time_df = conc_dataframes.groupby(['userID', 'round'])['Time'].max()
 time_df.plot.bar()
 plt.savefig('Playing_time_per_user.pdf')
 
@@ -96,13 +104,9 @@ plt.savefig('Heartrate_series.pdf')
 df2 = conc_dataframes.pivot(columns=conc_dataframes.columns[1], index=conc_dataframes.index)
 df2.columns = df2.columns.droplevel()
 conc_dataframes[['Heartrate','userID']].boxplot(by='userID', grid=False)
-plt.ylabel('Playing time [s]')
+plt.ylabel('Heartrate [bpm]')
 plt.title('')
 plt.savefig('Mean_heartrate.pdf')
-
-
-
-
 
 
 plt.show()
