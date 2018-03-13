@@ -22,7 +22,7 @@ logs_path = local_base_path + '/Logs/text_logs'
 rel_files= []
 dataframes = []
 conc_dataframes = []
-
+conc_dataframes_with_hr = []
 
 def init():
     global conc_dataframes
@@ -31,8 +31,7 @@ def init():
     add_timedelta_column()
     add_user_and_round()
     conc_dataframes = pd.concat(dataframes, ignore_index=True)
- 
-
+    conc_with_hr = conc_dataframes[conc_dataframes['Heartrate']!=-1]
 
 ''' I differentiate between log data that:
         - is from FBMC
