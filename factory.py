@@ -56,7 +56,12 @@ def transformToNumbers(df):
         df[col] = df[col].astype('int64')      
     return df
 
-
+'''Returns a list which says how many times the obstacle has size {0,1,2,3,4}  for each difficulty level {1,2,3} in the form
+    [0, 0, 0, 0, 0, 0, 143, 0, 581, 25, 0, 2659, 0, 299, 5589]
+    # occurences where obstacle had size 0 in Diff=LOW, ... , 
+    # occurences where obstacle had size 4 in Diff=LOW,
+    # occurences where obstacle had size 0 in Diff=MEDIUM,...]
+'''
 def get_number_of_obstacles_per_difficulty():
     conc_num = transformToNumbers(gl.conc_dataframes) # Transform Difficulties into integers
     # count num.obstacle parts per obstacle
