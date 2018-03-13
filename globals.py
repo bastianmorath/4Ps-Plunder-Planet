@@ -31,6 +31,8 @@ def init():
     add_timedelta_column()
     add_user_and_round()
     conc_dataframes = pd.concat(dataframes, ignore_index=True)
+ 
+
 
 ''' I differentiate between log data that:
         - is from FBMC

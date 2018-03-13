@@ -1,5 +1,5 @@
 import globals as gl
-
+import pandas as pd
 
 ''' Factory Module
 '''
@@ -55,3 +55,22 @@ def transformToNumbers(df):
     for col in ['physDifficulty', 'psyStress', 'psyDifficulty']:
         df[col] = df[col].astype('int64')      
     return df
+
+
+def get_number_of_obstacles_per_difficulty():
+    conc_num = transformToNumbers(gl.conc_dataframes) # Transform Difficulties into integers
+    # count num.obstacle parts per obstacle
+    new = conc_num['obstacle'].apply(lambda x: 0 if x=='none' else x.count(",") + 1 ) 
+    conc_num = conc_num.assign(numObstacles=new)
+
+    # number of occurences per diff&numObstacles
+    cnt = pd.DataFrame({'count' : conc_num.groupby(['physDifficulty','numObstacles']).size()}).reset_index()    
+    numObst = [0]*15
+    count=0
+    for a in range(0,len(cnt.index)):
+        d= cnt['physDifficulty'][a]
+        o= cnt['numObstacles'][a]
+        if not o ==0: # Filter out when there is no obstacle at all 
+            numObst[(d-1)*5+o] = cnt['count'][count]
+        count +=1
+    return numObst
