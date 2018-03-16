@@ -26,12 +26,13 @@ conc_dataframes_with_hr = []
 
 def init():
     global conc_dataframes
+    global conc_dataframes_with_hr
     init_rel_files()
     init_dataframes()
     add_timedelta_column()
     add_user_and_round()
     conc_dataframes = pd.concat(dataframes, ignore_index=True)
-    conc_with_hr = conc_dataframes[conc_dataframes['Heartrate']!=-1]
+    conc_dataframes_with_hr = conc_dataframes[conc_dataframes['Heartrate']!=-1]
 
 ''' I differentiate between log data that:
         - is from FBMC
@@ -77,3 +78,4 @@ def add_timedelta_column():
     for idx, df in enumerate(dataframes):
         new = df['Time'].apply(lambda x: datetime.timedelta(seconds=x))
         dataframes[idx] = dataframes[idx].assign(timedelta=new)
+

@@ -79,3 +79,37 @@ def get_number_of_obstacles_per_difficulty():
             numObst[(d-1)*5+o] = cnt['count'][count]
         count +=1
     return numObst
+
+
+from matplotlib.ticker import MaxNLocator
+import matplotlib.pyplot as plt
+'''This method returns a plot, where you can see the difficulty on one axis, 
+    and to_compare (e.g. Heartrate or Points) on the other axis to find correlations
+'''
+def plot_difficulty_corr_with(to_compare):
+    resolution = 5 # resample every x seconds -> the bigger, the smoother
+    for idx, df in enumerate(gl.dataframes):
+        if not (df['Heartrate'] == -1).all():
+            X = []
+            X.append(idx)
+            df_num_resampled = resample_dataframe(df, resolution)
+            # Plot Heartrate
+            fig, ax1 = plt.subplots()
+            ax1.plot(df_num_resampled['Time'], df_num_resampled[to_compare], gl.blue_color)
+            ax1.set_xlabel('Playing time')
+            ax1.set_ylabel(to_compare, color=gl.blue_color)
+            ax1.tick_params('y', colors=gl.blue_color)
+            # Plot Difficulty 
+            ax2 = ax1.twinx()
+            ax2.plot(df_num_resampled['Time'], df_num_resampled['physDifficulty'], gl.green_color)
+            ax2.set_ylabel('physDifficulty', color=gl.green_color)
+            ax2.tick_params('y', colors=gl.green_color)
+            ax2.yaxis.set_major_locator(MaxNLocator(integer=True)) # Only show whole numbers as difficulties
+
+            plt.savefig(gl.svn_base_path + '/Plots/'+to_compare+' Difficulty Corr/'+to_compare+'_difficulty_' +gl.rel_files[idx] + '.pdf')
+
+
+def resample_dataframe(df, resolution):
+    df_num = transformToNumbers(df) # Transform Difficulties into integers
+    df_num.set_index('timedelta', inplace=True) #set timedelta as new index
+    return df_num.resample(str(resolution)+'S').mean() # Resample series
