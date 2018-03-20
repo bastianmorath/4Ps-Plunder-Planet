@@ -108,12 +108,25 @@ def plot_difficulty_corr_with(to_compare):
 
             plt.savefig(gl.svn_base_path + '/Plots/'+to_compare+' Difficulty Corr/'+to_compare+'_difficulty_' +gl.rel_files[idx] + '.pdf')
 
-
+'''Resmaples a dataframe with a sampling frquency of 'resolution'
+    -> Smoothes the plots
+'''
 def resample_dataframe(df, resolution):
     df_num = transformToNumbers(df) # Transform Difficulties into integers
     df_num.set_index('timedelta', inplace=True) #set timedelta as new index
     return df_num.resample(str(resolution)+'S').mean() # Resample series'
 
 
-
+'''For an index i, find next index in dataframe where we have an EVENT_OBSTACLE
+'''
+def get_next_obstacle_idx(index, df):
+    not_done = True
+    idx = index +1 
+    while not_done:
+        next_row = df.iloc[idx]
+        if next_row['Logtype'] == 'EVENT_OBSTACLE':
+            not_done=False
+        else:
+            idx+=1
+    return idx
 
