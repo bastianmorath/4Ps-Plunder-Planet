@@ -96,7 +96,7 @@ def plot_difficulty_corr_with(to_compare):
             # Plot Heartrate
             fig, ax1 = plt.subplots()
             ax1.plot(df_num_resampled['Time'], df_num_resampled[to_compare], gl.blue_color)
-            ax1.set_xlabel('Playing time')
+            ax1.set_xlabel('Playing time [s]')
             ax1.set_ylabel(to_compare, color=gl.blue_color)
             ax1.tick_params('y', colors=gl.blue_color)
             # Plot Difficulty 
@@ -106,10 +106,14 @@ def plot_difficulty_corr_with(to_compare):
             ax2.tick_params('y', colors=gl.green_color)
             ax2.yaxis.set_major_locator(MaxNLocator(integer=True)) # Only show whole numbers as difficulties
 
-            #plt.savefig(gl.svn_base_path + '/Plots/'+to_compare+' Difficulty Corr/'+to_compare+'_difficulty_' +gl.rel_files[idx] + '.pdf')
+            plt.savefig(gl.svn_base_path + '/Plots/'+to_compare+' Difficulty Corr/'+to_compare+'_difficulty_' +gl.rel_files[idx] + '.pdf')
 
 
 def resample_dataframe(df, resolution):
     df_num = transformToNumbers(df) # Transform Difficulties into integers
     df_num.set_index('timedelta', inplace=True) #set timedelta as new index
-    return df_num.resample(str(resolution)+'S').mean() # Resample series
+    return df_num.resample(str(resolution)+'S').mean() # Resample series'
+
+
+
+
