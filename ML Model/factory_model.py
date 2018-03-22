@@ -4,6 +4,9 @@ from __future__ import division  # s.t. division uses float result
 import matplotlib.pyplot as plt
 
 import globals_model as gl
+import pandas as pd
+import numpy as np
+
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
@@ -81,19 +84,51 @@ def plot(df):
     plt.savefig(gl.working_directory_path + '/crashes_and_mean_hr.pdf')
 
 
+''' Returns a dataframe with the time of each obstacle and whether or not
+    the user crashed into it or not
+'''
+
+
 def get_obstacle_times_with_success():
     df = gl.df_total
     obstacle_time_crash = []
 
-    def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] <= _to)
-        return df[mask]
+    ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event
+    '''
+    def is_a_crash(index):
+        count = 1
+        while True:
+            logtype = df.iloc[index-count]['Logtype']
+            if logtype == 'EVENT_OBSTACLE':
+                return False
+            if logtype == 'EVENT_CRASH':
+                return True
+            count += 1
 
-    for index, row in df.iterrows():
+    for idx, row in df.iterrows():
         if row['Logtype'] == 'EVENT_OBSTACLE':
-            last_second_df = df_from_to(row['Time'] - 1, row['Time'])
-            crash = False
-            if (last_second_df['Logtype'] == 'EVENT_CRASH').any():
-                crash = True
-            obstacle_time_crash.append([row['Time'], crash])
-    print(obstacle_time_crash)
+            obstacle_time_crash.append((row['Time'], is_a_crash(idx)))
+
+    times = np.asarray([a for (a, b) in obstacle_time_crash])
+    crashes = np.asarray([b for (a, b) in obstacle_time_crash])
+    return pd.DataFrame({'Time': times, 'crash': crashes})
+
+
+''' For each obstacle, add mean_hr, %crashes in the past x seconds
+
+'''
+
+
+def feature_matrix_for_obstacles_and_df(obstacle_df, dataframe):
+    # For each timestamp, add already; calculated mean_hr and %crashes
+    mean_hr_df = []
+    crashes_df = []
+    df = obstacle_df.copy()
+    df.drop(['crash'], axis=1, inplace=True)
+    for idx, row in df.iterrows():
+        corresp_row = dataframe[dataframe['Time'] <= row['Time']].iloc[-1]
+        mean_hr_df.append(corresp_row['mean_hr'])
+        crashes_df.append(corresp_row['%crashes'])
+    df['mean_hr'] = mean_hr_df
+    df['crashes'] = crashes_df
+    return df

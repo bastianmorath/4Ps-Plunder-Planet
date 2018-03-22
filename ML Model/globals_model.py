@@ -100,10 +100,7 @@ def add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window):
     dataframe = df_total
 
     # Add timedelta=0.0 row s.t. resampling starts at 0 seconds
-    df2 = pd.DataFrame([[timedelta(), 0, 'CONTINUOUS', 'PLAYING', 0, 0, 'MEDIUM', 'MEDIUM', 'MEDIUM', 'none']],
-                       columns=['timedelta', 'Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
-                                'psyStress', 'psyDifficulty', 'obstacle'])
-    dataframe = dataframe.append(df2)
+    []
 
     time1 = time.time()
 

@@ -19,7 +19,7 @@ import factory_model as factory
 crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
 heartrate_window = 50  # Over how many preceeding seconds should the heartrate be averaged?
 
-
+#TODO: Look that all emthods habve a return value instead of modifying arguments
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
     Column 1: %Crashes in last x seconds
@@ -27,9 +27,12 @@ heartrate_window = 50  # Over how many preceeding seconds should the heartrate b
 '''
 df = gl.init(crash_window, heartrate_window)
 factory.plot(df)
-df_obstacle = factory.get_obstacle_times_with_success()
-print(df)
-X = df[['%crashes', 'mean_hr']]
+df_obstacle = factory.get_obstacle_times_with_success()  # Time of each obstacle and whether user crashed or not
+X = factory.feature_matrix_for_obstacles_and_df(df_obstacle, df)
+y = df_obstacle['crash'].copy()
+
+print(X)
+print(y)
 
 ''' Train SVM model
 '''
