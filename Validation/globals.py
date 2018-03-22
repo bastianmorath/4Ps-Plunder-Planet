@@ -18,6 +18,7 @@ local_base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..
 svn_base_path = local_base_path + '/Code/plunder planet/Validation'
 logs_path = local_base_path + '/Logs/text_logs'
 rel_files= []
+
 dataframes = []
 conc_dataframes = []
 conc_dataframes_with_hr = []
@@ -30,6 +31,7 @@ def init():
     add_timedelta_column()
     add_user_and_round()
     conc_dataframes = pd.concat(dataframes, ignore_index=True)
+    cut_frames() # Cut frames to same length
     conc_dataframes_with_hr = conc_dataframes[conc_dataframes['Heartrate']!=-1]
 
 ''' I differentiate between log data that:
@@ -76,3 +78,8 @@ def add_timedelta_column():
         new = df['Time'].apply(lambda x: datetime.timedelta(seconds=x))
         dataframes[idx] = dataframes[idx].assign(timedelta=new)
 
+def cut_frames():
+    global conc_dataframes
+    time_df = conc_dataframes.groupby(['userID'])['Time'].max()
+    min_time = time_df.min()
+    conc_dataframes = conc_dataframes[conc_dataframes['Time']<min_time] # Cut all dataframes to the same minimal length\n

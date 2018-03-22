@@ -108,7 +108,7 @@ def plot_difficulty_corr_with(to_compare):
 
             plt.savefig(gl.svn_base_path + '/Plots/'+to_compare+' Difficulty Corr/'+to_compare+'_difficulty_' +gl.rel_files[idx] + '.pdf')
 
-'''Resmaples a dataframe with a sampling frquency of 'resolution'
+'''Resamples a dataframe with a sampling frquency of 'resolution'
     -> Smoothes the plots
 '''
 def resample_dataframe(df, resolution):
