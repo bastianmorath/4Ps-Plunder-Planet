@@ -80,6 +80,20 @@ def plot(df):
 
     plt.savefig(gl.working_directory_path + '/crashes_and_mean_hr.pdf')
 
+
 def get_obstacle_times_with_success():
-    df = gl.df
-    df_obstacle = df[df['obstacle']]
+    df = gl.df_total
+    obstacle_time_crash = []
+
+    def df_from_to(_from, _to):
+        mask = (_from < df['Time']) & (df['Time'] <= _to)
+        return df[mask]
+
+    for index, row in df.iterrows():
+        if row['Logtype'] == 'EVENT_OBSTACLE':
+            last_second_df = df_from_to(row['Time'] - 1, row['Time'])
+            crash = False
+            if (last_second_df['Logtype'] == 'EVENT_CRASH').any():
+                crash = True
+            obstacle_time_crash.append([row['Time'], crash])
+    print(obstacle_time_crash)

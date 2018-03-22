@@ -30,6 +30,7 @@ factory.plot(df)
 df_obstacle = factory.get_obstacle_times_with_success()
 print(df)
 X = df[['%crashes', 'mean_hr']]
+
 ''' Train SVM model
 '''
 

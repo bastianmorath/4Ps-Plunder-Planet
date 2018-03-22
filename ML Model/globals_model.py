@@ -23,26 +23,28 @@ abs_path_logfiles = project_path + '/Logs/text_logs'
 names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile
-df = []  # All dataframes, concatanated to one single dataframe
-
+df_total = []  # All dataframes, concatanated to one single dataframe
+df = []  # Resampled dataframe with feature-columns, concatanated to one single dataframe
 
 def init(crash_window,heartrate_window):
-    global df
+    global df, df_total
     init_dataframes()
 
     if os.path.isfile(working_directory_path + '/df.csv'):
         print('Dataframe already cached. Used this file to improve performance')
         df = pd.read_csv(working_directory_path + '/df.csv', index_col=0)
+        df_total = pd.concat(df_list, ignore_index=True)
     else:
         print('Dataframe not cached. Creating dataframe...')
-        df = pd.concat(df_list, ignore_index=True)
+        df_total = pd.concat(df_list, ignore_index=True)
 
-        add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window)
+        df = add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window)
 
         # Save to .csv for caching
         df.to_csv('df.csv', index=True, header=True)
         print('Dataframe created')
 
+    df.reset_index(inplace=True)
     return df
 
 
@@ -95,18 +97,18 @@ def add_log_column(dataframe_list):
 
 
 def add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window):
-    global df
+    dataframe = df_total
 
     # Add timedelta=0.0 row s.t. resampling starts at 0 seconds
     df2 = pd.DataFrame([[timedelta(), 0, 'CONTINUOUS', 'PLAYING', 0, 0, 'MEDIUM', 'MEDIUM', 'MEDIUM', 'none']],
                        columns=['timedelta', 'Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
                                 'psyStress', 'psyDifficulty', 'obstacle'])
-    df = df.append(df2)
+    dataframe = dataframe.append(df2)
 
     time1 = time.time()
 
     # Compute mean_hr over last 'heart_window' seconds
-    df_with_hr = df[df['Heartrate'] != -1]
+    df_with_hr = dataframe[dataframe['Heartrate'] != -1]
 
     df_with_hr['mean_hr'] = factory.get_mean_heartrate_column(df_with_hr, heartrate_window)
     mean_hr_resampled_column = factory.resample_dataframe(df_with_hr, 1)['mean_hr']
@@ -115,12 +117,10 @@ def add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window):
     print("Time to get mean_hr: " + str(time2 - time1))
 
     # Compute %crashes over last 'crash_window' seconds
-    df['%crashes'] = factory.get_crashes_column(df, crash_window)
-    df_resampled = factory.resample_dataframe(df, 1)
+    dataframe['%crashes'] = factory.get_crashes_column(dataframe, crash_window)
+    df_resampled = factory.resample_dataframe(dataframe, 1)
     time3 = time.time()
     print("Time to get %crashes: " + str(time3 - time2))
 
-
-
     df_resampled['mean_hr'] = mean_hr_resampled_column
-    df = df_resampled
+    return df_resampled
