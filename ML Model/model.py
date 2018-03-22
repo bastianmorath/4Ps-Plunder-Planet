@@ -14,13 +14,10 @@
 '''
 
 import globals_model as gl
-import matplotlib.pyplot as plt
+import factory_model as factory
 
-crash_window = 30 # Over how many preceeding seconds should %crashes be calculated?
-heartrate_window = 30 # Over how many preceeding seconds should the heartrate be averaged?
-
-green_color = '#AEBD38'
-blue_color = '#68829E'
+crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
+heartrate_window = 50  # Over how many preceeding seconds should the heartrate be averaged?
 
 
 ''' Get data and create feature matrix and labels
@@ -29,25 +26,10 @@ blue_color = '#68829E'
     Column 2: mean heartrate over last y seconds
 '''
 df = gl.init(crash_window, heartrate_window)
-
-fig, ax1 = plt.subplots()
-fig.suptitle('%Crashes and mean_hr over last x seconds')
-
-#Plot mean_hr
-
-ax1.plot(df['Time'],df['%crashes'], blue_color)
-ax1.set_xlabel('Playing time [s]')
-ax1.set_ylabel('Heartrate', color=blue_color)
-ax1.tick_params('y', colors=blue_color)
-
-#Plot %crashes
-ax2 = ax1.twinx()
-ax2.plot(df['Time'],df['mean_hr'], green_color)
-ax2.set_ylabel('Crashes [%]', color=green_color)
-ax2.tick_params('y', colors=green_color)
-
-plt.show()
-
+factory.plot(df)
+df_obstacle = factory.get_obstacle_times_with_success()
+print(df)
+X = df[['%crashes', 'mean_hr']]
 ''' Train SVM model
 '''
 

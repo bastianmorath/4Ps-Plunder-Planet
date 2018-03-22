@@ -121,7 +121,7 @@ def resample_dataframe(df, resolution):
 '''
 def get_next_obstacle_idx(index, df):
     not_done = True
-    idx = index +1 
+    idx = index + 1 
     while not_done:
         next_row = df.iloc[idx]
         if next_row['Logtype'] == 'EVENT_OBSTACLE':
