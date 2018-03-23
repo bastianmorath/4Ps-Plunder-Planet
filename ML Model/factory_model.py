@@ -91,6 +91,7 @@ def plot(df):
 
 def get_obstacle_times_with_success():
     df = gl.df_total
+
     obstacle_time_crash = []
 
     ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event
@@ -124,11 +125,12 @@ def get_feature_matrix_for_obstacles_and_df(obstacle_df, dataframe):
     mean_hr_df = []
     crashes_df = []
     df = obstacle_df.copy()
-    df.drop(['crash'], axis=1, inplace=True)
     for idx, row in df.iterrows():
         corresp_row = dataframe[dataframe['Time'] <= row['Time']].iloc[-1]
         mean_hr_df.append(corresp_row['mean_hr'])
         crashes_df.append(corresp_row['%crashes'])
+
+    df.drop(['crash', 'Time'], axis=1, inplace=True)
     df['mean_hr'] = mean_hr_df
     df['crashes'] = crashes_df
     return df

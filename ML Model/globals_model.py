@@ -34,10 +34,10 @@ def init(crash_window,heartrate_window):
         print('Dataframe already cached. Used this file to improve performance')
         df = pd.read_csv(working_directory_path + '/df.csv', index_col=0)
         df_total = pd.concat(df_list, ignore_index=True)
+
     else:
         print('Dataframe not cached. Creating dataframe...')
         df_total = pd.concat(df_list, ignore_index=True)
-
         df = add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window)
 
         # Save to .csv for caching
@@ -45,6 +45,7 @@ def init(crash_window,heartrate_window):
         print('Dataframe created')
 
     df.reset_index(inplace=True)
+    df_total.reset_index(inplace=True)
     return df
 
 
@@ -59,7 +60,7 @@ def init_dataframes():
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
-    df_list = cut_frames(df_list)  # Cut frames to same length
+    df_list = cut_frames(df_list[5:6])  # Cut frames to same length
     add_log_column(df_list)
     add_timedelta_column(df_list)
 

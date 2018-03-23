@@ -43,7 +43,8 @@ y = df_obstacle['crash'].copy()
 
 ''' Apply SVM Model with Cross-Validation
 '''
-
+print(X)
+print(y)
 kf = KFold(n_splits=5)
 
 # Find best gamma and alpha
