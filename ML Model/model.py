@@ -19,7 +19,7 @@ from sklearn import svm
 from sklearn.model_selection import KFold
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import GridSearchCV
-
+from collections import Counter
 import globals_model as gl
 import factory_model as factory
 
@@ -28,37 +28,27 @@ heartrate_window = 50  # Over how many preceeding seconds should the heartrate b
 
 
 # TODO: Look that all methods have a return value instead of them modifying arguments
-
+# TODO: Add print logs to log what the program is currently doing
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
     Column 1: %Crashes in last x seconds
     Column 2: mean heartrate over last y seconds
 '''
 
-df = gl.init(crash_window, heartrate_window)
-factory.plot(df)
+df = gl.init(crash_window, heartrate_window)  # Entire dataframe with features-column
+
 df_obstacle = factory.get_obstacle_times_with_success()  # Time of each obstacle and whether user crashed or not
-X = factory.get_feature_matrix_for_obstacles_and_df(df_obstacle, df)
-y = df_obstacle['crash'].copy()
+
+(X, y) = factory.get_feature_matrix_and_label(df_obstacle, df)
+
 
 ''' Apply SVM Model with Cross-Validation
 '''
-print(X)
-print(y)
+
 kf = KFold(n_splits=5)
+alpha = 1.0
+clf = svm.SVC(C=alpha)
 
-# Find best gamma and alpha
-C_range = [0.1, 0.2]  # np.logspace(-8, 1, num=5, base=2)
-gamma_range = [0.1, 0.2]  # np.logspace(-4, 4, num=5, base=2)
-param_grid = dict(gamma=gamma_range, C=C_range)
-cv = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=42)
-grid = GridSearchCV(svm.SVC(), param_grid=param_grid, cv=cv)
-grid.fit(X, y)
-
-print("The best parameters are %s with a score of %0.2f"
-      % (grid.best_params_, grid.best_score_))
-
-clf = svm.SVC(C=grid.best_params_['C'])
 mean = []
 for train, test in kf.split(X):
     x_training = X.ix[train]
@@ -67,12 +57,15 @@ for train, test in kf.split(X):
     y_test = y.ix[test]
 
     clf.fit(x_training, y_training)  # Train on 9 bins
-
+    # TODO: Model always predicts 0/False for all x....
     y_predicted = clf.predict(x_test)  # Predict on last bin
+    print(Counter(y_predicted).keys())  # equals to list(set(words))
+    print(Counter(y_predicted).values())  # counts the elements' frequency
     num_corr = len([a for (a, b) in zip(y_test, y_predicted) if a == b])
     percentage = num_corr / len(y_test) * 100
     mean.append(percentage)
-print('With alpha=' + str(grid.best_params_['C']) + ', the model got ' + str(sum(mean)/len(mean)) +
+
+print('With alpha=' + str(alpha) + ', the model got ' + str(sum(mean)/len(mean)) +
       '% right on average.')
 
 '''Test model with 10-fold Cross-Validation

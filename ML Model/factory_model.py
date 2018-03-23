@@ -101,9 +101,9 @@ def get_obstacle_times_with_success():
         while True:
             logtype = df.iloc[index-count]['Logtype']
             if logtype == 'EVENT_OBSTACLE':
-                return False
+                return 0
             if logtype == 'EVENT_CRASH':
-                return True
+                return 1
             count += 1
 
     for idx, row in df.iterrows():
@@ -120,8 +120,8 @@ def get_obstacle_times_with_success():
 '''
 
 
-def get_feature_matrix_for_obstacles_and_df(obstacle_df, dataframe):
-    # For each timestamp, add already; calculated mean_hr and %crashes
+def get_feature_matrix_and_label(obstacle_df, dataframe):
+    # For each timestamp, add already calculated mean_hr and %crashes
     mean_hr_df = []
     crashes_df = []
     df = obstacle_df.copy()
@@ -133,4 +133,4 @@ def get_feature_matrix_for_obstacles_and_df(obstacle_df, dataframe):
     df.drop(['crash', 'Time'], axis=1, inplace=True)
     df['mean_hr'] = mean_hr_df
     df['crashes'] = crashes_df
-    return df
+    return df, obstacle_df['crash'].copy()

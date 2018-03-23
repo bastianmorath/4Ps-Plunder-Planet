@@ -26,7 +26,8 @@ df_list = []  # List with all dataframes; 1 dataframe per logfile
 df_total = []  # All dataframes, concatanated to one single dataframe
 df = []  # Resampled dataframe with feature-columns, concatanated to one single dataframe
 
-def init(crash_window,heartrate_window):
+
+def init(crash_window, heartrate_window):
     global df, df_total
     init_dataframes()
 
@@ -34,7 +35,6 @@ def init(crash_window,heartrate_window):
         print('Dataframe already cached. Used this file to improve performance')
         df = pd.read_csv(working_directory_path + '/df.csv', index_col=0)
         df_total = pd.concat(df_list, ignore_index=True)
-
     else:
         print('Dataframe not cached. Creating dataframe...')
         df_total = pd.concat(df_list, ignore_index=True)
@@ -60,7 +60,7 @@ def init_dataframes():
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
-    df_list = cut_frames(df_list[5:6])  # Cut frames to same length
+    df_list = cut_frames(df_list)  # Cut frames to same length
     add_log_column(df_list)
     add_timedelta_column(df_list)
 
@@ -93,7 +93,7 @@ def add_timedelta_column(dataframe_list):
 
 def add_log_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):
-        new = np.full( (len(dataframe.index),1), int(np.floor(idx/2)))
+        new = np.full((len(dataframe.index),1), int(np.floor(idx/2)))
         dataframe_list[idx] = dataframe_list[idx].assign(userID=new)
 
 
