@@ -119,7 +119,7 @@ def get_obstacle_times_with_success():
 '''
 
 
-def feature_matrix_for_obstacles_and_df(obstacle_df, dataframe):
+def get_feature_matrix_for_obstacles_and_df(obstacle_df, dataframe):
     # For each timestamp, add already; calculated mean_hr and %crashes
     mean_hr_df = []
     crashes_df = []
