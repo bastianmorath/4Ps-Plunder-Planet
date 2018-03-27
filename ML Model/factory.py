@@ -2,7 +2,7 @@
 
 from __future__ import division  # s.t. division uses float result
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 
 import globals as gl
 import pandas as pd
@@ -68,22 +68,22 @@ def resample_dataframe(df, resolution):
 def plot_features(gamma, c, auroc, percentage):
     fig, ax1 = plt.subplots()
     fig.suptitle('%Crashes and mean_hr over last x seconds')
-    '''
-    '# Plot mean_hr
+
+    # Plot mean_hr
     df = gl.df.sort_values('Time')
     ax1.plot(df['Time'], df['mean_hr'], blue_color)
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate', color=blue_color)
     ax1.tick_params('y', colors=blue_color)
-    '''
 
+    '''
     # Plot max_over_min_hr
     df = gl.df.sort_values('Time')
     ax1.plot(df['Time'], df['max_over_min'], blue_color)
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('max_over_min_hr', color=blue_color)
     ax1.tick_params('y', colors=blue_color)
-
+    '''
     # Plot %crashes
     ax2 = ax1.twinx()
     ax2.plot(df['Time'], df['%crashes'], red_color)
@@ -112,18 +112,18 @@ def plot_features(gamma, c, auroc, percentage):
 
 
 def plot_features_with_labels(X, y):
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    x1 = X[:, 0]
-    x2 = X[:, 1]
-    x3 = X[:, 2]
+    fig, ax = plt.subplots()
+    # ax = Axes3D(fig)
+    x1 = X[:, 0]  # mean_hr
+    x2 = X[:, 1]  # %crashes
+    x3 = X[:, 2]  # max_over_min_hr
     color = ['red' if x else 'green' for x in y]
-    ax.scatter(x1, x2, x3, color=color)
-    ax.set_xlabel('mean_hr [bpm]')
-    ax.set_ylabel('crashes [%]')
-    ax.set_zlabel('max_hr / min_hr')
-    plt.show()
-    plt.savefig(gl.working_directory_path + '/features_label.pdf')
+    ax.scatter(x2, x3, color=color)
+    ax.set_xlabel('crashes [%]')
+    ax.set_ylabel('max_over_min')
+    # ax.set_zlabel('max_hr / min_hr')
+    # plt.show()
+    plt.savefig(gl.working_directory_path + '/features_label_crashes__max_over_min.pdf')
 
 
 ''' Returns a dataframe with the time of each obstacle and whether or not

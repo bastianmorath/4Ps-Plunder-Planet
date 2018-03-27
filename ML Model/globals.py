@@ -43,7 +43,7 @@ def init(cache, crash_window, heartrate_window):
     # Store computed dataframe in pickle file for faster processing
     if cache & os.path.isfile(working_directory_path + '/Pickle/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
-        df = pd.read_pickle(working_directory_path + '/Pickle//df.pickle')
+        df = pd.read_pickle(working_directory_path + '/Pickle/df.pickle')
         df_total = pd.concat(df_list, ignore_index=True)
     else:
         print('Dataframe not cached. Creating dataframe...')

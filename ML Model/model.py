@@ -34,7 +34,6 @@ crash_window = 30  # Over how many preceeding seconds should %crashes be calcula
 heartrate_window = 60  # Over how many preceeding seconds should the heartrate be averaged?
 
 
-
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
     Column 1: %Crashes in last x seconds
