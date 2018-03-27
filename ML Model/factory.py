@@ -3,7 +3,7 @@
 from __future__ import division  # s.t. division uses float result
 import matplotlib.pyplot as plt
 
-import globals_model as gl
+import globals as gl
 import pandas as pd
 import numpy as np
 
@@ -65,11 +65,11 @@ def resample_dataframe(df, resolution):
 '''
 
 
-def plot(df):
+def plot_features():
     fig, ax1 = plt.subplots()
     fig.suptitle('%Crashes and mean_hr over last x seconds')
-
     # Plot mean_hr
+    df = gl.df.sort_values('Time')
     ax1.plot(df['Time'], df['mean_hr'], blue_color)
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate', color=blue_color)
@@ -81,7 +81,12 @@ def plot(df):
     ax2.set_ylabel('Crashes [%]', color=red_color)
     ax2.tick_params('y', colors=red_color)
 
-    plt.savefig(gl.working_directory_path + '/crashes_and_mean_hr.pdf')
+    ax2.text(0.6, 0.2, 'Crash_window: ' + str(gl.cw),
+         transform=ax2.transAxes)
+    ax2.text(0.6, 0.1, 'Heartrate_window: ' + str(gl.hw),
+             transform=ax2.transAxes)
+
+    plt.savefig(gl.working_directory_path + '/features_plot_'+str(gl.cw) + '_'+str(gl.hw) + '.pdf')
 
 
 ''' Returns a dataframe with the time of each obstacle and whether or not

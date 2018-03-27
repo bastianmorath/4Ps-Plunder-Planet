@@ -25,8 +25,14 @@ df_list = []  # List with all dataframes; 1 dataframe per logfile
 df_total = []  # All dataframes, concatanated to one single dataframe (without features as columns)
 df = []  # Resampled dataframe with feature-columns, concatanated to one single dataframe
 
+cw = 0
+hw = 0
+
 
 def init(cache, crash_window, heartrate_window):
+    global cw, hw
+    cw = crash_window
+    hw = heartrate_window
     global df, df_total
     init_dataframes()
 

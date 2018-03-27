@@ -1,8 +1,8 @@
 import pandas as pd
 import time
 
-import factory_model as factory
-import globals_model as gl
+import factory as factory
+import globals as gl
 ''' For each obstacle, add mean_hr, %crashes in the past x seconds
 
 '''
@@ -12,19 +12,20 @@ obstacle_df = []
 
 def get_feature_matrix_and_label():
     global obstacle_df
+    factory.plot_features()
 
     obstacle_df = factory.get_obstacle_times_with_success()
 
-    feature_matrix = pd.DataFrame()
-    add_mean_hr_to_matrix(feature_matrix)
-    add_crashes_to_matrix(feature_matrix)
+    feature_df = pd.DataFrame()
+    add_mean_hr_to_dataframe(feature_df)
+    add_crashes_to_dataframe(feature_df)
 
     labels = obstacle_df['crash'].copy()
 
-    return feature_matrix, labels
+    return feature_df.as_matrix(), labels.tolist()
 
 
-def add_mean_hr_to_matrix(matrix):
+def add_mean_hr_to_dataframe(dataframe):
     obst_df = obstacle_df.copy()
     mean_hr_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', 'mean_hr']], 1)
     mean_hr_df = []
@@ -32,17 +33,17 @@ def add_mean_hr_to_matrix(matrix):
         corresp_row = mean_hr_resampled[mean_hr_resampled['Time'] <= row['Time']].iloc[-1]
         mean_hr_df.append(corresp_row['mean_hr'])
 
-    matrix['mean_hr'] = mean_hr_df
+    dataframe['mean_hr'] = mean_hr_df
 
-
-def add_crashes_to_matrix(matrix):
+# TODO: Normalize crashes depending on size/assembly of the obstacle
+def add_crashes_to_dataframe(dataframe):
     obst_df = obstacle_df.copy()
     crashes_df = []
     crashes_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', '%crashes']], 1)
     for idx, row in obst_df.iterrows():
         corresp_row = crashes_resampled[crashes_resampled['Time'] <= row['Time']].iloc[-1]
         crashes_df.append(corresp_row['%crashes'])
-    matrix['%crashes'] = crashes_df
+    dataframe['%crashes'] = crashes_df
 
 
 def add_mean_hr_to_df(heartrate_window):

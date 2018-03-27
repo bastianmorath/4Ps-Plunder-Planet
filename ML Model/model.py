@@ -17,19 +17,21 @@
 from __future__ import division  # s.t. division uses float result
 
 from sklearn import svm
-from sklearn.cross_validation import train_test_split  # TODO: use sklearn.cross_val because of Euler
-from sklearn.cross_validation import cross_val_score
+from sklearn.model_selection import train_test_split  # TODO: use sklearn.cross_val because of Euler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
 from sklearn import metrics
 from collections import Counter
 
 import optunity
 import optunity.metrics
 
-import globals_model as gl
+import globals as gl
 import features_factory as f_factory
+import factory
 
-crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
-heartrate_window = 50  # Over how many preceeding seconds should the heartrate be averaged?
+crash_window = 25  # Over how many preceeding seconds should %crashes be calculated?
+heartrate_window = 70  # Over how many preceeding seconds should the heartrate be averaged?
 
 
 # TODO: Look that all methods have a return value instead of them modifying arguments
@@ -41,40 +43,57 @@ heartrate_window = 50  # Over how many preceeding seconds should the heartrate b
     Column 2: mean heartrate over last y seconds
 '''
 print('Init dataframes...')
+print('Crash_window: ' + str(crash_window) + ', Heartrate_window: ' + str(heartrate_window))
 gl.init(True, crash_window, heartrate_window)  # Entire dataframe with features-column
 
 print('Creating feature matrix...')
 (X, y) = f_factory.get_feature_matrix_and_label()
 
 
+'''Preprocess data'''
+print('Preprocessing data...')
+
+scaler = MinMaxScaler(feature_range=(0, 1))
+X = scaler.fit_transform(X)  # Rescale between 0 and 1
+scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
+X = scaler.transform(X)
+
 ''' Apply SVM Model with Cross-Validation
 '''
-c = 0.1
-svc = svm.SVC(kernel='rbf', C=c)
-
-X_train, X_test, y_training, y_testing = train_test_split(
-     X, y, test_size=0.3, random_state=0)
-
-print('Fitting training data...')
-
-# Fit training data
-svc.fit(X_train, y_training)
 
 print('Cross Validation and hyperparameter tuning...')
 
+# Print out cross validation mean score for the chosen model
 
-scores = cross_val_score(svc, X_train, y_training, cv=10)
-print('cross val mean score = ', scores.mean())
-print('cross val std (+/-) = ', scores.std() * 2)
+X_train, X_test, y_train, y_test = train_test_split(
+     X, y, test_size=0.3, random_state=0)
+
+
+@optunity.cross_validated(x=X_train, y=y_train, num_folds=10, num_iter=1)
+def svm_auc(x_train, y_train, x_test, y_test, log_c, log_gamma):
+    model = svm.SVC(C=10 ** log_c, gamma=10 ** log_gamma).fit(x_train, y_train)
+    decision_values = model.decision_function(x_test)
+    return optunity.metrics.roc_auc(y_test, decision_values)
+
+
+# perform tuning
+optimal_rbf_pars, info, _ = optunity.maximize(svm_auc, num_evals=20, log_c=[-20, 0], log_gamma=[-15, 0])
+
+# train model on the full training set with tuned hyperparameters
+optimal_model = svm.SVC(C=10 ** optimal_rbf_pars['log_c'], gamma=10 ** optimal_rbf_pars['log_gamma'], class_weight={0: 1, 1: 3}).fit(X_train, y_train)
+
+optimal_model.fit(X_train, y_train)
+print("Optimal parameters (10e): " + str(optimal_rbf_pars))
+print("AUROC of tuned SVM with RBF kernel: %1.3f" % info.optimum)
 
 # Predict values on test data
-y_test_predicted = svc.predict(X_test)
+y_test_predicted = optimal_model.predict(X_test)
 
 # Print result as %correctly predicted labels
 print('Unique prediction values: ' + str(Counter(y_test_predicted).keys())) # equals to list(set(words))
 print('Number of each unique values predicted: ' + str(Counter(y_test_predicted).values()))  # counts the elements' frequency
 
-percentage = metrics.accuracy_score(y_testing, y_test_predicted)
+percentage = metrics.accuracy_score(y_test, y_test_predicted)
 print('Percentage of correctly classified data: ' + str(percentage))
 
 
