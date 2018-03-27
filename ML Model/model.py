@@ -13,12 +13,13 @@
 
     SVM as the binary classifier and 10-fold Cross-Validation is used
 '''
+
 from __future__ import division  # s.t. division uses float result
 
 from sklearn import svm
-from sklearn.model_selection import KFold
-from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.model_selection import GridSearchCV
+from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import cross_val_score
+from sklearn import metrics
 from collections import Counter
 import globals_model as gl
 import factory_model as factory
@@ -29,6 +30,7 @@ heartrate_window = 50  # Over how many preceeding seconds should the heartrate b
 
 # TODO: Look that all methods have a return value instead of them modifying arguments
 # TODO: Add print logs to log what the program is currently doing
+
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
     Column 1: %Crashes in last x seconds
@@ -44,29 +46,28 @@ df_obstacle = factory.get_obstacle_times_with_success()  # Time of each obstacle
 
 ''' Apply SVM Model with Cross-Validation
 '''
+c = 0.1
+svc = svm.SVC(kernel='rbf', C=c)
 
-kf = KFold(n_splits=5)
-alpha = 1.0
-clf = svm.SVC(C=alpha)
+X_train, X_test, y_train, y_test = train_test_split(
+     X, y, test_size=0.3, random_state=0)
 
-mean = []
-for train, test in kf.split(X):
-    x_training = X.ix[train]
-    y_training = y.ix[train]
-    x_test = X.ix[test]
-    y_test = y.ix[test]
+# Fit training data
+svc.fit(X_train, y_train)
 
-    clf.fit(x_training, y_training)  # Train on 9 bins
-    # TODO: Model always predicts 0/False for all x....
-    y_predicted = clf.predict(x_test)  # Predict on last bin
-    print(Counter(y_predicted).keys())  # equals to list(set(words))
-    print(Counter(y_predicted).values())  # counts the elements' frequency
-    num_corr = len([a for (a, b) in zip(y_test, y_predicted) if a == b])
-    percentage = num_corr / len(y_test) * 100
-    mean.append(percentage)
+# Print out cross validation mean score for the chosen model
+scores = cross_val_score(svc, X_train, y_train, cv=10)
+print('cross val mean score = ', scores.mean())
+print('cross val std (+/-) = ', scores.std() * 2)
 
-print('With alpha=' + str(alpha) + ', the model got ' + str(sum(mean)/len(mean)) +
-      '% right on average.')
+# Predict values on test data
+y_test_predicted = svc.predict(X_test)
 
-'''Test model with 10-fold Cross-Validation
-'''
+# Print result as %correctly predicted labels
+print('Unique prediction values: ' + str(Counter(y_test_predicted).keys())) # equals to list(set(words))
+print('Number of each unique values predicted: ' + str(Counter(y_test_predicted).values()))  # counts the elements' frequency
+
+percentage = metrics.accuracy_score(y_test, y_test_predicted)
+print('Percentage of correctly classified data: ' + str(percentage))
+
+
