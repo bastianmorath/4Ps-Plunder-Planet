@@ -31,6 +31,7 @@ df = []  # Resampled dataframe with feature-columns, concatanated to one single 
 cw = 0  # Stores the size of the crash_window
 hw = 0  # stores the size of the heart_rate window
 
+testing = False  # If Tesing=True, only use a small sample of dataframes to accelerate everything
 
 def init(cache, crash_window, heartrate_window):
     global cw, hw, df, df_total
@@ -40,9 +41,9 @@ def init(cache, crash_window, heartrate_window):
     init_dataframes()
 
     # Store computed dataframe in pickle file for faster processing
-    if cache & os.path.isfile(working_directory_path + '/df.pickle'):
+    if cache & os.path.isfile(working_directory_path + '/Pickle/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
-        df = pd.read_pickle(working_directory_path + '/df.pickle')
+        df = pd.read_pickle(working_directory_path + '/Pickle//df.pickle')
         df_total = pd.concat(df_list, ignore_index=True)
     else:
         print('Dataframe not cached. Creating dataframe...')
@@ -50,10 +51,13 @@ def init(cache, crash_window, heartrate_window):
         df = df_total
         f_factory.add_mean_hr_to_df(heartrate_window)
         f_factory.add_crashes_to_df(crash_window)
+        # TODO: window
+        f_factory.add_max_over_min_hr_to_df(30)
 
-        # Save to .csv for caching
-        df.to_pickle('df.pickle')
+        # Save to .pickle for caching
+        df.to_pickle(working_directory_path + '/Pickle/df.pickle')
         print('Dataframe created')
+
 
 def init_names_logfiles():
     global names_logfiles
@@ -67,6 +71,8 @@ def init_dataframes():
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
     df_list = cut_frames(df_list)  # Cut frames to same length
+    if testing:
+        df_list = df_list[5:6]
     add_log_column(df_list)
     add_timedelta_column(df_list)
 
@@ -86,6 +92,7 @@ def cut_frames(dataframe_list):
 '''For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
 '''
 
+
 def add_timedelta_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):
         new = dataframe['Time'].apply(lambda x: timedelta(seconds=x))
@@ -94,6 +101,7 @@ def add_timedelta_column(dataframe_list):
 
 ''' Add log_number column
 '''
+
 
 def add_log_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):

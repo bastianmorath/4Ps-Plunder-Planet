@@ -2,6 +2,7 @@
 
 from __future__ import division  # s.t. division uses float result
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import globals as gl
 import pandas as pd
@@ -37,7 +38,6 @@ def get_crashes_column(df, crash_window):
     heartrate over the last 'heartrate_window' seconds
 '''
 
-
 def get_mean_heartrate_column(df, heartrate_window):
 
     def df_from_to(_from, _to):
@@ -68,11 +68,20 @@ def resample_dataframe(df, resolution):
 def plot_features(gamma, c, auroc, percentage):
     fig, ax1 = plt.subplots()
     fig.suptitle('%Crashes and mean_hr over last x seconds')
-    # Plot mean_hr
+    '''
+    '# Plot mean_hr
     df = gl.df.sort_values('Time')
     ax1.plot(df['Time'], df['mean_hr'], blue_color)
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate', color=blue_color)
+    ax1.tick_params('y', colors=blue_color)
+    '''
+
+    # Plot max_over_min_hr
+    df = gl.df.sort_values('Time')
+    ax1.plot(df['Time'], df['max_over_min'], blue_color)
+    ax1.set_xlabel('Playing time [s]')
+    ax1.set_ylabel('max_over_min_hr', color=blue_color)
     ax1.tick_params('y', colors=blue_color)
 
     # Plot %crashes
@@ -81,9 +90,10 @@ def plot_features(gamma, c, auroc, percentage):
     ax2.set_ylabel('Crashes [%]', color=red_color)
     ax2.tick_params('y', colors=red_color)
 
+
     ax2.text(0.5, 0.35, 'Crash_window: ' + str(gl.cw),
          transform=ax2.transAxes, fontsize=10)
-    ax2.text(0.5, 0.3, 'Heartrate_window: ' + str(gl.hw),
+    ax2.text(0.5, 0.3, 'Max_over_min window: ' + str(gl.hw),
              transform=ax2.transAxes, fontsize=10)
     ax2.text(0.5, 0.25, 'Best gamma: 10e' + str(round(gamma, 3)),
              transform=ax2.transAxes, fontsize=10)
@@ -95,6 +105,25 @@ def plot_features(gamma, c, auroc, percentage):
              transform=ax2.transAxes, fontsize=10)
 
     plt.savefig(gl.working_directory_path + '/features_plot_'+str(gl.cw) + '_'+str(gl.hw) + '.pdf')
+
+
+'''Plot features and corresponding labels to (hopefully) see patterns
+'''
+
+
+def plot_features_with_labels(X, y):
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    x1 = X[:, 0]
+    x2 = X[:, 1]
+    x3 = X[:, 2]
+    color = ['red' if x else 'green' for x in y]
+    ax.scatter(x1, x2, x3, color=color)
+    ax.set_xlabel('mean_hr [bpm]')
+    ax.set_ylabel('crashes [%]')
+    ax.set_zlabel('max_hr / min_hr')
+    plt.show()
+    plt.savefig(gl.working_directory_path + '/features_label.pdf')
 
 
 ''' Returns a dataframe with the time of each obstacle and whether or not
@@ -128,3 +157,22 @@ def get_obstacle_times_with_success():
     return pd.DataFrame({'Time': times, 'crash': crashes})
 
 
+'''
+    Adds a column at each timestamp that indicates the difference between max and min 
+    hearrate in the last x seconds
+'''
+
+
+def get_max_over_min_column(df, heartrate_window):
+    def df_from_to(_from, _to):
+        mask = (_from < df['Time']) & (df['Time'] <= _to)
+        return df[mask]
+
+    def compute_mean_hr(row):
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - heartrate_window), row['Time'])
+        max_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
+        min_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
+
+        return max_hr / min_hr
+
+    return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)
