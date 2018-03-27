@@ -52,8 +52,8 @@ def add_mean_hr_to_df(heartrate_window):
     if len(df_with_hr.index) == 0:
         print('ERROR: Data has no heartrate! ')
         return
-    gl.df['mean_hr'] = factory.get_mean_heartrate_column(df_with_hr, heartrate_window)
 
+    gl.df['mean_hr'] = factory.get_mean_heartrate_column(gl.df, heartrate_window)
     time2 = time.time()
     print("Time to get mean_hr: " + str(time2 - time1))
 

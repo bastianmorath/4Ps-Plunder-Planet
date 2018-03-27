@@ -7,7 +7,6 @@ import numpy as np
 from datetime import timedelta
 
 import features_factory as f_factory
-import globals_model as gl
 
 file_expressions = [r'.{0,}.log',
                     r'.{0,}Flitz.{0,}.log',
@@ -31,9 +30,9 @@ def init(cache, crash_window, heartrate_window):
     global df, df_total
     init_dataframes()
 
-    if cache & os.path.isfile(working_directory_path + '/df.csv'):
+    if cache & os.path.isfile(working_directory_path + '/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
-        df = pd.read_csv(working_directory_path + '/df.csv', index_col=0)
+        df = pd.read_pickle(working_directory_path + '/df.pickle')
         df_total = pd.concat(df_list, ignore_index=True)
     else:
         print('Dataframe not cached. Creating dataframe...')
@@ -43,11 +42,8 @@ def init(cache, crash_window, heartrate_window):
         f_factory.add_crashes_to_df(crash_window)
 
         # Save to .csv for caching
-        df.to_csv('df.csv', index=True, header=True)
+        df.to_pickle('df.pickle')
         print('Dataframe created')
-    df = df.reset_index(drop=True)
-    df_total = df_total.reset_index(drop=True)
-
 
 def init_names_logfiles():
     global names_logfiles

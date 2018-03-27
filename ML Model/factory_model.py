@@ -57,7 +57,7 @@ def get_mean_heartrate_column(df, heartrate_window):
 
 
 def resample_dataframe(df, resolution):
-    df.set_index('timedelta', inplace=True)  # set timedelta as new index
+    df = df.set_index('timedelta', drop=True)  # set timedelta as new index
     return df.resample(str(resolution)+'S').mean()  # Resample series'
 
 

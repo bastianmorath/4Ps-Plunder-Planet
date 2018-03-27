@@ -21,6 +21,10 @@ from sklearn.cross_validation import train_test_split  # TODO: use sklearn.cross
 from sklearn.cross_validation import cross_val_score
 from sklearn import metrics
 from collections import Counter
+
+import optunity
+import optunity.metrics
+
 import globals_model as gl
 import features_factory as f_factory
 
@@ -36,9 +40,10 @@ heartrate_window = 50  # Over how many preceeding seconds should the heartrate b
     Column 1: %Crashes in last x seconds
     Column 2: mean heartrate over last y seconds
 '''
+print('Init dataframes...')
+gl.init(True, crash_window, heartrate_window)  # Entire dataframe with features-column
 
-gl.init(False, crash_window, heartrate_window)  # Entire dataframe with features-column
-
+print('Creating feature matrix...')
 (X, y) = f_factory.get_feature_matrix_and_label()
 
 
@@ -47,14 +52,18 @@ gl.init(False, crash_window, heartrate_window)  # Entire dataframe with features
 c = 0.1
 svc = svm.SVC(kernel='rbf', C=c)
 
-X_train, X_test, y_train, y_test = train_test_split(
+X_train, X_test, y_training, y_testing = train_test_split(
      X, y, test_size=0.3, random_state=0)
 
-# Fit training data
-svc.fit(X_train, y_train)
+print('Fitting training data...')
 
-# Print out cross validation mean score for the chosen model
-scores = cross_val_score(svc, X_train, y_train, cv=10)
+# Fit training data
+svc.fit(X_train, y_training)
+
+print('Cross Validation and hyperparameter tuning...')
+
+
+scores = cross_val_score(svc, X_train, y_training, cv=10)
 print('cross val mean score = ', scores.mean())
 print('cross val std (+/-) = ', scores.std() * 2)
 
@@ -65,7 +74,7 @@ y_test_predicted = svc.predict(X_test)
 print('Unique prediction values: ' + str(Counter(y_test_predicted).keys())) # equals to list(set(words))
 print('Number of each unique values predicted: ' + str(Counter(y_test_predicted).values()))  # counts the elements' frequency
 
-percentage = metrics.accuracy_score(y_test, y_test_predicted)
+percentage = metrics.accuracy_score(y_testing, y_test_predicted)
 print('Percentage of correctly classified data: ' + str(percentage))
 
 
