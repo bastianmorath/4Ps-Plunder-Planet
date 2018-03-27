@@ -12,7 +12,6 @@ obstacle_df = []
 
 def get_feature_matrix_and_label():
     global obstacle_df
-    factory.plot_features()
 
     obstacle_df = factory.get_obstacle_times_with_success()
 
@@ -56,7 +55,7 @@ def add_mean_hr_to_df(heartrate_window):
 
     gl.df['mean_hr'] = factory.get_mean_heartrate_column(gl.df, heartrate_window)
     time2 = time.time()
-    print("Time to get mean_hr: " + str(time2 - time1))
+    # print("Time to get mean_hr: " + str(time2 - time1))
 
 
 def add_crashes_to_df(crash_window):
@@ -66,4 +65,4 @@ def add_crashes_to_df(crash_window):
     gl.df['%crashes'] = factory.get_crashes_column(gl.df, crash_window)
 
     time2 = time.time()
-    print("Time to get %crashes: " + str(time2 - time1))
+    # print("Time to get %crashes: " + str(time2 - time1))

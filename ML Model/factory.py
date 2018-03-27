@@ -65,7 +65,7 @@ def resample_dataframe(df, resolution):
 '''
 
 
-def plot_features():
+def plot_features(gamma, c, auroc, percentage):
     fig, ax1 = plt.subplots()
     fig.suptitle('%Crashes and mean_hr over last x seconds')
     # Plot mean_hr
@@ -81,10 +81,18 @@ def plot_features():
     ax2.set_ylabel('Crashes [%]', color=red_color)
     ax2.tick_params('y', colors=red_color)
 
-    ax2.text(0.6, 0.2, 'Crash_window: ' + str(gl.cw),
-         transform=ax2.transAxes)
-    ax2.text(0.6, 0.1, 'Heartrate_window: ' + str(gl.hw),
-             transform=ax2.transAxes)
+    ax2.text(0.5, 0.35, 'Crash_window: ' + str(gl.cw),
+         transform=ax2.transAxes, fontsize=10)
+    ax2.text(0.5, 0.3, 'Heartrate_window: ' + str(gl.hw),
+             transform=ax2.transAxes, fontsize=10)
+    ax2.text(0.5, 0.25, 'Best gamma: 10e' + str(round(gamma, 3)),
+             transform=ax2.transAxes, fontsize=10)
+    ax2.text(0.5, 0.2, 'Best c: 10e' + str(round(c, 3)),
+             transform=ax2.transAxes, fontsize=10)
+    ax2.text(0.5, 0.15, 'Auroc: ' + str(round(auroc, 3)),
+             transform=ax2.transAxes, fontsize=10)
+    ax2.text(0.5, 0.1, 'Correctly predicted: ' + str(round(percentage, 2)),
+             transform=ax2.transAxes, fontsize=10)
 
     plt.savefig(gl.working_directory_path + '/features_plot_'+str(gl.cw) + '_'+str(gl.hw) + '.pdf')
 

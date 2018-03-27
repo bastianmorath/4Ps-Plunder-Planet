@@ -14,6 +14,9 @@ file_expressions = [r'.{0,}.log',
                     ]
 
 
+# TODO: Look that all methods have a return value instead of them modifying arguments
+# TODO: Add print logs to log what the program is currently doing
+
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
 
@@ -25,17 +28,18 @@ df_list = []  # List with all dataframes; 1 dataframe per logfile
 df_total = []  # All dataframes, concatanated to one single dataframe (without features as columns)
 df = []  # Resampled dataframe with feature-columns, concatanated to one single dataframe
 
-cw = 0
-hw = 0
+cw = 0  # Stores the size of the crash_window
+hw = 0  # stores the size of the heart_rate window
 
 
 def init(cache, crash_window, heartrate_window):
-    global cw, hw
+    global cw, hw, df, df_total
     cw = crash_window
     hw = heartrate_window
-    global df, df_total
+
     init_dataframes()
 
+    # Store computed dataframe in pickle file for faster processing
     if cache & os.path.isfile(working_directory_path + '/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
         df = pd.read_pickle(working_directory_path + '/df.pickle')
