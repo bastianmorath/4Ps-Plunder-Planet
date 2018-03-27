@@ -1,14 +1,13 @@
 
 import os
 import re
-import time
 
 import pandas as pd
 import numpy as np
 from datetime import timedelta
 
-import factory_model as factory
-
+import features_factory as f_factory
+import globals_model as gl
 
 file_expressions = [r'.{0,}.log',
                     r'.{0,}Flitz.{0,}.log',
@@ -23,30 +22,31 @@ abs_path_logfiles = project_path + '/Logs/text_logs'
 names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile
-df_total = []  # All dataframes, concatanated to one single dataframe
+
+df_total = []  # All dataframes, concatanated to one single dataframe (without features as columns)
 df = []  # Resampled dataframe with feature-columns, concatanated to one single dataframe
 
 
-def init(crash_window, heartrate_window):
+def init(cache, crash_window, heartrate_window):
     global df, df_total
     init_dataframes()
 
-    if os.path.isfile(working_directory_path + '/df.csv'):
+    if cache & os.path.isfile(working_directory_path + '/df.csv'):
         print('Dataframe already cached. Used this file to improve performance')
         df = pd.read_csv(working_directory_path + '/df.csv', index_col=0)
         df_total = pd.concat(df_list, ignore_index=True)
     else:
         print('Dataframe not cached. Creating dataframe...')
         df_total = pd.concat(df_list, ignore_index=True)
-        df = add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window)
+        df = df_total
+        f_factory.add_mean_hr_to_df(heartrate_window)
+        f_factory.add_crashes_to_df(crash_window)
 
         # Save to .csv for caching
         df.to_csv('df.csv', index=True, header=True)
         print('Dataframe created')
-
-    df.reset_index(inplace=True)
-    df_total.reset_index(inplace=True)
-    return df
+    df = df.reset_index(drop=True)
+    df_total = df_total.reset_index(drop=True)
 
 
 def init_names_logfiles():
@@ -80,16 +80,14 @@ def cut_frames(dataframe_list):
 '''For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
 '''
 
-
 def add_timedelta_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):
         new = dataframe['Time'].apply(lambda x: timedelta(seconds=x))
         dataframe_list[idx] = dataframe_list[idx].assign(timedelta=new)
 
 
-''' Add user_id and round (1 or 2) as extra column
+''' Add log_number column
 '''
-
 
 def add_log_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):
@@ -97,28 +95,4 @@ def add_log_column(dataframe_list):
         dataframe_list[idx] = dataframe_list[idx].assign(userID=new)
 
 
-def add_mean_hr_and_crashes_columns_resampled(crash_window, heartrate_window):
-    dataframe = df_total
 
-    # Add timedelta=0.0 row s.t. resampling starts at 0 seconds
-    []
-
-    time1 = time.time()
-
-    # Compute mean_hr over last 'heart_window' seconds
-    df_with_hr = dataframe[dataframe['Heartrate'] != -1]
-
-    df_with_hr['mean_hr'] = factory.get_mean_heartrate_column(df_with_hr, heartrate_window)
-    mean_hr_resampled_column = factory.resample_dataframe(df_with_hr, 1)['mean_hr']
-
-    time2 = time.time()
-    print("Time to get mean_hr: " + str(time2 - time1))
-
-    # Compute %crashes over last 'crash_window' seconds
-    dataframe['%crashes'] = factory.get_crashes_column(dataframe, crash_window)
-    df_resampled = factory.resample_dataframe(dataframe, 1)
-    time3 = time.time()
-    print("Time to get %crashes: " + str(time3 - time2))
-
-    df_resampled['mean_hr'] = mean_hr_resampled_column
-    return df_resampled

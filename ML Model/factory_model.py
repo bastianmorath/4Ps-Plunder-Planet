@@ -115,22 +115,3 @@ def get_obstacle_times_with_success():
     return pd.DataFrame({'Time': times, 'crash': crashes})
 
 
-''' For each obstacle, add mean_hr, %crashes in the past x seconds
-
-'''
-
-
-def get_feature_matrix_and_label(obstacle_df, dataframe):
-    # For each timestamp, add already calculated mean_hr and %crashes
-    mean_hr_df = []
-    crashes_df = []
-    df = obstacle_df.copy()
-    for idx, row in df.iterrows():
-        corresp_row = dataframe[dataframe['Time'] <= row['Time']].iloc[-1]
-        mean_hr_df.append(corresp_row['mean_hr'])
-        crashes_df.append(corresp_row['%crashes'])
-
-    df.drop(['crash', 'Time'], axis=1, inplace=True)
-    df['mean_hr'] = mean_hr_df
-    df['crashes'] = crashes_df
-    return df, obstacle_df['crash'].copy()

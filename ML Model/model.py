@@ -17,12 +17,12 @@
 from __future__ import division  # s.t. division uses float result
 
 from sklearn import svm
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split  # TODO: use sklearn.cross_val because of Euler
 from sklearn.cross_validation import cross_val_score
 from sklearn import metrics
 from collections import Counter
 import globals_model as gl
-import factory_model as factory
+import features_factory as f_factory
 
 crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
 heartrate_window = 50  # Over how many preceeding seconds should the heartrate be averaged?
@@ -37,11 +37,9 @@ heartrate_window = 50  # Over how many preceeding seconds should the heartrate b
     Column 2: mean heartrate over last y seconds
 '''
 
-df = gl.init(crash_window, heartrate_window)  # Entire dataframe with features-column
+gl.init(False, crash_window, heartrate_window)  # Entire dataframe with features-column
 
-df_obstacle = factory.get_obstacle_times_with_success()  # Time of each obstacle and whether user crashed or not
-
-(X, y) = factory.get_feature_matrix_and_label(df_obstacle, df)
+(X, y) = f_factory.get_feature_matrix_and_label()
 
 
 ''' Apply SVM Model with Cross-Validation
