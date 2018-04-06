@@ -19,7 +19,7 @@ class SVM_Model(AbstractMLModelClass):
             return optunity.metrics.roc_auc(y_test, decision_values)
 
         # perform tuning
-        optimal_rbf_pars, info, _ = optunity.maximize(svm_auc, num_evals=1, log_c=[-20, 0], log_gamma=[-15, 0])
+        optimal_rbf_pars, info, _ = optunity.maximize(svm_auc, num_evals=10, log_c=[-20, 0], log_gamma=[-15, 0])
 
         # train model on the full training set with tuned hyperparameters
         self.model = svm.SVC(C=10 ** optimal_rbf_pars['log_c'], gamma=10 ** optimal_rbf_pars['log_gamma'],

@@ -34,6 +34,7 @@ def get_feature_matrix_and_label():
         add_mean_hr_to_dataframe(matrix)
         add_crashes_to_dataframe(matrix)
         add_max_over_min_hr_to_dataframe(matrix)
+        print(matrix)
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
 
     labels = obstacle_df['crash'].copy()

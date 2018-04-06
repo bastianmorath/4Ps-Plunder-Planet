@@ -26,7 +26,7 @@ from collections import Counter
 
 import globals as gl
 import features_factory as f_factory
-import factory
+import plots
 
 import SVM_model
 
@@ -36,6 +36,7 @@ test_data = False
 crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
 heartrate_window = 60  # Over how many preceeding seconds should the heartrate be averaged?
 
+# NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
@@ -54,7 +55,8 @@ else:
 print('Creating feature matrix...')
 
 (X, y) = f_factory.get_feature_matrix_and_label()
-factory.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise...)
+plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise...)
+plots.plot_feature_distributions(X, y)
 
 
 '''Preprocess data
@@ -84,7 +86,9 @@ model = SVM_model.SVM_Model(X_train, y_train)
 y_test_predicted = model.predict(X_test)
 
 # Print result as %correctly predicted labels
-print('Unique prediction values: ' + str(Counter(y_test_predicted).keys())) # equals to list(set(words))
+print('Uniquely predicted values: ' + str(Counter(y_test_predicted).keys()))
+
+print('roc-auc-score: ' + str(metrics.roc_auc_score(y_test, y_test_predicted)))
 
 percentage = metrics.accuracy_score(y_test, y_test_predicted)
 print('Percentage of correctly classified data: ' + str(percentage))

@@ -7,6 +7,7 @@ import numpy as np
 from datetime import timedelta
 
 import features_factory as f_factory
+import plots
 
 file_expressions = [r'.{0,}.log',
                     r'.{0,}Flitz.{0,}.log',
@@ -54,7 +55,6 @@ def init(cache, crash_window, heartrate_window):
         f_factory.add_crashes_to_df(crash_window)
         # TODO: window
         f_factory.add_max_over_min_hr_to_df(30)
-
         # Save to .pickle for caching
         df.to_pickle(working_directory_path + '/Pickle/df.pickle')
         print('Dataframe created')
@@ -98,11 +98,15 @@ def init_dataframes():
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
-    df_list = cut_frames(df_list)  # Cut frames to same length
     if testing:
         df_list = df_list[5:6]
+    df_list = cut_frames(df_list)  # Cut frames to same length
+    df_list = normalize_heartrate(df_list)  # Normalize heartrate
+
     add_log_column(df_list)
     add_timedelta_column(df_list)
+    plots.plot_hr_of_dataframes()
+
 
 
 '''Cuts dataframes to the same length, namely to the shortest of the dataframes in the list
@@ -115,6 +119,18 @@ def cut_frames(dataframe_list):
     for dataframe in dataframe_list:
         cutted_df_list.append(dataframe[dataframe['Time'] < min_time])
     return cutted_df_list
+
+
+'''Normalize heartrate of each dataframe/user by subtracting baseline (first 10 seconds of log)
+'''
+
+def normalize_heartrate(dataframe_list):
+    normalized_df_list = []
+    for dataframe in dataframe_list:
+        mean = dataframe['Heartrate'].mean()
+        dataframe['Heartrate'] = dataframe['Heartrate'] / mean
+        normalized_df_list.append(dataframe)
+    return normalized_df_list
 
 
 '''For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
@@ -133,7 +149,7 @@ def add_timedelta_column(dataframe_list):
 
 def add_log_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):
-        new = np.full((len(dataframe.index),1), int(np.floor(idx/2)))
+        new = np.full((len(dataframe.index), 1), int(np.floor(idx/2)))
         dataframe_list[idx] = dataframe_list[idx].assign(userID=new)
 
 
