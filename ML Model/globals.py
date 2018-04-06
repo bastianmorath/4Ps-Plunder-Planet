@@ -31,7 +31,8 @@ df = []  # Resampled dataframe with feature-columns, concatanated to one single 
 cw = 0  # Stores the size of the crash_window
 hw = 0  # stores the size of the heart_rate window
 
-testing = False  # If Tesing=True, only use a small sample of dataframes to accelerate everything
+testing = False  # If Testing=True, only use a small sample of dataframes is used  to accelerate everything
+
 
 def init(cache, crash_window, heartrate_window):
     global cw, hw, df, df_total

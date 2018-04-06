@@ -123,7 +123,7 @@ def plot_features_with_labels(X, y):
     ax.set_ylabel('max_over_min')
     # ax.set_zlabel('max_hr / min_hr')
     # plt.show()
-    plt.savefig(gl.working_directory_path + '/features_label_crashes__max_over_min.pdf')
+    plt.savefig(gl.working_directory_path + '/Plots//features_label_crashes__max_over_min.pdf')
 
 
 ''' Returns a dataframe with the time of each obstacle and whether or not
