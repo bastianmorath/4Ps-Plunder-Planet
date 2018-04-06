@@ -23,6 +23,7 @@ dataframes = []
 conc_dataframes = []
 conc_dataframes_with_hr = []
 
+
 def init():
     global conc_dataframes
     global conc_dataframes_with_hr
@@ -33,6 +34,7 @@ def init():
     conc_dataframes = pd.concat(dataframes, ignore_index=True)
     cut_frames() # Cut frames to same length
     conc_dataframes_with_hr = conc_dataframes[conc_dataframes['Heartrate']!=-1]
+
 
 ''' I differentiate between log data that:
         - is from FBMC

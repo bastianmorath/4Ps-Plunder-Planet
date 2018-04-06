@@ -1,14 +1,15 @@
-'''Plots the mean_hr and %crashes that were calulated for the last x seconds for each each second
-'''
+"""Plots the mean_hr and %crashes that were calulated for the last x seconds for each each second"""
 
 import matplotlib.pyplot as plt
 
-import globals as gl
 import factory
+import globals as gl
+
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
 red_color = '#A62A2A'
+
 
 def plot_features(gamma, c, auroc, percentage):
     fig, ax1 = plt.subplots()
@@ -23,7 +24,7 @@ def plot_features(gamma, c, auroc, percentage):
 
     '''
     # Plot max_over_min_hr
-    df = gl.df.sort_values('Time')
+    df = setup.df.sort_values('Time')
     ax1.plot(df['Time'], df['max_over_min'], blue_color)
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('max_over_min_hr', color=blue_color)
@@ -49,11 +50,10 @@ def plot_features(gamma, c, auroc, percentage):
     ax2.text(0.5, 0.1, 'Correctly predicted: ' + str(round(percentage, 2)),
              transform=ax2.transAxes, fontsize=10)
 
-    plt.savefig(gl.working_directory_path + '/features_plot_'+str(gl.cw) + '_'+str(gl.hw) + '.pdf')
+    plt.savefig(gl.working_directory_path + '/features_plot_'+ str(gl.cw) + '_'+ str(gl.hw) + '.pdf')
 
 
-'''Plot features and corresponding labels to (hopefully) see patterns
-'''
+'''Plot features and corresponding labels to (hopefully) see patterns'''
 
 
 def plot_features_with_labels(X, y):
@@ -84,8 +84,8 @@ def plot_features_with_labels(X, y):
     ax3.set_ylabel('crashes [%]')
     plt.savefig(gl.working_directory_path + '/Plots/features_label_mean_hr__crashes.pdf')
 
-'''Plots the ditribution of the features
-'''
+
+'''Plots the ditribution of the features'''
 
 
 def plot_feature_distributions(X, y):
@@ -107,6 +107,10 @@ def plot_feature_distributions(X, y):
 
     plt.tight_layout()
     plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
+
+
+'''Plots heartrate of all dataframes (Used to compare normaiized hr to original hr)'''
+
 
 def plot_hr_of_dataframes():
     resolution=5

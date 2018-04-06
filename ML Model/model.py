@@ -23,8 +23,7 @@ from sklearn import metrics
 from collections import Counter
 
 
-
-import globals as gl
+import setup
 import features_factory as f_factory
 import plots
 
@@ -48,14 +47,14 @@ print('Init dataframes...')
 print('Crash_window: ' + str(crash_window) + ', Heartrate_window: ' + str(heartrate_window))
 
 if test_data:
-    gl.init_with_testdata(crash_window, heartrate_window)
+    setup.init_with_testdata(crash_window, heartrate_window)
 else:
-    gl.init(True, crash_window, heartrate_window)  # Entire dataframe with features-column
+    setup.setup(True, crash_window, heartrate_window)  # Entire dataframe with features-column
 
 print('Creating feature matrix...')
 
 (X, y) = f_factory.get_feature_matrix_and_label()
-plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise...)
+# plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 plots.plot_feature_distributions(X, y)
 
 
@@ -73,7 +72,6 @@ X = scaler.transform(X)
 ''' Apply SVM Model with Cross-Validation
 '''
 
-
 print('Cross Validation and hyperparameter tuning...')
 
 
@@ -81,6 +79,7 @@ X_train, X_test, y_train, y_test = train_test_split(
              X, y, test_size=0.3, random_state=0)
 
 model = SVM_model.SVM_Model(X_train, y_train)
+
 
 # Predict values on test data
 y_test_predicted = model.predict(X_test)

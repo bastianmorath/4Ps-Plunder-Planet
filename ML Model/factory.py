@@ -8,44 +8,6 @@ import pandas as pd
 import numpy as np
 
 
-'''
-    Adds a column at each timestamp that indicates the %Crashes 
-    the user did in the last 'window_size' seconds
-'''
-
-
-def get_crashes_column(df, crash_window):
-    def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] <= _to)
-        return df[mask]
-
-    def compute_crashes(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time']-crash_window), row['Time'])
-        num_obstacles = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE'].index)
-        num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
-        return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
-
-    return df[['Time', 'Logtype']].apply(compute_crashes, axis=1)
-
-
-'''
-    Adds a column at each timestamp that indicates the mean
-    heartrate over the last 'heartrate_window' seconds
-'''
-
-def get_mean_heartrate_column(df, heartrate_window):
-
-    def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] <= _to)
-        return df[mask]
-
-    def compute_mean_hr(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - heartrate_window), row['Time'])
-        return last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
-
-    return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)
-
-
 '''Resamples a dataframe with a sampling frquency of 'resolution'
     -> Smoothes the plots
 '''
@@ -56,30 +18,27 @@ def resample_dataframe(df, resolution):
     return df.resample(str(resolution)+'S').mean()  # Resample series'
 
 
-
 ''' Returns a dataframe with the time of each obstacle and whether or not
     the user crashed into it or not
 '''
 
 
 def get_obstacle_times_with_success():
-    df = gl.df_total
 
     obstacle_time_crash = []
 
-    ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event
-    '''
+    ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
     def is_a_crash(index):
         count = 1
         while True:
-            logtype = df.iloc[index-count]['Logtype']
+            logtype = gl.df_without_features.iloc[index-count]['Logtype']
             if logtype == 'EVENT_OBSTACLE':
                 return 0
             if logtype == 'EVENT_CRASH':
                 return 1
             count += 1
 
-    for idx, row in df.iterrows():
+    for idx, row in gl.df_without_features.iterrows():
         if row['Logtype'] == 'EVENT_OBSTACLE':
             obstacle_time_crash.append((row['Time'], is_a_crash(idx)))
 
@@ -88,23 +47,5 @@ def get_obstacle_times_with_success():
     return pd.DataFrame({'Time': times, 'crash': crashes})
 
 
-'''
-    Adds a column at each timestamp that indicates the difference between max and min 
-    hearrate in the last x seconds
-'''
 
-
-def get_max_over_min_column(df, heartrate_window):
-    def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] <= _to)
-        return df[mask]
-
-    def compute_mean_hr(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - heartrate_window), row['Time'])
-        max_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
-        min_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
-
-        return max_hr / min_hr
-
-    return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)
 

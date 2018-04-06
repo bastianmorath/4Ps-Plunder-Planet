@@ -10,7 +10,6 @@ from Model_interface import AbstractMLModelClass
 class SVM_Model(AbstractMLModelClass):
 
     def __init__(self, X_train, y_train):
-
         # TODO: Other metrics, e.g. precision
         @optunity.cross_validated(x=X_train, y=y_train, num_folds=10, num_iter=1)
         def svm_auc(x_train, y_train, x_test, y_test, log_c, log_gamma):
@@ -29,7 +28,6 @@ class SVM_Model(AbstractMLModelClass):
 
         print("Optimal parameters (10e): " + str(optimal_rbf_pars))
         print("AUROC of tuned SVM with RBF kernel: %1.3f" % info.optimum)
-
 
     def predict(self, x_test):
         return self.model.predict(x_test)
