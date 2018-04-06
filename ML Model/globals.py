@@ -31,7 +31,7 @@ df = []  # Resampled dataframe with feature-columns, concatanated to one single 
 cw = 0  # Stores the size of the crash_window
 hw = 0  # stores the size of the heart_rate window
 
-testing = False  # If Testing=True, only use a small sample of dataframes is used  to accelerate everything
+testing = True  # If Testing=True, only  a small sample of dataframes is used  to accelerate everything
 
 
 def init(cache, crash_window, heartrate_window):
@@ -60,14 +60,41 @@ def init(cache, crash_window, heartrate_window):
         print('Dataframe created')
 
 
-def init_names_logfiles():
-    global names_logfiles
-    names_logfiles = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(file_expressions[1], f)]
+''' Inits the dataframes not from the logfiles, but with synthesized data
+'''
+'''
+def init_with_testdata(crash_window, heartrate_window):
+    global cw, hw, df, df_total
+    cw = crash_window
+    hw = heartrate_window
+    num_dataframes = 10 # How many dataframes should be created?
+    mean_hr = 120 # Mean of normal distribution of heartrate
+    for i in  range(1, num_dataframes):
+        times = [1,2,3,4,5,6]
+        logtypes =  ['EVENT_OBSTACLE', 'EVENT_CRASH',  'EVENT_CRASH', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_OBSTACLE']
+        heartrates =  [378, 155, 77, 973, 973, 973]
+        timedeltas = [timedelta(seconds =1), timedelta(seconds =2), timedelta(seconds =3), timedelta(seconds =4), timedelta(seconds =5), timedelta(seconds =6)]
+        dataframe = pd.DataFrame(data = {'Time': times, 'Logtype' : logtypes, 'Heartrate' : heartrates, 'timedelta': timedeltas})
+        df_list.append(dataframe)
+
+    df_total = pd.concat(df_list, ignore_index=True)
+    df = df_total
+
+    f_factory.add_mean_hr_to_df(heartrate_window)
+    f_factory.add_crashes_to_df(crash_window)
+    # TODO: window
+    f_factory.add_max_over_min_hr_to_df(30)
+    print(df)
+
+'''
+'''Reads the logfiles and parses them into Pandas dataframes. 
+    Also adds additional log&timedelta column and cuts them to the same length
+'''
 
 
 def init_dataframes():
-    global df_list
-    init_names_logfiles()
+    global df_list, names_logfiles
+    names_logfiles = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(file_expressions[1], f)]
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
@@ -108,6 +135,5 @@ def add_log_column(dataframe_list):
     for idx, dataframe in enumerate(dataframe_list):
         new = np.full((len(dataframe.index),1), int(np.floor(idx/2)))
         dataframe_list[idx] = dataframe_list[idx].assign(userID=new)
-
 
 

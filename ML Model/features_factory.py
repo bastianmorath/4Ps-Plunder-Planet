@@ -3,6 +3,15 @@ import os
 
 import factory as factory
 import globals as gl
+
+'''Current features:
+    1. Mean_hr over last x seconds
+    2. % of crashes in the last x seconds
+    3. Max over min heartrate in last x seconds
+'''
+
+
+
 ''' For each obstacle, add mean_hr, %crashes in the past x seconds
 
 '''
