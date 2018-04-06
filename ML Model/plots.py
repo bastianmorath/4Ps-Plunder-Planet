@@ -115,7 +115,7 @@ def plot_feature_distributions(X, y):
 def plot_hr_of_dataframes():
     resolution=5
     for idx, df in enumerate(gl.df_list):
-        if not (df['Heartrate'] == 1).all():
+        if not (df['Heartrate'] == -1).all():
             X = []
             X.append(idx)
             df_num_resampled = factory.resample_dataframe(df, resolution)

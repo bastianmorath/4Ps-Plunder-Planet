@@ -31,10 +31,9 @@ import SVM_model
 
 test_data = False
 
-
 crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
 heartrate_window = 60  # Over how many preceeding seconds should the heartrate be averaged?
-
+import globals as gl
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
 ''' Get data and create feature matrix and labels
@@ -44,19 +43,16 @@ heartrate_window = 60  # Over how many preceeding seconds should the heartrate b
 '''
 
 print('Init dataframes...')
-print('Crash_window: ' + str(crash_window) + ', Heartrate_window: ' + str(heartrate_window))
 
 if test_data:
     setup.init_with_testdata(crash_window, heartrate_window)
 else:
-    setup.setup(True, crash_window, heartrate_window)  # Entire dataframe with features-column
-
+    setup.setup(crash_window, heartrate_window)  # Entire dataframe with features-column
+plots.plot_hr_of_dataframes()
 print('Creating feature matrix...')
-
 (X, y) = f_factory.get_feature_matrix_and_label()
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 plots.plot_feature_distributions(X, y)
-
 
 '''Preprocess data
 '''

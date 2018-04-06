@@ -16,14 +16,14 @@ file_expressions = [r'.{0,}.log',
                     ]
 
 
-def setup(use_cache, crash_window, heartrate_window):
+def setup(crash_window, heartrate_window):
     gl.cw = crash_window
     gl.hw = heartrate_window
 
     read_and_prepare_logs()
 
     # Store computed dataframe in pickle file for faster processing
-    if use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df.pickle'):
+    if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
         gl.df = pd.read_pickle(gl.working_directory_path + '/Pickle/df.pickle')
         gl.obstacle_df = pd.read_pickle(gl.working_directory_path + '/Pickle//obstacle_df.pickle')
@@ -77,13 +77,12 @@ def read_and_prepare_logs():
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
     if gl.testing:
-        gl.df_list = gl.df_list[5:6]
+        gl.df_list = gl.df_list[5:13]
     cut_frames()  # Cut frames to same length
     normalize_heartrate()  # Normalize heartrate
     add_log_column()
     add_timedelta_column()
     gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
-    # plots.plot_hr_of_dataframes()
 
 
 """The following methods add additional columns to all dataframes in the gl.df_list"""
@@ -100,15 +99,21 @@ def cut_frames():
     gl.df_list = cutted_df_list
 
 
-'''Normalize heartrate of each dataframe/user by subtracting baseline (first 10 seconds of log)'''
+'''Normalize heartrate of each dataframe/user by dividing by mean of first 60 seconds
+'''
 
 
 def normalize_heartrate():
     normalized_df_list = []
     for dataframe in gl.df_list:
-        mean = dataframe['Heartrate'].mean()
-        dataframe['Heartrate'] = dataframe['Heartrate'] / mean
-        normalized_df_list.append(dataframe)
+        if not (dataframe['Heartrate'] == -1).all():
+            baseline = dataframe[dataframe['Time'] < 60]['Heartrate'].mean()
+            # dataframe['Heartrate'] = dataframe['Heartrate'] - baseline + 123.93  # add mean over all heartrates
+            dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
+            normalized_df_list.append(dataframe)
+        else:
+            normalized_df_list.append(dataframe)
+
     gl.df_list = normalized_df_list
 
 

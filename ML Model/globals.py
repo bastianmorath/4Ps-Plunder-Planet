@@ -6,6 +6,7 @@ cw = 0  # Stores the size of the crash_window
 hw = 0  # stores the size of the heart_rate window
 
 testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
+use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
