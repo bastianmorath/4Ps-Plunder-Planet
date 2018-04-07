@@ -64,7 +64,6 @@ def add_crashes_to_dataframe(matrix):
     for idx, row in gl.obstacle_df.iterrows():
         corresp_row = crashes_resampled[crashes_resampled['Time'] <= row['Time']].iloc[-1]
         crashes_df.append(corresp_row['%crashes'])
-
     matrix['%crashes'] = crashes_df
 
 

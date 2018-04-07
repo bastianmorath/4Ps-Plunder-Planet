@@ -15,7 +15,11 @@ import numpy as np
 
 def resample_dataframe(df, resolution):
     df = df.set_index('timedelta', drop=True)  # set timedelta as new index
-    return df.resample(str(resolution)+'S').mean()  # Resample series'
+    resampled = df.resample(str(resolution)+'S').mean()
+    resampled.reset_index(inplace=True)
+    # timedelta was resampled, so we need to do the same with the Time-column
+    resampled['Time'] = resampled['timedelta'].apply(lambda time: time.total_seconds())
+    return resampled
 
 
 ''' Returns a dataframe with the time of each obstacle and whether or not

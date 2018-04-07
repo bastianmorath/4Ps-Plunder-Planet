@@ -53,7 +53,8 @@ print('Creating feature matrix...')
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 # plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X, y)
-
+print(X)
+print(y)
 
 '''Preprocess data'''
 
