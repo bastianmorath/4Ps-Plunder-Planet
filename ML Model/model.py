@@ -1,5 +1,5 @@
 
-'''This is a first implementation of a ML model to predict the performance
+"""This is a first implementation of a ML model to predict the performance
     of the player.
     In particular, the model will predict whether or not the user is going to
     crash into the next obstacle.
@@ -11,29 +11,25 @@
         - Crystals (later...)
         - %Points change
 
-
-'''
+"""
 
 from __future__ import division  # s.t. division uses float result
 
 from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
 from sklearn import metrics
 from collections import Counter
 
+import numpy as np
 
 import setup
-import features_factory as f_factory
 import plots
-
 import SVM_model
-
-test_data = False
-
-crash_window = 30  # Over how many preceeding seconds should %crashes be calculated?
-heartrate_window = 60  # Over how many preceeding seconds should the heartrate be averaged?
+import test_data
 import globals as gl
+import features_factory as f_factory
+
+
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
 ''' Get data and create feature matrix and labels
@@ -44,18 +40,22 @@ import globals as gl
 
 print('Init dataframes...')
 
-if test_data:
-    setup.init_with_testdata(crash_window, heartrate_window)
+if gl.test_data:
+    test_data.init_with_testdata()
 else:
-    setup.setup(crash_window, heartrate_window)  # Entire dataframe with features-column
-plots.plot_hr_of_dataframes()
+    setup.setup()
+    # plots.plot_hr_of_dataframes()
+
+
 print('Creating feature matrix...')
+
 (X, y) = f_factory.get_feature_matrix_and_label()
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
+# plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X, y)
 
-'''Preprocess data
-'''
+
+'''Preprocess data'''
 
 print('Preprocessing data...')
 
@@ -65,16 +65,15 @@ scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distributi
 X = scaler.transform(X)
 
 
-''' Apply SVM Model with Cross-Validation
-'''
+''' Apply Model with Cross-Validation'''
 
 print('Cross Validation and hyperparameter tuning...')
 
 
 X_train, X_test, y_train, y_test = train_test_split(
-             X, y, test_size=0.3, random_state=0)
+             X, y, test_size=0.3, random_state=42)
 
-model = SVM_model.SVM_Model(X_train, y_train)
+model = SVM_model.SVMModel(X_train, y_train)
 
 
 # Predict values on test data

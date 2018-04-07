@@ -1,6 +1,7 @@
 """Plots the mean_hr and %crashes that were calulated for the last x seconds for each each second"""
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import factory
 import globals as gl
@@ -85,7 +86,7 @@ def plot_features_with_labels(X, y):
     plt.savefig(gl.working_directory_path + '/Plots/features_label_mean_hr__crashes.pdf')
 
 
-'''Plots the ditribution of the features'''
+'''Plots the distribution of the features'''
 
 
 def plot_feature_distributions(X, y):
@@ -109,7 +110,7 @@ def plot_feature_distributions(X, y):
     plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
 
 
-'''Plots heartrate of all dataframes (Used to compare normaiized hr to original hr)'''
+'''Plots heartrate of all dataframes (Used to compare normalized hr to original hr)'''
 
 
 def plot_hr_of_dataframes():
@@ -128,3 +129,13 @@ def plot_hr_of_dataframes():
 
             plt.savefig(gl.working_directory_path + '/Plots/HeartratesNormalized/hr_'+
                         gl.names_logfiles[idx] + '.pdf')
+
+
+def plot_heartrate_histogram():
+    _, _ = plt.subplots()
+    df = gl.df[gl.df['Heartrate'] != -1]['Heartrate']
+    print('mean: ' + str(np.mean(df)))
+    print('std: ' + str(np.std(df)))
+    plt.hist(df)
+    plt.title('Histogram of HR: $\mu=' + str(np.mean(df)) + '$, $\sigma=' + str(np.std(df)) + '$')
+    plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
