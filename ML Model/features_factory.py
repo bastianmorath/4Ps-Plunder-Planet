@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 
+from scipy import stats
+
 import factory as factory
 import globals as gl
 
@@ -40,6 +42,13 @@ def get_feature_matrix_and_label():
         add_max_over_min_hr_to_dataframe(matrix)
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     labels = gl.obstacle_df['crash'].copy()
+
+    # Boxcox transformation
+    if gl.use_boxcox:
+        matrix['mean_hr'] = stats.boxcox(matrix['mean_hr'])[0]
+        matrix['%crashes'] = stats.boxcox(matrix['%crashes'])[0]
+        matrix['max_over_min'] = stats.boxcox(matrix['max_over_min'])[0]
+
     return matrix.as_matrix(), labels.tolist()
 
 

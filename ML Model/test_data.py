@@ -6,8 +6,8 @@ import setup
 import globals as gl
 import features_factory as f_factory
 
-num_dataframes = 3 # How many dataframes should be created?
-length_dataframe = 200  # How many rows should one dataframe have?
+num_dataframes = 3  # How many dataframes should be created?
+length_dataframe = 400  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
 
@@ -33,21 +33,20 @@ def init_with_testdata():
         last_event_was_a_crash = False
         crashes.append(False)
         hr = mean_hr
-        num_crashes_current_df = 0
         for j in range(0, length_dataframe-1):
             types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
             if last_event_was_a_crash:
                 last_event_was_a_crash = False
                 log = 'EVENT_OBSTACLE'
                 logtypes.append(log)
-                hr = hr + np.random.normal(7, 3)
+                hr = hr + np.random.normal(4, 2)
                 heartrates.append(hr)
                 crashes.append(True)
                 times.append(times[-1] + noise[j])  # Crash: Add EVENT_OBSTACLE right after EVENT_CRASH
             else:
                 log = np.random.choice(types, p=[0.6, 0.27, 0.1, 0.03])
                 logtypes.append(log)
-                hr = hr + np.random.normal(-0.3, 0.8)
+                hr = hr + np.random.normal(-0.3, 0.7)
                 heartrates.append(hr)
                 if log == 'EVENT_CRASH':
                     crashes.append(True)
@@ -61,6 +60,7 @@ def init_with_testdata():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
+        plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
@@ -69,6 +69,7 @@ def init_with_testdata():
     gl.df = f_factory.get_df_with_feature_columns()
 
     gl.obstacle_df = pd.DataFrame({'Time': gl.df_without_features['Time'], 'crash': crashes})
+
 
 '''Returns a value from a normal distribution, truncated to a boundary'''
 
@@ -87,5 +88,5 @@ def plot_hr(dataframe, i):
     ax1.plot(dataframe['Time'], dataframe['Heartrate'])
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate')
-    gl.df_list.append(dataframe)
-    plt.savefig(gl.working_directory_path + '/heartrate_testdata' + str(i) + '.pdf')
+
+    plt.savefig(gl.working_directory_path + '/Plots/heartrate_testdata' + str(i) + '.pdf')

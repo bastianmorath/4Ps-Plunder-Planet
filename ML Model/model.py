@@ -17,8 +17,6 @@ from __future__ import division  # s.t. division uses float result
 
 from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn import metrics
-from collections import Counter
 
 
 import setup
@@ -27,8 +25,7 @@ import test_data
 import globals as gl
 import features_factory as f_factory
 
-import m_svm
-import m_nearest_neighbor
+
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
@@ -39,6 +36,9 @@ import m_nearest_neighbor
     Column 2: mean heartrate over last y seconds
 '''
 
+print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl.use_cache) + ', \n\t test_data: ' +
+      str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox))
+
 print('Init dataframes...')
 
 if gl.test_data:
@@ -46,7 +46,6 @@ if gl.test_data:
 else:
     setup.setup()
     # plots.plot_hr_of_dataframes()
-
 
 print('Creating feature matrix...')
 
@@ -57,8 +56,6 @@ plots.plot_feature_distributions(X, y)
 
 '''Preprocess data'''
 
-print('Preprocessing data...')
-
 scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(X)  # Rescale between 0 and 1
 scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
@@ -67,13 +64,13 @@ X = scaler.transform(X)
 
 ''' Apply Model with Cross-Validation'''
 
-print('Cross Validation and hyperparameter tuning...')
 
+print('Model fitting')
 
 X_train, X_test, y_train, y_test = train_test_split(
              X, y, test_size=0.3, random_state=42)
 
-model = m_nearest_neighbor.NearestNeighbor(X_train, y_train)
+model = gl.model(X_train, y_train)
 
 # Predict values on test data
 y_test_predicted = model.predict(X_test)

@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from sklearn import metrics
 
 import numpy as np
+import globals as gl
 
 class AbstractMLModelClass(ABC):
 
@@ -19,3 +20,6 @@ class AbstractMLModelClass(ABC):
         print('Null accuracy: ' + str(max(np.mean(y_true), 1 - np.mean(y_true)) * 100) + '%')
         percentage = metrics.accuracy_score(y_true, y_predicted)
         print('Correctly classified data: ' + str(percentage*100) + '%')
+
+        print("Number of mislabeled points out of a total %d points : %d"
+              % (len(gl.obstacle_df), (y_true != y_predicted).sum()))
