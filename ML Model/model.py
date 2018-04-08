@@ -47,14 +47,13 @@ else:
     # plots.plot_hr_of_dataframes()
 
 
+
 print('Creating feature matrix...')
 
 (X, y) = f_factory.get_feature_matrix_and_label()
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 # plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X, y)
-print(X)
-print(y)
 
 '''Preprocess data'''
 
@@ -76,12 +75,11 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 model = SVM_model.SVMModel(X_train, y_train)
 
-
 # Predict values on test data
 y_test_predicted = model.predict(X_test)
 
 # Print result as %correctly predicted labels
-print('Uniquely predicted values: ' + str(Counter(y_test_predicted).keys()))
+print('Uniquely predicted values: ' + str(Counter(y_test_predicted).most_common(2)))
 
 print('roc-auc-score: ' + str(metrics.roc_auc_score(y_test, y_test_predicted)))
 

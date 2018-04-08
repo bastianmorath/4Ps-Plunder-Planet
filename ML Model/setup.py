@@ -31,7 +31,6 @@ def setup():
         gl.df.to_pickle(gl.working_directory_path + '/Pickle/df.pickle')
         print('Dataframe created')
 
-
 '''Reads the logfiles and parses them into Pandas dataframes. 
     Also adds additional log&timedelta column, cuts them to the same length and normalizes heartrate
 '''

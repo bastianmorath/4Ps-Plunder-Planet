@@ -7,8 +7,8 @@ hw = 60  # Over how many preceeding seconds should the heartrate be averaged?
 
 testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
 use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
-test_data = False  # If test_data==True, the model uses synthesized data
-normalize_heartrate = False  # Whether we should use normalized heartrate (divide by baseline)
+test_data = True  # If test_data==True, the model uses synthesized data
+normalize_heartrate = True  # Whether we should use normalized heartrate (divide by baseline)
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))

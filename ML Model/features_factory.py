@@ -18,7 +18,6 @@ def get_df_with_feature_columns():
     df['mean_hr'] = get_mean_heartrate_column()
     df['%crashes'] = get_crashes_column()
     df['max_over_min'] = get_max_over_min_column()
-
     return df
 
 
@@ -28,8 +27,11 @@ def get_df_with_feature_columns():
 
 
 def get_feature_matrix_and_label():
-    matrix = pd.DataFrame()
+    # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
+    gl.df_without_features = gl.df_without_features[gl.df_without_features['Time'] > gl.hw]
+    gl.obstacle_df = gl.obstacle_df[gl.obstacle_df['Time'] > gl.hw]
 
+    matrix = pd.DataFrame()
     if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
@@ -37,7 +39,6 @@ def get_feature_matrix_and_label():
         add_crashes_to_dataframe(matrix)
         add_max_over_min_hr_to_dataframe(matrix)
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
-
     labels = gl.obstacle_df['crash'].copy()
     return matrix.as_matrix(), labels.tolist()
 
