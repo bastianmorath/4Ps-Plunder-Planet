@@ -32,6 +32,7 @@ import m_nearest_neighbor
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
+
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
     Column 1: %Crashes in last x seconds
@@ -45,7 +46,6 @@ if gl.test_data:
 else:
     setup.setup()
     # plots.plot_hr_of_dataframes()
-
 
 
 print('Creating feature matrix...')
@@ -78,15 +78,7 @@ model = m_nearest_neighbor.NearestNeighbor(X_train, y_train)
 # Predict values on test data
 y_test_predicted = model.predict(X_test)
 
-# Print result as %correctly predicted labels
-print('Uniquely predicted values: ' + str(Counter(y_test_predicted).most_common(2)))
-
-print('roc-auc-score: ' + str(metrics.roc_auc_score(y_test, y_test_predicted)))
-
-percentage = metrics.accuracy_score(y_test, y_test_predicted)
-print('Percentage of correctly classified data: ' + str(percentage))
-
-
+model.print_score(y_test, y_test_predicted)
 
 
 

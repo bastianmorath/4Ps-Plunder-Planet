@@ -32,7 +32,7 @@ def get_feature_matrix_and_label():
     gl.obstacle_df = gl.obstacle_df[gl.obstacle_df['Time'] > gl.hw]
 
     matrix = pd.DataFrame()
-    if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
+    if gl.use_cache & (not gl.test_data) & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
         add_mean_hr_to_dataframe(matrix)
