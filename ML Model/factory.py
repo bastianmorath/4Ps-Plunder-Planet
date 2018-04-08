@@ -41,7 +41,6 @@ def get_obstacle_times_with_success():
             if logtype == 'EVENT_CRASH':
                 return 1
             count += 1
-    print(gl.df_without_features['Logtypes'])
     for idx, row in gl.df_without_features.iterrows():
         if row['Logtype'] == 'EVENT_OBSTACLE':
             obstacle_time_crash.append((row['Time'], is_a_crash(idx)))

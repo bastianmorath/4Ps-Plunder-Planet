@@ -20,15 +20,15 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn import metrics
 from collections import Counter
 
-import numpy as np
 
 import setup
 import plots
-import SVM_model
 import test_data
 import globals as gl
 import features_factory as f_factory
 
+import m_svm
+import m_nearest_neighbor
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
@@ -73,7 +73,7 @@ print('Cross Validation and hyperparameter tuning...')
 X_train, X_test, y_train, y_test = train_test_split(
              X, y, test_size=0.3, random_state=42)
 
-model = SVM_model.SVMModel(X_train, y_train)
+model = m_nearest_neighbor.NearestNeighbor(X_train, y_train)
 
 # Predict values on test data
 y_test_predicted = model.predict(X_test)

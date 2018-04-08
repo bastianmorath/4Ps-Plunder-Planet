@@ -10,17 +10,17 @@ from Model_interface import AbstractMLModelClass
 # TODO Maybe use optunity instead of GridCVSearch(look old git files)
 
 
-class SVMModel(AbstractMLModelClass):
+class SVM(AbstractMLModelClass):
 
     def __init__(self, X_train, y_train):
         param_grid = {
-            'gamma': np.linspace(1, 0.20, 10),
+            'gamma': np.linspace(1,10, 10),
             'C': np.linspace(1, 30, 10)
         }
 
         self.model = svm.SVC()
         # self.model = GridSearchCV(self.model, param_grid, cv=10, scoring='accuracy')  # find best hyperparameters
-        self.model.fit(X_train,y_train)
+        self.model.fit(X_train, y_train)
 
         # print(self.model.best_params_)
 

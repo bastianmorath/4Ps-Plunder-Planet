@@ -93,7 +93,6 @@ def plot_feature_distributions(X, y):
     x1 = X[:, 0]  # mean_hr
     x2 = X[:, 1]  # %crashes
     x3 = X[:, 2]  # max_over_min_hr
-    print(x1)
     plt.subplot(3, 1, 1)
     plt.hist(x1)
     plt.title('mean_hr distribution')
