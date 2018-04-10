@@ -37,7 +37,6 @@ def plot_features(gamma, c, auroc, percentage):
     ax2.set_ylabel('Crashes [%]', color=red_color)
     ax2.tick_params('y', colors=red_color)
 
-
     ax2.text(0.5, 0.35, 'Crash_window: ' + str(gl.cw),
          transform=ax2.transAxes, fontsize=10)
     ax2.text(0.5, 0.3, 'Max_over_min window: ' + str(gl.hw),
@@ -130,11 +129,31 @@ def plot_hr_of_dataframes():
                         gl.names_logfiles[idx] + '.pdf')
 
 
+'''Plots the heartrate in a histogram'''
+
+
 def plot_heartrate_histogram():
     _, _ = plt.subplots()
     df = gl.df[gl.df['Heartrate'] != -1]['Heartrate']
-    print('mean: ' + str(np.mean(df)))
-    print('std: ' + str(np.std(df)))
     plt.hist(df)
     plt.title('Histogram of HR: $\mu=' + str(np.mean(df)) + '$, $\sigma=' + str(np.std(df)) + '$')
     plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
+
+
+'''For each feature, print the average of it when there was a crash vs. there was no crash'''
+
+
+def print_mean_features_crash(X, y):
+    rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
+    rows_without_crash = [val for (idx, val) in enumerate(X) if y[idx] == 0]
+    # Iterate over all features and plot corresponding plot
+    for i in range(0, len(X[0])):
+        mean_with_obstacles = np.mean([l[i] for l in rows_with_crash])
+        mean_without_obstacles = np.mean([l[i] for l in rows_without_crash])
+        print(mean_with_obstacles, mean_without_obstacles)
+        _, _ = plt.subplots()
+
+        plt.bar([0, 1], [mean_with_obstacles, mean_without_obstacles], width=0.5)
+        plt.xticks(np.arange(2), ['Crash', 'No crash'])
+        plt.title('Average value of feature ' + str(i) + ' when crash or not crash')
+        plt.savefig(gl.working_directory_path + '/Plots/bar_feature' + str(i+1) + '_crash.pdf')

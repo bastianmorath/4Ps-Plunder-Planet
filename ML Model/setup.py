@@ -44,8 +44,7 @@ def read_and_prepare_logs():
     if gl.testing:
         gl.df_list = gl.df_list[5:9]
     cut_frames()  # Cut frames to same length
-    if gl.normalize_heartrate:
-        normalize_heartrate()  # Normalize heartrate
+    normalize_heartrate()
     add_log_column()
     add_timedelta_column()
     gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
@@ -69,17 +68,18 @@ def cut_frames():
 
 
 def normalize_heartrate():
-    normalized_df_list = []
-    for dataframe in gl.df_list:
-        if not (dataframe['Heartrate'] == -1).all():
-            baseline = dataframe[dataframe['Time'] < 60]['Heartrate'].mean()
-            # dataframe['Heartrate'] = dataframe['Heartrate'] - baseline + 123.93  # add mean over all heartrates
-            dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
-            normalized_df_list.append(dataframe)
-        else:
-            normalized_df_list.append(dataframe)
+    if gl.normalize_heartrate:
+        normalized_df_list = []
+        for dataframe in gl.df_list:
+            if not (dataframe['Heartrate'] == -1).all():
+                baseline = dataframe[dataframe['Time'] < 60]['Heartrate'].mean()
+                # dataframe['Heartrate'] = dataframe['Heartrate'] - baseline + 123.93  # add mean over all heartrates
+                dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
+                normalized_df_list.append(dataframe)
+            else:
+                normalized_df_list.append(dataframe)
 
-    gl.df_list = normalized_df_list
+        gl.df_list = normalized_df_list
 
 
 '''For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object'''

@@ -53,6 +53,7 @@ print('Creating feature matrix...')
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 # plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X, y)
+plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
 
@@ -68,7 +69,7 @@ X = scaler.transform(X)
 print('Model fitting')
 
 X_train, X_test, y_train, y_test = train_test_split(
-             X, y, test_size=0.3, random_state=42)
+             X, y, test_size=0.3)
 
 model = gl.model(X_train, y_train)
 

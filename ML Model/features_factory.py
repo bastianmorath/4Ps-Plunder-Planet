@@ -34,6 +34,7 @@ def get_feature_matrix_and_label():
     gl.obstacle_df = gl.obstacle_df[gl.obstacle_df['Time'] > gl.hw]
 
     matrix = pd.DataFrame()
+
     if gl.use_cache & (not gl.test_data) & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
@@ -41,19 +42,20 @@ def get_feature_matrix_and_label():
         add_crashes_to_dataframe(matrix)
         add_max_over_min_hr_to_dataframe(matrix)
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
+
     labels = gl.obstacle_df['crash'].copy()
 
     # Boxcox transformation
     if gl.use_boxcox:
+        # TODO: Values cant be <=0 -> Shift by epsilon (boxcox doesn't include shift parameter)
         matrix['mean_hr'] = stats.boxcox(matrix['mean_hr'])[0]
-        matrix['%crashes'] = stats.boxcox(matrix['%crashes'])[0]
+        matrix['%crashes'] = stats.boxcox(matrix['%crashes']+0.01)[0] # Add shift parameter
         matrix['max_over_min'] = stats.boxcox(matrix['max_over_min'])[0]
 
     return matrix.as_matrix(), labels.tolist()
 
 
 """The following methods append a column to the feature matrix (after resampling it)"""
-
 
 def add_mean_hr_to_dataframe(matrix):
     mean_hr_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', 'mean_hr']], 1)
