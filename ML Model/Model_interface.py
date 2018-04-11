@@ -17,9 +17,14 @@ class AbstractMLModelClass(ABC):
     def print_score(y_true, y_predicted):
         print('Confusion matrix: \n' + str(metrics.confusion_matrix(y_true, y_predicted)))
 
-        print('Null accuracy: ' + str(max(np.mean(y_true), 1 - np.mean(y_true)) * 100) + '%')
-        percentage = metrics.accuracy_score(y_true, y_predicted)
-        print('Correctly classified data: ' + str(percentage*100) + '%')
+        null_accuracy = max(np.mean(y_true), 1 - np.mean(y_true)) * 100
+        predicted_accuracy = metrics.accuracy_score(y_true, y_predicted) * 100
+
+        print('Null accuracy: ' + str(null_accuracy) + '%')
+        print('Correctly classified data: ' + str(predicted_accuracy) + '%')
 
         print("Number of mislabeled points out of a total %d points : %d"
               % (len(gl.obstacle_df), (y_true != y_predicted).sum()))
+
+        print(str(predicted_accuracy - null_accuracy) + '%: Difference in % correctly classified data '
+                                                        'compared to Null Accuracy: ')

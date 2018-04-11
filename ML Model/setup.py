@@ -31,6 +31,7 @@ def setup():
         gl.df.to_pickle(gl.working_directory_path + '/Pickle/df.pickle')
         print('Dataframe created')
 
+
 '''Reads the logfiles and parses them into Pandas dataframes. 
     Also adds additional log&timedelta column, cuts them to the same length and normalizes heartrate
 '''
@@ -42,7 +43,8 @@ def read_and_prepare_logs():
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
     if gl.testing:
-        gl.df_list = gl.df_list[5:9]
+        # 2 dataframes with/ 1 dataframe without heartrate
+        gl.df_list = gl.df_list[19:22]
     cut_frames()  # Cut frames to same length
     normalize_heartrate()
     add_log_column()

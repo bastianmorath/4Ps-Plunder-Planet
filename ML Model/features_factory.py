@@ -57,6 +57,7 @@ def get_feature_matrix_and_label():
 
 """The following methods append a column to the feature matrix (after resampling it)"""
 
+
 def add_mean_hr_to_dataframe(matrix):
     mean_hr_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', 'mean_hr']], 1)
     mean_hr_df = []

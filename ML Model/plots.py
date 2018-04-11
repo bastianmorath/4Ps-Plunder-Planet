@@ -142,6 +142,8 @@ def plot_heartrate_histogram():
 
 '''For each feature, print the average of it when there was a crash vs. there was no crash'''
 
+# TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
+
 
 def print_mean_features_crash(X, y):
     rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
@@ -150,10 +152,9 @@ def print_mean_features_crash(X, y):
     for i in range(0, len(X[0])):
         mean_with_obstacles = np.mean([l[i] for l in rows_with_crash])
         mean_without_obstacles = np.mean([l[i] for l in rows_without_crash])
-        print(mean_with_obstacles, mean_without_obstacles)
         _, _ = plt.subplots()
 
         plt.bar([0, 1], [mean_with_obstacles, mean_without_obstacles], width=0.5)
         plt.xticks(np.arange(2), ['Crash', 'No crash'])
-        plt.title('Average value of feature ' + str(i) + ' when crash or not crash')
+        plt.title('Average value of feature ' + str(i+1) + ' when crash or not crash')
         plt.savefig(gl.working_directory_path + '/Plots/bar_feature' + str(i+1) + '_crash.pdf')
