@@ -5,6 +5,7 @@ from scipy.stats import truncnorm
 import setup
 import globals as gl
 import features_factory as f_factory
+import factory
 
 num_dataframes = 3  # How many dataframes should be created?
 length_dataframe = 500  # How many rows should one dataframe have?
@@ -64,9 +65,10 @@ def init_with_testdata():
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
-    gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
-    gl.df = f_factory.get_df_with_feature_columns()
-    gl.obstacle_df = pd.DataFrame({'Time': gl.df_without_features['Time'], 'crash': crashes})
+    # gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
+    # gl.df = f_factory.get_df_with_feature_columns()
+    # gl.obstacle_df = pd.DataFrame({'Time': gl.df_without_features['Time'], 'crash': crashes})
+    gl.obstacle_df = factory.get_obstacle_times_with_success()
 
 
 '''Returns a value from a normal distribution, truncated to a boundary'''

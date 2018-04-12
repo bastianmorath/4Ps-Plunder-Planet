@@ -3,7 +3,7 @@ import os
 import re
 
 import pandas as pd
-import numpy as np
+import pickle
 from datetime import timedelta
 
 import globals as gl
@@ -18,17 +18,17 @@ def setup():
     # Store computed dataframe in pickle file for faster processing
     if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
-        gl.df = pd.read_pickle(gl.working_directory_path + '/Pickle/df.pickle')
-        gl.obstacle_df = pd.read_pickle(gl.working_directory_path + '/Pickle//obstacle_df.pickle')
+        # gl.df = pd.read_pickle(gl.working_directory_path + '/Pickle/df.pickle')
+        gl.obstacle_df = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
 
     else:
         print('Dataframe not cached. Creating dataframe...')
-        gl.df = f_factory.get_df_with_feature_columns()
+        # gl.df = f_factory.get_df_with_feature_columns()
         gl.obstacle_df = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
-        gl.obstacle_df.to_pickle(gl.working_directory_path + '/Pickle/obstacle_df.pickle')
-        gl.df.to_pickle(gl.working_directory_path + '/Pickle/df.pickle')
+        pickle.dump(gl.obstacle_df, open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "wb"))
+        # gl.df.to_pickle(gl.working_directory_path + '/Pickle/df.pickle')
         print('Dataframe created')
 
 
@@ -49,7 +49,7 @@ def read_and_prepare_logs():
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
-    gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
+    # gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
 
 
 """The following methods add additional columns to all dataframes in the gl.df_list"""
@@ -99,7 +99,8 @@ def add_timedelta_column():
 def add_log_column():
 
     for idx, dataframe in enumerate(gl.df_list):
-        new = np.full((len(dataframe.index), 1), int(np.floor(idx/2)))
-        gl.df_list[idx] = gl.df_list[idx].assign(userID=new)
+        # TODO: Now each logfile has a new userID. Maybe I want the same for each user?
+        # new = np.full((len(dataframe.index), 1), int(np.floor(idx/2)))
+        gl.df_list[idx] = gl.df_list[idx].assign(logID=idx)
 
 

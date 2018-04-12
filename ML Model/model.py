@@ -50,9 +50,8 @@ else:
 print('Creating feature matrix...')
 
 X, y = f_factory.get_feature_matrix_and_label()
-
-# X, y = make_blobs(n_features=3, centers=2)
-
+print(X)
+print(y)
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 # plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X, y)

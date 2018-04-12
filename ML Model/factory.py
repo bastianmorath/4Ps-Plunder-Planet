@@ -22,8 +22,7 @@ def resample_dataframe(df, resolution):
     return resampled
 
 
-''' Returns a dataframe with the time of each obstacle and whether or not
-    the user crashed into it or not
+''' Returns a list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
 '''
 
 
@@ -32,22 +31,30 @@ def get_obstacle_times_with_success():
     obstacle_time_crash = []
 
     ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
-    def is_a_crash(index):
+    def is_a_crash(df, index):
         count = 1
         while True:
-            logtype = gl.df_without_features.iloc[index-count]['Logtype']
+            logtype = df.iloc[index-count]['Logtype']
             if logtype == 'EVENT_OBSTACLE':
                 return 0
             if logtype == 'EVENT_CRASH':
                 return 1
             count += 1
-    for idx, row in gl.df_without_features.iterrows():
-        if row['Logtype'] == 'EVENT_OBSTACLE':
-            obstacle_time_crash.append((row['Time'], is_a_crash(idx)))
 
-    times = np.asarray([a for (a, b) in obstacle_time_crash])
-    crashes = np.asarray([b for (a, b) in obstacle_time_crash])
-    return pd.DataFrame({'Time': times, 'crash': crashes})
+    for dataframe in gl.df_list:
+        obstacle_times_current_df = []
+        for idx, row in dataframe.iterrows():
+            if row['Logtype'] == 'EVENT_OBSTACLE':
+                obstacle_times_current_df.append((row['Time'], is_a_crash(dataframe, idx)))
+
+        times = np.asarray([a for (a, b) in obstacle_times_current_df])
+        crashes = np.asarray([b for (a, b) in obstacle_times_current_df])
+
+        obstacle_time_crash.append(pd.DataFrame({'Time': times, 'crash': crashes}))
+
+    return obstacle_time_crash
+
+
 
 
 

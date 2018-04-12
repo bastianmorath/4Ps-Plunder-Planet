@@ -2,6 +2,8 @@ import pandas as pd
 import os
 
 from scipy import stats
+import numpy as np
+import itertools
 
 import factory as factory
 import globals as gl
@@ -12,16 +14,6 @@ import globals as gl
     3. Max over min heartrate in last x seconds
 '''
 
-"""Computes features, stores it as additional columns in gl.df_without_features and returns it"""
-
-
-def get_df_with_feature_columns():
-    df = gl.df_without_features
-    df['mean_hr'] = get_mean_heartrate_column()
-    df['%crashes'] = get_crashes_column()
-    df['max_over_min'] = get_max_over_min_column()
-    return df
-
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle
@@ -30,20 +22,23 @@ def get_df_with_feature_columns():
 
 def get_feature_matrix_and_label():
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
-    gl.df_without_features = gl.df_without_features[gl.df_without_features['Time'] > gl.hw]
-    gl.obstacle_df = gl.obstacle_df[gl.obstacle_df['Time'] > gl.hw]
+    # gl.df_without_features = gl.df_without_features[gl.df_without_features['Time'] > gl.hw]
+    # gl.obstacle_df = gl.obstacle_df[gl.obstacle_df['Time'] > gl.hw]
 
     matrix = pd.DataFrame()
 
     if gl.use_cache & (not gl.test_data) & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
-        add_mean_hr_to_dataframe(matrix)
-        add_crashes_to_dataframe(matrix)
-        add_max_over_min_hr_to_dataframe(matrix)
+        matrix['mean_hr'] = get_mean_hr_df()
+        matrix['%crashes'] = get_crashes_df()
+        matrix['max_over_min'] = get_max_over_min_df()
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
 
-    labels = gl.obstacle_df['crash'].copy()
+    labels = []
+    for df in gl.obstacle_df:
+        labels.append(df['crash'].copy())
+    labels = list(itertools.chain.from_iterable(labels))
 
     # Boxcox transformation
     if gl.use_boxcox:
@@ -52,42 +47,57 @@ def get_feature_matrix_and_label():
         matrix['%crashes'] = stats.boxcox(matrix['%crashes']+0.01)[0] # Add shift parameter
         matrix['max_over_min'] = stats.boxcox(matrix['max_over_min'])[0]
 
-    return matrix.as_matrix(), labels.tolist()
+    return matrix.as_matrix(), labels
 
 
 """The following methods append a column to the feature matrix (after resampling it)"""
 
 
-def add_mean_hr_to_dataframe(matrix):
-    mean_hr_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', 'mean_hr']], 1)
-    mean_hr_df = []
-    for idx, row in gl.obstacle_df.iterrows():
-        corresp_row = mean_hr_resampled[mean_hr_resampled['Time'] <= row['Time']].iloc[-1]
-        mean_hr_df.append(corresp_row['mean_hr'])
-
-    matrix['mean_hr'] = mean_hr_df
+def get_mean_hr_df():
+    mean_hr_list = []  # list that contains a list of mean_hrs for each logfile/df
+    for list_idx, df in enumerate(gl.df_list):
+        df['mean_hr'] = get_mean_heartrate_column(df)
+        mean_hr_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'mean_hr']], 1)
+        mean_hr_df = []
+        for _, row in gl.obstacle_df[list_idx].iterrows():
+            corresp_row = mean_hr_resampled[mean_hr_resampled['Time'] <= row['Time']].iloc[-1]
+            mean_hr_df.append(corresp_row['mean_hr'])
+        mean_hr_list.append(mean_hr_df)
+    return pd.DataFrame(list(itertools.chain.from_iterable(mean_hr_list)), columns=['mean_hr'])
 
 
 # TODO: Normalize crashes depending on size/assembly of the obstacle
 
 
-def add_crashes_to_dataframe(matrix):
-    crashes_df = []
-    crashes_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', '%crashes']], 1)
-    for idx, row in gl.obstacle_df.iterrows():
-        corresp_row = crashes_resampled[crashes_resampled['Time'] <= row['Time']].iloc[-1]
-        crashes_df.append(corresp_row['%crashes'])
-    matrix['%crashes'] = crashes_df
+def get_crashes_df():
+    crashes_list = []  # list that contains a list of %crashes for each logfile/df
+
+    for list_idx, df in enumerate(gl.df_list):
+        df['%crashes'] = get_crashes_column(df)
+        crashes_df = []
+        crashes_resampled = factory.resample_dataframe(df[['timedelta', 'Time', '%crashes']], 1)
+        for _, row in gl.obstacle_df[list_idx].iterrows():
+            corresp_row = crashes_resampled[crashes_resampled['Time'] <= row['Time']].iloc[-1]
+            crashes_df.append(corresp_row['%crashes'])
+        crashes_list.append(crashes_df)
+
+    return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['%crashes'])
 
 
-def add_max_over_min_hr_to_dataframe(matrix):
-    max_over_min_resampled = factory.resample_dataframe(gl.df[['timedelta', 'Time', 'max_over_min']], 1)
-    max_over_min = []
-    for idx, row in gl.obstacle_df.iterrows():
-        corresp_row = max_over_min_resampled[max_over_min_resampled['Time'] <= row['Time']].iloc[-1]
-        max_over_min.append(corresp_row['max_over_min'])
+def get_max_over_min_df():
+    max_over_min_list = []  # list that contains a list of max_over_min  for each logfile/df
 
-    matrix['max_over_min'] = max_over_min
+    for list_idx, df in enumerate(gl.df_list):
+        df['max_over_min'] = get_max_over_min_column(df)
+
+        max_over_min_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'max_over_min']], 1)
+        max_over_min = []
+        for _, row in gl.obstacle_df[list_idx].iterrows():
+            corresp_row = max_over_min_resampled[max_over_min_resampled['Time'] <= row['Time']].iloc[-1]
+            max_over_min.append(corresp_row['max_over_min'])
+        max_over_min_list.append(max_over_min)
+
+    return pd.DataFrame(list(itertools.chain.from_iterable(max_over_min_list)), columns=['max_over_min'])
 
 
 """The following methods calculate the features as a new dataframe column"""
@@ -98,9 +108,7 @@ def add_max_over_min_hr_to_dataframe(matrix):
 '''
 
 
-def get_crashes_column():
-    df = gl.df_without_features
-
+def get_crashes_column(df):
     def df_from_to(_from, _to):
         mask = (_from < df['Time']) & (df['Time'] <= _to)
         return df[mask]
@@ -119,8 +127,7 @@ def get_crashes_column():
 '''
 
 
-def get_mean_heartrate_column():
-    df = gl.df_without_features
+def get_mean_heartrate_column(df):
 
     def df_from_to(_from, _to):
         mask = (_from < df['Time']) & (df['Time'] <= _to)
@@ -138,8 +145,7 @@ def get_mean_heartrate_column():
 '''
 
 
-def get_max_over_min_column():
-    df = gl.df_without_features
+def get_max_over_min_column(df):
 
     def df_from_to(_from, _to):
         mask = (_from < df['Time']) & (df['Time'] <= _to)
