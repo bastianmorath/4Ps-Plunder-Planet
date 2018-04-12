@@ -7,7 +7,7 @@ import globals as gl
 import features_factory as f_factory
 
 num_dataframes = 3  # How many dataframes should be created?
-length_dataframe = 400  # How many rows should one dataframe have?
+length_dataframe = 500  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
 
@@ -65,9 +65,7 @@ def init_with_testdata():
 
     setup.normalize_heartrate()
     gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
-
     gl.df = f_factory.get_df_with_feature_columns()
-
     gl.obstacle_df = pd.DataFrame({'Time': gl.df_without_features['Time'], 'crash': crashes})
 
 
@@ -89,4 +87,4 @@ def plot_hr(dataframe, i):
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate')
 
-    plt.savefig(gl.working_directory_path + '/Plots/heartrate_testdata' + str(i) + '.pdf')
+    plt.savefig(gl.working_directory_path + '/Plots/heartrate_testdata_' + str(i) + '.pdf')

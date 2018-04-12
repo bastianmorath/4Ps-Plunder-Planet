@@ -102,7 +102,7 @@ def plot_feature_distributions(X, y):
 
     plt.subplot(3, 1, 3)
     plt.hist(x3)
-    plt.title('min_over_max')
+    plt.title('max_over_min')
 
     plt.tight_layout()
     plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
@@ -115,8 +115,6 @@ def plot_hr_of_dataframes():
     resolution=5
     for idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all():
-            X = []
-            X.append(idx)
             df_num_resampled = factory.resample_dataframe(df, resolution)
             # Plot Heartrate
             fig, ax1 = plt.subplots()

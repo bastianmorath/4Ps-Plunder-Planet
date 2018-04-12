@@ -17,14 +17,13 @@ from __future__ import division  # s.t. division uses float result
 
 from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
+from sklearn.datasets import make_blobs
 
 import setup
 import plots
 import test_data
 import globals as gl
 import features_factory as f_factory
-
 
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
@@ -41,6 +40,7 @@ print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl
 
 print('Init dataframes...')
 
+
 if gl.test_data:
     test_data.init_with_testdata()
 else:
@@ -49,7 +49,10 @@ else:
 
 print('Creating feature matrix...')
 
-(X, y) = f_factory.get_feature_matrix_and_label()
+X, y = f_factory.get_feature_matrix_and_label()
+
+# X, y = make_blobs(n_features=3, centers=2)
+
 # plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
 # plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X, y)

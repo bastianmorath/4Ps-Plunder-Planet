@@ -6,8 +6,12 @@ import m_svm
 import m_nearest_neighbor
 import m_naive_bayes
 
+
+# TODO: Whenever sth. changes here (e.g. window sizes), then automatically don't use cache no matter what settings we have
+# TODO: Maybe some unit tests?
+
 cw = 30  # Over how many preceeding seconds should %crashes be calculated?
-hw = 60  # Over how many preceeding seconds should the heartrate be averaged?
+hw = 70  # Over how many preceeding seconds should the heartrate be averaged?
 
 model = m_nearest_neighbor.NearestNeighbor  # Which model should be used?
 
