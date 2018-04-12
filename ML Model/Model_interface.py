@@ -3,9 +3,11 @@
 
 from abc import ABC, abstractmethod
 from sklearn import metrics
+import itertools
 
 import numpy as np
 import globals as gl
+
 
 class AbstractMLModelClass(ABC):
 
@@ -24,7 +26,7 @@ class AbstractMLModelClass(ABC):
         print('Correctly classified data: ' + str(predicted_accuracy) + '%')
 
         print("Number of mislabeled points out of a total %d points : %d"
-              % (len(gl.obstacle_df), (y_true != y_predicted).sum()))
+              % (len(list(itertools.chain.from_iterable(gl.obstacle_df_list))), (y_true != y_predicted).sum()))
 
         print(str(predicted_accuracy - null_accuracy) + '%: Difference in % correctly classified data '
                                                         'compared to Null Accuracy: ')

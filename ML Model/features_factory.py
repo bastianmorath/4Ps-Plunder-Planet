@@ -21,9 +21,6 @@ import globals as gl
 
 
 def get_feature_matrix_and_label():
-    # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
-    # gl.df_without_features = gl.df_without_features[gl.df_without_features['Time'] > gl.hw]
-    # gl.obstacle_df = gl.obstacle_df[gl.obstacle_df['Time'] > gl.hw]
 
     matrix = pd.DataFrame()
 
@@ -36,8 +33,9 @@ def get_feature_matrix_and_label():
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
 
     labels = []
-    for df in gl.obstacle_df:
-        labels.append(df['crash'].copy())
+    for df in gl.obstacle_df_list:
+        # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
+        labels.append(df[df['Time'] > max(gl.cw, gl.hw)]['crash'].copy())
     labels = list(itertools.chain.from_iterable(labels))
 
     # Boxcox transformation
@@ -57,11 +55,13 @@ def get_mean_hr_df():
     mean_hr_list = []  # list that contains a list of mean_hrs for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
         df['mean_hr'] = get_mean_heartrate_column(df)
-        mean_hr_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'mean_hr']], 1)
+        # mean_hr_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'mean_hr']], 1)
         mean_hr_df = []
-        for _, row in gl.obstacle_df[list_idx].iterrows():
-            corresp_row = mean_hr_resampled[mean_hr_resampled['Time'] <= row['Time']].iloc[-1]
-            mean_hr_df.append(corresp_row['mean_hr'])
+        for _, row in gl.obstacle_df_list[list_idx].iterrows():
+            # Delete first window-seconds because feature in this short window is not accurate enough
+            if row['Time'] > max(gl.cw, gl.hw):
+                corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
+                mean_hr_df.append(corresp_row['mean_hr'])
         mean_hr_list.append(mean_hr_df)
     return pd.DataFrame(list(itertools.chain.from_iterable(mean_hr_list)), columns=['mean_hr'])
 
@@ -75,10 +75,11 @@ def get_crashes_df():
     for list_idx, df in enumerate(gl.df_list):
         df['%crashes'] = get_crashes_column(df)
         crashes_df = []
-        crashes_resampled = factory.resample_dataframe(df[['timedelta', 'Time', '%crashes']], 1)
-        for _, row in gl.obstacle_df[list_idx].iterrows():
-            corresp_row = crashes_resampled[crashes_resampled['Time'] <= row['Time']].iloc[-1]
-            crashes_df.append(corresp_row['%crashes'])
+        # crashes_resampled = factory.resample_dataframe(df[['timedelta', 'Time', '%crashes']], 1)
+        for _, row in gl.obstacle_df_list[list_idx].iterrows():
+            if row['Time'] > max(gl.cw, gl.hw):
+                corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
+                crashes_df.append(corresp_row['%crashes'])
         crashes_list.append(crashes_df)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['%crashes'])
@@ -90,11 +91,12 @@ def get_max_over_min_df():
     for list_idx, df in enumerate(gl.df_list):
         df['max_over_min'] = get_max_over_min_column(df)
 
-        max_over_min_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'max_over_min']], 1)
+        # max_over_min_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'max_over_min']], 1)
         max_over_min = []
-        for _, row in gl.obstacle_df[list_idx].iterrows():
-            corresp_row = max_over_min_resampled[max_over_min_resampled['Time'] <= row['Time']].iloc[-1]
-            max_over_min.append(corresp_row['max_over_min'])
+        for _, row in gl.obstacle_df_list[list_idx].iterrows():
+            if row['Time'] > max(gl.cw, gl.hw):
+                corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
+                max_over_min.append(corresp_row['max_over_min'])
         max_over_min_list.append(max_over_min)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(max_over_min_list)), columns=['max_over_min'])

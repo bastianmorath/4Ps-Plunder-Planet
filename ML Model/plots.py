@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-
+import pandas as pd
 import factory
 import globals as gl
 
@@ -10,6 +10,8 @@ import globals as gl
 green_color = '#AEBD38'
 blue_color = '#68829E'
 red_color = '#A62A2A'
+
+# TODO: Broken, since now the features are only stored in feature matrix (without time)
 
 
 def plot_features(gamma, c, auroc, percentage):
@@ -88,7 +90,7 @@ def plot_features_with_labels(X, y):
 '''Plots the distribution of the features'''
 
 
-def plot_feature_distributions(X, y):
+def plot_feature_distributions(X):
     x1 = X[:, 0]  # mean_hr
     x2 = X[:, 1]  # %crashes
     x3 = X[:, 2]  # max_over_min_hr
@@ -132,7 +134,8 @@ def plot_hr_of_dataframes():
 
 def plot_heartrate_histogram():
     _, _ = plt.subplots()
-    df = gl.df[gl.df['Heartrate'] != -1]['Heartrate']
+    df = pd.concat(gl.df_list, ignore_index=True)
+    df = df[df['Heartrate'] != -1]['Heartrate']
     plt.hist(df)
     plt.title('Histogram of HR: $\mu=' + str(np.mean(df)) + '$, $\sigma=' + str(np.std(df)) + '$')
     plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')

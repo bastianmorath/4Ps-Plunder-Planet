@@ -28,9 +28,5 @@ abs_path_logfiles = project_path + '/Logs/text_logs'
 names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile
-# df_list_with_features = [] # List with all dataframes WITH features as new column
 
-# df_without_features = []  # All dataframes, concatanated to one single dataframe (without features as columns)
-# df = []  # Resampled dataframe with feature-columns, concatanated to one single dataframe
-
-obstacle_df = []  # list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+obstacle_df_list = []  # list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)

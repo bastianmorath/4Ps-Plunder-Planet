@@ -18,6 +18,31 @@ std_hr = 16.8  # std of normal distribution of heartrate
 '''
 
 
+def init_with_testdata_simple():
+
+    for i in range(0, num_dataframes):
+        times = range(0, 400)
+        logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_OBSTACLE'] * 100
+        heartrates = [20, 30] * 200
+        timedeltas = [pd.to_timedelta(t, unit='S') for t in times]
+
+        dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
+                                       'timedelta': timedeltas})
+        plot_hr(dataframe, i)
+        print(dataframe)
+
+        gl.df_list.append(dataframe)
+
+    setup.normalize_heartrate()
+    gl.obstacle_df_list = factory.get_obstacle_times_with_success()
+
+
+''' Inits the dataframes not from the logfiles, but with synthesized data
+    Times: from 0 to length_dataframe, one every second with noise
+    logtypes: Randomly choosen; if EVENT_CRASH, then add EVENT_OBSTACLE in the next one!
+'''
+
+
 def init_with_testdata():
     crashes = []
     # Find distribution of Logtypes
@@ -65,10 +90,8 @@ def init_with_testdata():
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
-    # gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
-    # gl.df = f_factory.get_df_with_feature_columns()
-    # gl.obstacle_df = pd.DataFrame({'Time': gl.df_without_features['Time'], 'crash': crashes})
-    gl.obstacle_df = factory.get_obstacle_times_with_success()
+
+    gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 
 '''Returns a value from a normal distribution, truncated to a boundary'''
