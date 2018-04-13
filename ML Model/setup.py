@@ -49,7 +49,7 @@ def read_and_prepare_logs():
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
-    # refactor_crashes()
+    refactor_crashes()
 
 
 """The following methods add additional columns to all dataframes in the gl.df_list"""
@@ -112,12 +112,12 @@ def refactor_crashes():
     ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
 
     def get_next_obstacle_row(index, df):
-        count = 1
+        cnt = 1
         while True:
-            logtype = df.loc[index + count]['Logtype']
+            logtype = df.loc[index + cnt]['Logtype']
             if logtype == 'EVENT_OBSTACLE':
-                return index+count, df.loc[index + count]
-            count += 1
+                return index+cnt, df.loc[index + cnt]
+            cnt += 1
 
     for df_idx, dataframe in enumerate(gl.df_list):
         new_df = pd.DataFrame()
@@ -127,7 +127,7 @@ def refactor_crashes():
                 obst_idx, obstacle_row = get_next_obstacle_row(count, dataframe)
                 row['obstacle'] = obstacle_row['obstacle']
                 new_df = new_df.append(row)
-                dataframe.drop(obst_idx, inplace = True)
+                dataframe.drop(obst_idx, inplace=True)
             else:
                 new_df = new_df.append(row)
             count += 1

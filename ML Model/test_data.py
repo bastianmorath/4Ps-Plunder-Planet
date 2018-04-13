@@ -20,8 +20,8 @@ def init_with_testdata_simple():
 
     for i in range(0, num_dataframes):
         times = range(0, 400)
-        logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_OBSTACLE'] * 100
-        heartrates = [20, 30, 30, 30] * 100
+        logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'CONTINUOUS', 'EVENT_CRASH'] * 100
+        heartrates = [20, 20, 30, 20] * 100
         timedeltas = [pd.to_timedelta(t, unit='S') for t in times]
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
