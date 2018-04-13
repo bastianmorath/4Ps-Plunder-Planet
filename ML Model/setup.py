@@ -49,7 +49,7 @@ def read_and_prepare_logs():
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
-    # gl.df_without_features = pd.concat(gl.df_list, ignore_index=True)
+    # refactor_crashes()
 
 
 """The following methods add additional columns to all dataframes in the gl.df_list"""
@@ -104,3 +104,32 @@ def add_log_column():
         gl.df_list[idx] = gl.df_list[idx].assign(logID=idx)
 
 
+'''At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc ase of a crash, which makes it more difficult to analyze the data. 
+    Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log'''
+
+
+def refactor_crashes():
+    ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
+
+    def get_next_obstacle_row(index, df):
+        count = 1
+        while True:
+            logtype = df.loc[index + count]['Logtype']
+            if logtype == 'EVENT_OBSTACLE':
+                return index+count, df.loc[index + count]
+            count += 1
+
+    for df_idx, dataframe in enumerate(gl.df_list):
+        new_df = pd.DataFrame()
+        count = 0
+        for _, row in dataframe.iterrows():
+            if row['Logtype'] == 'EVENT_CRASH':
+                obst_idx, obstacle_row = get_next_obstacle_row(count, dataframe)
+                row['obstacle'] = obstacle_row['obstacle']
+                new_df = new_df.append(row)
+                dataframe.drop(obst_idx, inplace = True)
+            else:
+                new_df = new_df.append(row)
+            count += 1
+
+            gl.df_list[df_idx] = new_df

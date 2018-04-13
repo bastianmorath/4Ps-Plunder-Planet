@@ -50,10 +50,10 @@ else:
 print('Creating feature matrix...')
 
 X, y = f_factory.get_feature_matrix_and_label()
-print(X)
-print(y)
+print('Feature matrix X: \n' + str(X))
+print('labels y:\n' + str(y))
 
-plots.plot_features_with_labels(X, y) # WARNING: Only works with non_testdata (since we don't have windows otherwise)
+plots.plot_features_with_labels(X, y)
 plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X)
 plots.print_mean_features_crash(X, y)
@@ -69,7 +69,7 @@ X = scaler.transform(X)
 ''' Apply Model with Cross-Validation'''
 
 
-print('Model fitting')
+print('Model fitting with ' + str(gl.model))
 
 X_train, X_test, y_train, y_test = train_test_split(
              X, y, test_size=0.3)

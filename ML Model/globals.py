@@ -13,11 +13,14 @@ import m_naive_bayes
 cw = 30  # Over how many preceeding seconds should %crashes be calculated?
 hw = 70  # Over how many preceeding seconds should the heartrate be averaged?
 
+
 model = m_nearest_neighbor.NearestNeighbor  # Which model should be used?
+# model = m_naive_bayes.NaiveBayes  # Which model should be used?
+# model = m_svm.SVM  # Which model should be used?
 
 testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
 use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
-test_data = True  # If test_data==True, the model uses synthesized data
+test_data = False  # If test_data==True, the model uses synthesized data
 normalize_heartrate = False  # Whether we should use normalized heartrate (divide by baseline)
 use_boxcox = False   # Use boxcox (transforms features into a normal distribution)
 
