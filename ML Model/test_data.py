@@ -58,10 +58,10 @@ def init_with_testdata_simple_2():
         for j in range(0, length_dataframe):
 
             if next_event == 'EVENT_CRASH':
-                hr = 10 + noise[j]
+                hr = 10
                 heartrates.append(hr)
             else:
-                hr = 1 + noise[j]
+                hr = 1
                 heartrates.append(hr)
 
             times.append(j + noise[j])

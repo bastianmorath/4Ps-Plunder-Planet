@@ -116,7 +116,7 @@ def get_last_obstacle_crash_feature():
 
 def get_percentage_crashes_column(df):
     def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] < _to)
+        mask = (_from <= df['Time']) & (df['Time'] < _to)
         return df[mask]
 
     def compute_crashes(row):
@@ -136,11 +136,12 @@ def get_percentage_crashes_column(df):
 
 def get_mean_heartrate_column(df):
     def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] <= _to)
+        mask = (_from <= df['Time']) & (df['Time'] < _to)
         return df[mask]
 
     def compute_mean_hr(row):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'])
+
         return last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
 
     return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)
@@ -154,7 +155,7 @@ def get_mean_heartrate_column(df):
 def get_max_over_min_column(df):
 
     def df_from_to(_from, _to):
-        mask = (_from < df['Time']) & (df['Time'] <= _to)
+        mask = (_from <= df['Time']) & (df['Time'] < _to)
         return df[mask]
 
     def compute_mean_hr(row):

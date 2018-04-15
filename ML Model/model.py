@@ -54,10 +54,10 @@ print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
 
 
-plots.plot_features_with_labels(X, y)
-plots.plot_heartrate_histogram()
-plots.plot_feature_distributions(X)
-plots.print_mean_features_crash(X, y)
+# plots.plot_features_with_labels(X, y)
+# plots.plot_heartrate_histogram()
+# plots.plot_feature_distributions(X)
+# plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
