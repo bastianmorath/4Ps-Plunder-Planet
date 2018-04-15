@@ -64,6 +64,8 @@ def plot_features_with_labels(X, y):
     x1 = X[:, 0]  # mean_hr
     x2 = X[:, 1]  # %crashes
     x3 = X[:, 2]  # max_over_min_hr
+    x4 = X[:, 3]  # last_obstacle_crash
+
     color = ['red' if x else 'green' for x in y]
 
     ax1.scatter(x2, x3, color=color)
@@ -85,6 +87,13 @@ def plot_features_with_labels(X, y):
     ax3.set_xlabel('mean_hr [normalized]')
     ax3.set_ylabel('crashes [%]')
     plt.savefig(gl.working_directory_path + '/Plots/features_label_mean_hr__crashes.pdf')
+
+    _, ax3 = plt.subplots()
+
+    ax3.scatter(x1, x4, color=color)
+    ax3.set_xlabel('mean_hr [normalized]')
+    ax3.set_ylabel('last obstacle crash [yes/no]')
+    plt.savefig(gl.working_directory_path + '/Plots/features_label_crash_mean_hr.pdf')
 
 
 '''Plots the distribution of the features'''

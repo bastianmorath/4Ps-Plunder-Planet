@@ -33,11 +33,11 @@ def get_obstacle_times_with_success():
     for dataframe in gl.df_list:
         obstacle_times_current_df = []
         for idx, row in dataframe.iterrows():
-            if row['Logtype'] == 'EVENT_OBSTACLE':
-                obstacle_times_current_df.append((row['Time'], 0))
-            if row['Logtype'] == 'EVENT_CRASH':
-                obstacle_times_current_df.append((row['Time'], 1))
-
+            if row['Time'] > max(gl.cw, gl.hw):
+                if row['Logtype'] == 'EVENT_OBSTACLE':
+                    obstacle_times_current_df.append((row['Time'], 0))
+                if row['Logtype'] == 'EVENT_CRASH':
+                    obstacle_times_current_df.append((row['Time'], 1))
         times = np.asarray([a for (a, b) in obstacle_times_current_df])
         crashes = np.asarray([b for (a, b) in obstacle_times_current_df])
 

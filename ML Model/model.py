@@ -17,7 +17,6 @@ from __future__ import division  # s.t. division uses float result
 
 from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.datasets import make_blobs
 
 import setup
 import plots
@@ -42,7 +41,7 @@ print('Init dataframes...')
 
 
 if gl.test_data:
-    test_data.init_with_testdata_simple()
+    test_data.init_with_testdata_simple_2()
 else:
     setup.setup()
     # plots.plot_hr_of_dataframes()
@@ -50,8 +49,10 @@ else:
 print('Creating feature matrix...')
 
 X, y = f_factory.get_feature_matrix_and_label()
+
 print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
+
 
 plots.plot_features_with_labels(X, y)
 plots.plot_heartrate_histogram()
@@ -59,11 +60,10 @@ plots.plot_feature_distributions(X)
 plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
-
+# scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
+# X = scaler.transform(X)
 scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(X)  # Rescale between 0 and 1
-scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
-X = scaler.transform(X)
 
 
 ''' Apply Model with Cross-Validation'''

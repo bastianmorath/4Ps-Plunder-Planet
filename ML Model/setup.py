@@ -18,17 +18,14 @@ def setup():
     # Store computed dataframe in pickle file for faster processing
     if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
-        # gl.df = pd.read_pickle(gl.working_directory_path + '/Pickle/df.pickle')
         gl.obstacle_df_list = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
 
     else:
         print('Dataframe not cached. Creating dataframe...')
-        # gl.df = f_factory.get_df_with_feature_columns()
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
         pickle.dump(gl.obstacle_df_list, open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "wb"))
-        # gl.df.to_pickle(gl.working_directory_path + '/Pickle/df.pickle')
         print('Dataframe created')
 
 
@@ -75,7 +72,6 @@ def normalize_heartrate():
         for dataframe in gl.df_list:
             if not (dataframe['Heartrate'] == -1).all():
                 baseline = dataframe[dataframe['Time'] < 60]['Heartrate'].mean()
-                # dataframe['Heartrate'] = dataframe['Heartrate'] - baseline + 123.93  # add mean over all heartrates
                 dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
                 normalized_df_list.append(dataframe)
             else:

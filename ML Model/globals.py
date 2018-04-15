@@ -10,15 +10,15 @@ import m_naive_bayes
 # TODO: Whenever sth. changes here (e.g. window sizes), then automatically don't use cache no matter what settings we have
 # TODO: Maybe some unit tests?
 
-cw = 30  # Over how many preceeding seconds should %crashes be calculated?
-hw = 70  # Over how many preceeding seconds should the heartrate be averaged?
+cw = 1.3  # Over how many preceeding seconds should %crashes be calculated?
+hw = 1.3  # Over how many preceeding seconds should the heartrate be averaged?
 
 
 model = m_nearest_neighbor.NearestNeighbor  # Which model should be used?
-# model = m_naive_bayes.NaiveBayes  # Which model should be used?
-# model = m_svm.SVM  # Which model should be used?
+model = m_naive_bayes.NaiveBayes  # Which model should be used?
+model = m_svm.SVM  # Which model should be used?
 
-testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
+testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
 use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
 test_data = True  # If test_data==True, the model uses synthesized data
 normalize_heartrate = False  # Whether we should use normalized heartrate (divide by baseline)
@@ -32,4 +32,6 @@ names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile
 
-obstacle_df_list = []  # list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+# list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+# First max(gl.cw, gl.hw) seconds removed
+obstacle_df_list = []

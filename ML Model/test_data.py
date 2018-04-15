@@ -34,51 +34,43 @@ def init_with_testdata_simple():
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 
+
 ''' Inits with very simple synthesized data to check model performence
-    Alternates between heartrate 20 and 30 and crash/not crash WITH noise
+    Adds or subtracts conmstant hr in event of crash/not crash
 '''
 
 
-def init_with_testdata_simple_and_noise():
-    crashes = []
-    # Find distribution of Logtypes
-    # c = Counter(gl.df_without_features['Logtype'])
-    # print([(i, c[i] / len(gl.df_without_features['Logtype']) * 100.0) for i in c])
+def init_with_testdata_simple_2():
+
     for i in range(0, num_dataframes):
-        times = [0]
-        logtypes = ['CONTINUOUS']
-        heartrates = [mean_hr]
-        timedeltas = [pd.to_timedelta(0, unit='S')]
+        times = []
+        logtypes = []
+        heartrates = []
+        timedeltas = []
 
         distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(length_dataframe)
-        last_event_was_a_crash = False
-        crashes.append(False)
-        hr = mean_hr
-        for j in range(0, length_dataframe - 1):
-            types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
-            if last_event_was_a_crash:
-                last_event_was_a_crash = False
-                log = 'EVENT_OBSTACLE'
-                logtypes.append(log)
-                hr = hr + np.random.normal(4, 2)
-                heartrates.append(hr)
-                crashes.append(True)
-                times.append(times[-1] + noise[j])  # Crash: Add EVENT_OBSTACLE right after EVENT_CRASH
-            else:
-                log = np.random.choice(types, p=[0.6, 0.27, 0.1, 0.03])
-                logtypes.append(log)
-                hr = hr + np.random.normal(-0.3, 0.7)
-                heartrates.append(hr)
-                if log == 'EVENT_CRASH':
-                    crashes.append(True)
-                    last_event_was_a_crash = True
-                else:
-                    crashes.append(False)
-                    last_event_was_a_crash = False
-                times.append(times[-1] + 1 + noise[j])
 
-            timedeltas.append(pd.to_timedelta(times[j + 1], unit='S'))
+        hr = mean_hr
+        types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
+        current_event = ''
+        next_event = 'CONTINUOUS'
+        for j in range(0, length_dataframe):
+
+            if next_event == 'EVENT_CRASH':
+                hr = 10 + noise[j]
+                heartrates.append(hr)
+            else:
+                hr = 1 + noise[j]
+                heartrates.append(hr)
+
+            times.append(j + noise[j])
+            logtypes.append(current_event)
+
+            current_event = next_event
+            next_event = np.random.choice(types, p=[0.6, 0.27, 0.1, 0.03])
+
+            timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
@@ -86,7 +78,6 @@ def init_with_testdata_simple_and_noise():
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
-
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 
@@ -102,40 +93,34 @@ def init_with_testdata():
     # c = Counter(gl.df_without_features['Logtype'])
     # print([(i, c[i] / len(gl.df_without_features['Logtype']) * 100.0) for i in c])
     for i in range(0, num_dataframes):
-        times = [0]
-        logtypes = ['CONTINUOUS']
-        heartrates = [mean_hr]
-        timedeltas = [pd.to_timedelta(0, unit='S')]
+        times = []
+        logtypes = []
+        heartrates = []
+        timedeltas = []
 
         distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(length_dataframe)
-        last_event_was_a_crash = False
-        crashes.append(False)
+
         hr = mean_hr
-        for j in range(0, length_dataframe-1):
-            types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
-            if last_event_was_a_crash:
-                last_event_was_a_crash = False
-                log = 'EVENT_OBSTACLE'
-                logtypes.append(log)
-                hr = hr + np.random.normal(4, 2)
+        types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
+        next_event = 'CONTINUOUS'
+        for j in range(0, length_dataframe - 1):
+
+            if next_event == 'EVENT_CRASH':
+                hr = hr + np.random.normal(8, 2)
                 heartrates.append(hr)
                 crashes.append(True)
-                times.append(times[-1] + noise[j])  # Crash: Add EVENT_OBSTACLE right after EVENT_CRASH
             else:
-                log = np.random.choice(types, p=[0.6, 0.27, 0.1, 0.03])
-                logtypes.append(log)
-                hr = hr + np.random.normal(-0.3, 0.7)
+                hr = hr + np.random.normal(0.05, 1)
                 heartrates.append(hr)
-                if log == 'EVENT_CRASH':
-                    crashes.append(True)
-                    last_event_was_a_crash = True
-                else:
-                    crashes.append(False)
-                    last_event_was_a_crash = False
-                times.append(times[-1] + 1 + noise[j])
+                crashes.append(False)
 
-            timedeltas.append(pd.to_timedelta(times[j+1], unit='S'))
+            times.append(j + noise[j])
+            logtypes.append(next_event)
+
+            next_event = np.random.choice(types, p=[0.6, 0.27, 0.1, 0.03])
+
+            timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
