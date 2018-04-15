@@ -16,16 +16,20 @@ def setup():
     read_and_prepare_logs()
 
     # Store computed dataframe in pickle file for faster processing
-    if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df.pickle'):
+    if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
+        print('cacheee')
         print('Dataframe already cached. Used this file to improve performance')
         gl.obstacle_df_list = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
-
+        gl.df_list = pickle.load(open(gl.working_directory_path + '/Pickle/df_list.pickle', "rb"))
     else:
         print('Dataframe not cached. Creating dataframe...')
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
+        refactor_crashes()
 
         # Save to .pickle for caching
         pickle.dump(gl.obstacle_df_list, open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "wb"))
+        pickle.dump(gl.df_list, open(gl.working_directory_path + '/Pickle/df_list.pickle', "wb"))
+
         print('Dataframe created')
 
 
@@ -46,7 +50,6 @@ def read_and_prepare_logs():
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
-    refactor_crashes()
 
 
 """The following methods add additional columns to all dataframes in the gl.df_list"""
@@ -71,7 +74,7 @@ def normalize_heartrate():
         normalized_df_list = []
         for dataframe in gl.df_list:
             if not (dataframe['Heartrate'] == -1).all():
-                baseline = dataframe[dataframe['Time'] < 60]['Heartrate'].mean()
+                baseline = dataframe[dataframe['Time'] < 20]['Heartrate'].min()
                 dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
                 normalized_df_list.append(dataframe)
             else:
@@ -105,6 +108,7 @@ def add_log_column():
 
 
 def refactor_crashes():
+
     ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
 
     def get_next_obstacle_row(index, df):
@@ -118,12 +122,16 @@ def refactor_crashes():
     for df_idx, dataframe in enumerate(gl.df_list):
         new_df = pd.DataFrame()
         count = 0
-        for _, row in dataframe.iterrows():
+        for idx, row in dataframe.iterrows():
             if row['Logtype'] == 'EVENT_CRASH':
-                obst_idx, obstacle_row = get_next_obstacle_row(count, dataframe)
-                row['obstacle'] = obstacle_row['obstacle']
+                if count == dataframe.index[-1]:
+                    row['obstacle'] = ''
+                else:
+                    obst_idx, obstacle_row = get_next_obstacle_row(count, dataframe)
+                    row['obstacle'] = obstacle_row['obstacle']
+                    dataframe.drop(obst_idx, inplace=True)
+
                 new_df = new_df.append(row)
-                dataframe.drop(obst_idx, inplace=True)
             else:
                 new_df = new_df.append(row)
             count += 1

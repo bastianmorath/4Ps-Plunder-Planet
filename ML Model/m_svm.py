@@ -18,7 +18,7 @@ class SVM(AbstractMLModelClass):
             'C': np.linspace(1, 30, 10)
         }
 
-        self.model = svm.SVC()
+        self.model = svm.SVC(probability=True)
         # self.model = GridSearchCV(self.model, param_grid, cv=10, scoring='accuracy')  # find best hyperparameters
         self.model.fit(X_train, y_train)
 

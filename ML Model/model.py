@@ -27,6 +27,15 @@ import features_factory as f_factory
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
+def print_confidentiality_scores():
+    from sklearn.neighbors import KNeighborsClassifier
+    model = KNeighborsClassifier()
+    model.fit(X_train, y_train)
+    probas = model.predict_proba(X_test)
+    y_predicted = model.predict(X_test)
+    for idx, [a, _] in enumerate(probas):
+        if y_test[idx] != y_predicted[idx]:
+            print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: ' + str(a*100) + '%')
 
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
@@ -41,7 +50,7 @@ print('Init dataframes...')
 
 
 if gl.test_data:
-    test_data.init_with_testdata_simple_2()
+    test_data.init_with_testdata_events_random_hr_gaussian()
 else:
     setup.setup()
     # plots.plot_hr_of_dataframes()
@@ -54,10 +63,10 @@ print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
 
 
-# plots.plot_features_with_labels(X, y)
-# plots.plot_heartrate_histogram()
-# plots.plot_feature_distributions(X)
-# plots.print_mean_features_crash(X, y)
+plots.plot_features_with_labels(X, y)
+plots.plot_heartrate_histogram()
+plots.plot_feature_distributions(X)
+plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
@@ -74,12 +83,14 @@ print('Model fitting with ' + str(gl.model))
 X_train, X_test, y_train, y_test = train_test_split(
              X, y, test_size=0.3)
 
+
 model = gl.model(X_train, y_train)
 
 # Predict values on test data
 y_test_predicted = model.predict(X_test)
 
 model.print_score(y_test, y_test_predicted)
+print_confidentiality_scores()
 
 
 

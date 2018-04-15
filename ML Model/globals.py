@@ -10,19 +10,19 @@ import m_naive_bayes
 # TODO: Whenever sth. changes here (e.g. window sizes), then automatically don't use cache no matter what settings we have
 # TODO: Maybe some unit tests?
 
-cw = 1.3  # Over how many preceeding seconds should %crashes be calculated?
-hw = 1.3  # Over how many preceeding seconds should the heartrate be averaged?
+cw = 10  # Over how many preceeding seconds should %crashes be calculated?
+hw = 10  # Over how many preceeding seconds should the heartrate be averaged?
 
 
 model = m_nearest_neighbor.NearestNeighbor  # Which model should be used?
-model = m_naive_bayes.NaiveBayes  # Which model should be used?
-model = m_svm.SVM  # Which model should be used?
+# model = m_naive_bayes.NaiveBayes  # Which model should be used?
+# model = m_svm.SVM  # Which model should be used?
 
-testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
-use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
-test_data = True  # If test_data==True, the model uses synthesized data
-normalize_heartrate = False  # Whether we should use normalized heartrate (divide by baseline)
-use_boxcox = False   # Use boxcox (transforms features into a normal distribution)
+testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
+use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
+test_data = False  # If test_data==True, the model uses synthesized data
+normalize_heartrate = True  # Whether we should use normalized heartrate (divide by baseline)
+use_boxcox = True   # Use boxcox (transforms features into a normal distribution)
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))

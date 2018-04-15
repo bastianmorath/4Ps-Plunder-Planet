@@ -40,10 +40,16 @@ def get_feature_matrix_and_label():
 
     # Boxcox transformation
     if gl.use_boxcox:
-        # TODO: Values cant be <=0 -> Shift by epsilon (boxcox doesn't include shift parameter)
-        matrix['mean_hr'] = stats.boxcox(matrix['mean_hr'])[0]
-        matrix['%crashes'] = stats.boxcox(matrix['%crashes']+0.01)[0] # Add shift parameter
-        matrix['max_over_min'] = stats.boxcox(matrix['max_over_min'])[0]
+        # Values must be positive. If not, shift it
+        if matrix['mean_hr'].min() <= 0:
+            matrix['mean_hr'] = stats.boxcox(matrix['mean_hr'] - matrix['mean_hr'].min() + 0.01)[0]
+        if matrix['%crashes'].min() <= 0:
+            matrix['%crashes'] = stats.boxcox(matrix['%crashes'] - matrix['%crashes'].min() + 0.01)[0]
+        if matrix['max_over_min'].min() <= 0:
+            matrix['max_over_min'] = stats.boxcox(matrix['max_over_min'] - matrix['max_over_min'].min() + 0.01)[0]
+        if matrix['last_obstacle_crash'].min() <= 0:
+            matrix['last_obstacle_crash'] = stats.boxcox(matrix['last_obstacle_crash'] -
+                                                         matrix['last_obstacle_crash'].min() + 0.01)[0]
 
     return matrix.as_matrix(), labels
 

@@ -16,7 +16,7 @@ std_hr = 16.8  # std of normal distribution of heartrate
 '''
 
 
-def init_with_testdata_simple():
+def init_with_testdata_events_const_hr_const():
 
     for i in range(0, num_dataframes):
         times = range(0, 400)
@@ -36,11 +36,11 @@ def init_with_testdata_simple():
 
 
 ''' Inits with very simple synthesized data to check model performence
-    Adds or subtracts conmstant hr in event of crash/not crash
+    Random events, but heartrate either 1 or 10 depending on crash (with noise)
 '''
 
 
-def init_with_testdata_simple_2():
+def init_with_testdata_events_random_hr_const():
 
     for i in range(0, num_dataframes):
         times = []
@@ -51,17 +51,16 @@ def init_with_testdata_simple_2():
         distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(length_dataframe)
 
-        hr = mean_hr
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
         current_event = ''
         next_event = 'CONTINUOUS'
         for j in range(0, length_dataframe):
 
             if next_event == 'EVENT_CRASH':
-                hr = 10
+                hr = 10 + noise[j]
                 heartrates.append(hr)
             else:
-                hr = 1
+                hr = 1 + noise[j]
                 heartrates.append(hr)
 
             times.append(j + noise[j])
@@ -87,11 +86,8 @@ def init_with_testdata_simple_2():
 '''
 
 
-def init_with_testdata():
-    crashes = []
-    # Find distribution of Logtypes
-    # c = Counter(gl.df_without_features['Logtype'])
-    # print([(i, c[i] / len(gl.df_without_features['Logtype']) * 100.0) for i in c])
+def init_with_testdata_events_random_hr_gaussian():
+
     for i in range(0, num_dataframes):
         times = []
         logtypes = []
@@ -101,23 +97,23 @@ def init_with_testdata():
         distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(length_dataframe)
 
-        hr = mean_hr
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
+        current_event = ''
         next_event = 'CONTINUOUS'
-        for j in range(0, length_dataframe - 1):
+        hr = mean_hr
+        for j in range(0, length_dataframe):
 
             if next_event == 'EVENT_CRASH':
-                hr = hr + np.random.normal(8, 2)
+                hr = hr + 20
                 heartrates.append(hr)
-                crashes.append(True)
             else:
-                hr = hr + np.random.normal(0.05, 1)
+                hr = hr - 10
                 heartrates.append(hr)
-                crashes.append(False)
 
             times.append(j + noise[j])
-            logtypes.append(next_event)
+            logtypes.append(current_event)
 
+            current_event = next_event
             next_event = np.random.choice(types, p=[0.6, 0.27, 0.1, 0.03])
 
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
@@ -128,7 +124,6 @@ def init_with_testdata():
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
-
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 

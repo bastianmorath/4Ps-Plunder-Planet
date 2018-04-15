@@ -30,3 +30,4 @@ class AbstractMLModelClass(ABC):
 
         print(str(predicted_accuracy - null_accuracy) + '%: Difference in % correctly classified data '
                                                         'compared to Null Accuracy: ')
+
