@@ -27,7 +27,9 @@ class NearestNeighbor(AbstractMLModelClass):
     def predict(self, x_test):
         return self.model.predict(x_test)
 
+    '''
     @staticmethod
+   
     def plot_mse_vs_num_neigbors(X_train, y_train):
         neighbors = range(1, 200)
         cv_scores = []
@@ -48,4 +50,5 @@ class NearestNeighbor(AbstractMLModelClass):
         plt.xlabel('Number of Neighbors K')
         plt.ylabel('Misclassification Error')
         plt.savefig(gl.working_directory_path + '/Plots/nearest_neighbor_errors.pdf')
+'''
 

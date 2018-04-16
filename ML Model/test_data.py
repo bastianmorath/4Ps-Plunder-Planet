@@ -38,7 +38,7 @@ def init_with_testdata_events_const_hr_const():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
-        plot_hr(dataframe, i)
+        # plot_hr(dataframe, i)
 
         gl.df_list.append(dataframe)
 
@@ -84,7 +84,7 @@ def init_with_testdata_events_random_hr_const():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
-        plot_hr(dataframe, i)
+        # plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
@@ -131,7 +131,7 @@ def init_with_testdata_events_random_hr_continuous():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
-        plot_hr(dataframe, i)
+        # plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
 
     setup.normalize_heartrate()
