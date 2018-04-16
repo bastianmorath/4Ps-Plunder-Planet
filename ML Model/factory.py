@@ -72,7 +72,7 @@ import features_factory as f_factory
 def test_windows():
     # CHECK performance depending on window sizes
     hws = [5, 10, 20, 30, 40, 50]
-    cws = [1, 2, 5, 10, 20, 30, 40, 50]
+    cws = [2, 3, 5, 10, 20, 30, 40, 50]
     results = []  # hw, cw, null_accuracy, predicted_accuracy
     for hw in hws:
         for cw in cws:
@@ -92,6 +92,7 @@ def test_windows():
             null_accuracy = max(np.mean(y_test), 1 - np.mean(y_test)) * 100
             predicted_accuracy = metrics.accuracy_score(y_test, y_test_predicted) * 100
             results.append([hw, cw, null_accuracy, predicted_accuracy])
+            print([hw, cw, null_accuracy, predicted_accuracy])
 
     results.sort(key=lambda x: x[3])
     print(results)
