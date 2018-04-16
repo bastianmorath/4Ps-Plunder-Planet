@@ -71,7 +71,7 @@ import features_factory as f_factory
 def test_windows():
     # CHECK performance depending on window sizes
     hws = [5, 10, 20, 30, 40, 50]
-    cws = [20, 30, 40, 50]
+    cws = [2, 3, 5, 10, 20, 30, 40, 50]
     results = []  # hw, cw, null_accuracy, predicted_accuracy
     for hw in hws:
         for cw in cws:

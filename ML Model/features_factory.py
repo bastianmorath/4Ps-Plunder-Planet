@@ -66,7 +66,7 @@ def get_mean_hr_feature():
                 mean_hr_df.append(corresp_row['mean_hr'])
             else:
                 print('not_ok')
-                mean_hr_df.append(0)
+                mean_hr_df.append(mean_hr_df[-1])
         mean_hr_list.append(mean_hr_df)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(mean_hr_list)), columns=['mean_hr'])
@@ -96,8 +96,12 @@ def get_max_over_min_feature():
         # max_over_min_resampled = factory.resample_dataframe(df[['timedelta', 'Time', 'max_over_min']], 1)
         max_over_min = []
         for _, row in gl.obstacle_df_list[list_idx].iterrows():
-            corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
-            max_over_min.append(corresp_row['max_over_min'])
+            if len(df[df['Time'] <= row['Time']].index) > 0:
+                corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
+                max_over_min.append(corresp_row['max_over_min'])
+            else:
+                print('not_ok')
+                max_over_min.append(max_over_min[-1])
         max_over_min_list.append(max_over_min)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(max_over_min_list)), columns=['max_over_min'])
