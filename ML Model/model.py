@@ -70,7 +70,7 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 ''' Apply Model with Cross-Validation'''
 
-factory.test_windows()
+# factory.test_windows()
 print('Model fitting with ' + str(gl.model))
 
 X_train, X_test, y_train, y_test = train_test_split(

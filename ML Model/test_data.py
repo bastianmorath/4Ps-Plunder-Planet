@@ -53,7 +53,7 @@ def init_with_testdata_events_const_hr_const():
 
 def init_with_testdata_events_random_hr_const():
 
-    for i in range(0, num_dataframes):
+    for i in range(0, 1):
         times = []
         logtypes = []
         heartrates = []
@@ -65,13 +65,13 @@ def init_with_testdata_events_random_hr_const():
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
         current_event = ''
         next_event = 'CONTINUOUS'
-        for j in range(0, length_dataframe):
+        for j in range(0, 80):
 
             if next_event == 'EVENT_CRASH':
-                hr = np.random.normal(7, 2)
+                hr = np.random.normal(7, 1)
                 heartrates.append(hr)
             else:
-                hr = np.random.normal(1, 2)
+                hr = np.random.normal(1, 1)
                 heartrates.append(hr)
 
             times.append(j + noise[j])

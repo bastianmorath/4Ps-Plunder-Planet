@@ -51,7 +51,7 @@ def get_feature_matrix_and_label():
     return matrix.as_matrix(), labels
 
 
-"""The following methods append a column to the feature matrix (after resampling it)"""
+"""The following methods append a column to the feature matrix"""
 
 
 def get_mean_hr_feature():
@@ -61,9 +61,14 @@ def get_mean_hr_feature():
         df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
         mean_hr_df = []
         for _, row in gl.obstacle_df_list[list_idx].iterrows():
-            corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
-            mean_hr_df.append(corresp_row['mean_hr'])
+            if len(df[df['Time'] <= row['Time']].index) > 0:
+                corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
+                mean_hr_df.append(corresp_row['mean_hr'])
+            else:
+                print('not_ok')
+                mean_hr_df.append(0)
         mean_hr_list.append(mean_hr_df)
+
     return pd.DataFrame(list(itertools.chain.from_iterable(mean_hr_list)), columns=['mean_hr'])
 
 
