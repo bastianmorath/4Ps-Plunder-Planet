@@ -15,7 +15,7 @@
 
 from __future__ import division  # s.t. division uses float result
 
-from sklearn.cross_validation import train_test_split   # IMPORTANT: use sklearn.cross_val for of Euler
+from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 import setup

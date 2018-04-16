@@ -1,11 +1,12 @@
 #     K-nearest neighbor as the binary classifier and 10-fold Cross-Validation is used
 
 
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import RadiusNeighborsClassifier
 
 import matplotlib.pyplot as plt
-from sklearn.cross_validation import cross_val_score
+from sklearn.model_selection import cross_val_score
 
 from Model_interface import AbstractMLModelClass
 

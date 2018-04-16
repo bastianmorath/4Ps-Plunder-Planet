@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "model.py", line 18, in <module>
-    from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
-ImportError: No module named model_selection
