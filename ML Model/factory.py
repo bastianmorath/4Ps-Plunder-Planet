@@ -46,7 +46,18 @@ def get_obstacle_times_with_success():
     return obstacle_time_crash
 
 
+'''Prints all wrongly classifed datapoints and with which confidentiality the classifier classified them'''
 
 
+def print_confidentiality_scores(X_train, X_test, y_train, y_test):
+    from sklearn.neighbors import KNeighborsClassifier
+    model = KNeighborsClassifier()
+    model.fit(X_train, y_train)
+    probas = model.predict_proba(X_test)
+    y_predicted = model.predict(X_test)
+    for idx, [a, b] in enumerate(probas):
+        if y_test[idx] != y_predicted[idx]:
+            print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: '
+                  + str(max(a,b)*100) + '%')
 
 

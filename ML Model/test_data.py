@@ -11,6 +11,18 @@ length_dataframe = 500  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
 
+test_data_case = 1
+
+
+def init_with_testdata():
+    # map the inputs to the function blocks
+    options = {0: init_with_testdata_events_const_hr_const, # Simplest: alternates between continuous, crash and not crash, setting hr = 30 or 30 if crash after
+               1: init_with_testdata_events_random_hr_const, # Random events, depending on crash or not sets hr= 10 or 100 in event before crash
+               2: init_with_testdata_events_random_hr_continuous
+               }
+    options[test_data_case]()
+
+
 ''' Inits with very simple synthesized data to check model performence
     Alternates between heartrate 20 and 30 and crash/not crash
 '''
@@ -32,7 +44,6 @@ def init_with_testdata_events_const_hr_const():
 
     setup.normalize_heartrate()
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
-
 
 
 ''' Inits with very simple synthesized data to check model performence
@@ -57,10 +68,10 @@ def init_with_testdata_events_random_hr_const():
         for j in range(0, length_dataframe):
 
             if next_event == 'EVENT_CRASH':
-                hr = 10 + noise[j]
+                hr = np.random.normal(7, 2)
                 heartrates.append(hr)
             else:
-                hr = 1 + noise[j]
+                hr = np.random.normal(1, 2)
                 heartrates.append(hr)
 
             times.append(j + noise[j])
@@ -86,7 +97,7 @@ def init_with_testdata_events_random_hr_const():
 '''
 
 
-def init_with_testdata_events_random_hr_gaussian():
+def init_with_testdata_events_random_hr_continuous():
 
     for i in range(0, num_dataframes):
         times = []

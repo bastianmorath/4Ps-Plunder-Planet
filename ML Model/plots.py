@@ -3,9 +3,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import itertools
+
+
 import factory
 import globals as gl
-
+import features_factory as f_factory
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
@@ -58,62 +61,35 @@ def plot_features(gamma, c, auroc, percentage):
 '''Plot features and corresponding labels to (hopefully) see patterns'''
 
 
-def plot_features_with_labels(X, y):
-    _, ax1 = plt.subplots()
-    # ax = Axes3D(fig)
-    x1 = X[:, 0]  # mean_hr
-    x2 = X[:, 1]  # %crashes
-    x3 = X[:, 2]  # max_over_min_hr
-    x4 = X[:, 3]  # last_obstacle_crash
+def plot_feature_correlations(X, y):
+    f_names = f_factory.feature_names
 
     color = ['red' if x else 'green' for x in y]
 
-    ax1.scatter(x2, x3, color=color)
-    ax1.set_xlabel('crashes [%]')
-    ax1.set_ylabel('max_over_min')
-    # ax.set_zlabel('max_hr / min_hr')
+    for (f1, f2) in itertools.combinations(f_names, r=2):
+        _, ax1 = plt.subplots()
 
-    plt.savefig(gl.working_directory_path + '/Plots/features_label_crashes__max_over_min.pdf')
+        print(f1, f2)
+        x1 = X[:, f_names.index(f1)]
+        x2 = X[:, f_names.index(f2)]
 
-    _, ax2 = plt.subplots()
-    ax2.scatter(x1, x3, color=color)
-    ax2.set_xlabel('mean_hr [normalized]')
-    ax2.set_ylabel('max_over_min')
-    plt.savefig(gl.working_directory_path + '/Plots/features_label_mean_hr__max_over_min.pdf')
+        ax1.scatter(x1, x2, color=color)
+        ax1.set_xlabel(f1)
+        ax1.set_ylabel(f2)
 
-    _, ax3 = plt.subplots()
-
-    ax3.scatter(x1, x2, color=color)
-    ax3.set_xlabel('mean_hr [normalized]')
-    ax3.set_ylabel('crashes [%]')
-    plt.savefig(gl.working_directory_path + '/Plots/features_label_mean_hr__crashes.pdf')
-
-    _, ax3 = plt.subplots()
-
-    ax3.scatter(x1, x4, color=color)
-    ax3.set_xlabel('mean_hr [normalized]')
-    ax3.set_ylabel('last obstacle crash [yes/no]')
-    plt.savefig(gl.working_directory_path + '/Plots/features_label_crash_mean_hr.pdf')
+        plt.savefig(gl.working_directory_path + '/Plots/feature_correlation_' + f1 + '_' + f2 + '.pdf')
 
 
 '''Plots the distribution of the features'''
 
 
 def plot_feature_distributions(X):
-    x1 = X[:, 0]  # mean_hr
-    x2 = X[:, 1]  # %crashes
-    x3 = X[:, 2]  # max_over_min_hr
-    plt.subplot(3, 1, 1)
-    plt.hist(x1)
-    plt.title('mean_hr distribution')
-
-    plt.subplot(3, 1, 2)
-    plt.hist(x2)
-    plt.title('crashes [%]')
-
-    plt.subplot(3, 1, 3)
-    plt.hist(x3)
-    plt.title('max_over_min')
+    f_names = f_factory.feature_names
+    for idx, feature in enumerate(f_names):
+        x = X[:, idx]
+        plt.subplot(len(f_names), 1, idx+1)
+        plt.hist(x)
+        plt.title(feature)
 
     plt.tight_layout()
     plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
@@ -162,9 +138,13 @@ def print_mean_features_crash(X, y):
     for i in range(0, len(X[0])):
         mean_with_obstacles = np.mean([l[i] for l in rows_with_crash])
         mean_without_obstacles = np.mean([l[i] for l in rows_without_crash])
+        std_with_obstacles = np.std([l[i] for l in rows_with_crash])
+        std_without_obstacles = np.std([l[i] for l in rows_without_crash])
+
         _, _ = plt.subplots()
 
-        plt.bar([0, 1], [mean_with_obstacles, mean_without_obstacles], width=0.5)
-        plt.xticks(np.arange(2), ['Crash', 'No crash'])
+        plt.bar(0,  mean_without_obstacles, width=0.5, yerr=std_without_obstacles, label='No crash')
+        plt.bar(1,  mean_with_obstacles, width=0.5, yerr=std_with_obstacles, label='Crash')
+        plt.legend()
         plt.title('Average value of feature ' + str(i+1) + ' when crash or not crash')
         plt.savefig(gl.working_directory_path + '/Plots/bar_feature' + str(i+1) + '_crash.pdf')

@@ -22,20 +22,12 @@ import setup
 import plots
 import test_data
 import globals as gl
+import factory
 import features_factory as f_factory
 
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
-def print_confidentiality_scores():
-    from sklearn.neighbors import KNeighborsClassifier
-    model = KNeighborsClassifier()
-    model.fit(X_train, y_train)
-    probas = model.predict_proba(X_test)
-    y_predicted = model.predict(X_test)
-    for idx, [a, _] in enumerate(probas):
-        if y_test[idx] != y_predicted[idx]:
-            print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: ' + str(a*100) + '%')
 
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
@@ -50,7 +42,7 @@ print('Init dataframes...')
 
 
 if gl.test_data:
-    test_data.init_with_testdata_events_random_hr_gaussian()
+    test_data.init_with_testdata()
 else:
     setup.setup()
     # plots.plot_hr_of_dataframes()
@@ -63,7 +55,7 @@ print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
 
 
-plots.plot_features_with_labels(X, y)
+plots.plot_feature_correlations(X, y)
 plots.plot_heartrate_histogram()
 plots.plot_feature_distributions(X)
 plots.print_mean_features_crash(X, y)
@@ -90,7 +82,8 @@ model = gl.model(X_train, y_train)
 y_test_predicted = model.predict(X_test)
 
 model.print_score(y_test, y_test_predicted)
-print_confidentiality_scores()
+
+factory.print_confidentiality_scores(X_train, X_test, y_train, y_test)
 
 
 

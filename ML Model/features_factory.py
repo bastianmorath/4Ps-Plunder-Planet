@@ -2,10 +2,8 @@ import pandas as pd
 import os
 
 from scipy import stats
-import numpy as np
 import itertools
 
-import factory as factory
 import globals as gl
 
 '''Current features:
@@ -14,6 +12,7 @@ import globals as gl
     3. Max over min heartrate in last x seconds
 '''
 
+feature_names = ['mean_hr', '%obstacles', 'max_over_min', 'last_obstacle_crash']
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle
@@ -31,6 +30,7 @@ def get_feature_matrix_and_label():
         matrix['%crashes'] = get_percentage_crashes_feature()
         matrix['max_over_min'] = get_max_over_min_feature()
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
+
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     labels = []
     for df in gl.obstacle_df_list:
@@ -41,15 +41,12 @@ def get_feature_matrix_and_label():
     # Boxcox transformation
     if gl.use_boxcox:
         # Values must be positive. If not, shift it
-        if matrix['mean_hr'].min() <= 0:
-            matrix['mean_hr'] = stats.boxcox(matrix['mean_hr'] - matrix['mean_hr'].min() + 0.01)[0]
-        if matrix['%crashes'].min() <= 0:
-            matrix['%crashes'] = stats.boxcox(matrix['%crashes'] - matrix['%crashes'].min() + 0.01)[0]
-        if matrix['max_over_min'].min() <= 0:
-            matrix['max_over_min'] = stats.boxcox(matrix['max_over_min'] - matrix['max_over_min'].min() + 0.01)[0]
-        if matrix['last_obstacle_crash'].min() <= 0:
-            matrix['last_obstacle_crash'] = stats.boxcox(matrix['last_obstacle_crash'] -
-                                                         matrix['last_obstacle_crash'].min() + 0.01)[0]
+        for feature in feature_names:
+            if not feature == 'last_obstacle_crash':  # Doesn't makes ense to do boxcox here
+                if matrix[feature].min() <= 0:
+                    matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
+                else:
+                    matrix[feature] = stats.boxcox(matrix[feature])[0]
 
     return matrix.as_matrix(), labels
 
@@ -147,7 +144,6 @@ def get_mean_heartrate_column(df):
 
     def compute_mean_hr(row):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'])
-
         return last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
 
     return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)
