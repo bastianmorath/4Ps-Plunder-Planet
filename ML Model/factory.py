@@ -61,3 +61,39 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
                   + str(max(a,b)*100) + '%')
 
 
+from sklearn import metrics
+
+from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+import numpy as np
+import pickle
+import features_factory as f_factory
+
+def test_windows():
+    # CHECK performance depending on window sizes
+    hws = [5, 10, 20, 30, 40, 50]
+    cws = [1, 2, 5, 10, 20, 30, 40, 50]
+    results = []  # hw, cw, null_accuracy, predicted_accuracy
+    for hw in hws:
+        for cw in cws:
+            gl.hw = hw
+            gl.cw = cw
+            X, y = f_factory.get_feature_matrix_and_label()
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            X = scaler.fit_transform(X)  # Rescale between 0 and 1
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.3)
+
+            model = gl.model(X_train, y_train)
+
+            # Predict values on test data
+            y_test_predicted = model.predict(X_test)
+
+            null_accuracy = max(np.mean(y_test), 1 - np.mean(y_test)) * 100
+            predicted_accuracy = metrics.accuracy_score(y_test, y_test_predicted) * 100
+            results.append([hw, cw, null_accuracy, predicted_accuracy])
+
+    results.sort(key=lambda x: x[3])
+    print(results)
+    pickle.dump(results, open(gl.working_directory_path + '/Pickle/window_results.pickle', "wb"))
+

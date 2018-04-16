@@ -12,7 +12,7 @@ import globals as gl
     3. Max over min heartrate in last x seconds
 '''
 
-feature_names = ['mean_hr', '%obstacles', 'max_over_min', 'last_obstacle_crash']
+feature_names = ['mean_hr', '%crashes', 'max_over_min', 'last_obstacle_crash']
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle

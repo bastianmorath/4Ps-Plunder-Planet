@@ -69,7 +69,6 @@ def plot_feature_correlations(X, y):
     for (f1, f2) in itertools.combinations(f_names, r=2):
         _, ax1 = plt.subplots()
 
-        print(f1, f2)
         x1 = X[:, f_names.index(f1)]
         x2 = X[:, f_names.index(f2)]
 
@@ -77,7 +76,7 @@ def plot_feature_correlations(X, y):
         ax1.set_xlabel(f1)
         ax1.set_ylabel(f2)
 
-        plt.savefig(gl.working_directory_path + '/Plots/feature_correlation_' + f1 + '_' + f2 + '.pdf')
+        plt.savefig(gl.working_directory_path + '/Plots/Correlations/feature_correlation_' + f1 + '_' + f2 + '.pdf')
 
 
 '''Plots the distribution of the features'''
@@ -110,7 +109,7 @@ def plot_hr_of_dataframes():
             ax1.set_ylabel('Heartrate', color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 
-            plt.savefig(gl.working_directory_path + '/Plots/HeartratesNormalized/hr_'+
+            plt.savefig(gl.working_directory_path + '/Plots/Heartrates/HeartratesNormalized/hr_'+
                         gl.names_logfiles[idx] + '.pdf')
 
 
@@ -147,4 +146,4 @@ def print_mean_features_crash(X, y):
         plt.bar(1,  mean_with_obstacles, width=0.5, yerr=std_with_obstacles, label='Crash')
         plt.legend()
         plt.title('Average value of feature ' + str(i+1) + ' when crash or not crash')
-        plt.savefig(gl.working_directory_path + '/Plots/bar_feature' + str(i+1) + '_crash.pdf')
+        plt.savefig(gl.working_directory_path + '/Plots/Crash_Correlation/bar_feature' + str(i+1) + '_crash.pdf')

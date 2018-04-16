@@ -49,6 +49,7 @@ else:
 
 print('Creating feature matrix...')
 
+
 X, y = f_factory.get_feature_matrix_and_label()
 
 print('Feature matrix X: \n' + str(X))
@@ -69,7 +70,7 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 ''' Apply Model with Cross-Validation'''
 
-
+factory.test_windows()
 print('Model fitting with ' + str(gl.model))
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -83,7 +84,7 @@ y_test_predicted = model.predict(X_test)
 
 model.print_score(y_test, y_test_predicted)
 
-factory.print_confidentiality_scores(X_train, X_test, y_train, y_test)
+# factory.print_confidentiality_scores(X_train, X_test, y_train, y_test)
 
 
 

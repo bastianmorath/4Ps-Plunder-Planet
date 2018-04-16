@@ -45,7 +45,7 @@ def read_and_prepare_logs():
     gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
     if gl.testing:
         # 2 dataframes with/ 1 dataframe without heartrate
-        gl.df_list = gl.df_list[19:22]
+        gl.df_list = gl.df_list[19:21]
     cut_frames()  # Cut frames to same length
     normalize_heartrate()
     add_log_column()

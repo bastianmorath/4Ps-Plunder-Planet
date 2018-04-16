@@ -156,4 +156,4 @@ def plot_hr(dataframe, i):
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate')
 
-    plt.savefig(gl.working_directory_path + '/Plots/heartrate_testdata_' + str(i) + '.pdf')
+    plt.savefig(gl.working_directory_path + '/Plots/Heartrate_Testdata/heartrate_testdata_' + str(i) + '.pdf')
