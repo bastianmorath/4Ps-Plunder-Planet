@@ -1,7 +1,6 @@
 #     Naives bayes as the binary classifier and 10-fold Cross-Validation is used
 
 
-from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import GaussianNB
 
 
