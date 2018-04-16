@@ -63,7 +63,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
 
 from sklearn import metrics
 
-from sklearn.cross_val import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
+from sklearn.cross_validation import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import numpy as np
 import pickle
