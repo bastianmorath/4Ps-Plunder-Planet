@@ -10,8 +10,8 @@ import m_naive_bayes
 # TODO: Whenever sth. changes here (e.g. window sizes), then automatically don't use cache no matter what settings we have
 
 
-cw = 5  # Over how many preceeding seconds should %crashes be calculated?
-hw = 20  # Over how many preceeding seconds should the heartrate be averaged?
+cw = 100  # Over how many preceeding seconds should %crashes be calculated?
+hw = 100  # Over how many preceeding seconds should the heartrate be averaged?
 
 
 model = m_nearest_neighbor.NearestNeighbor  # Which model should be used?
@@ -20,7 +20,7 @@ model = m_nearest_neighbor.NearestNeighbor  # Which model should be used?
 
 testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
 use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
-test_data = False  # If test_data==True, the model uses synthesized data
+test_data = True  # If test_data==True, the model uses synthesized data
 # Whether we should use normalized heartrate (divide by baseline). If test_data, then don't normalize
 # since dividing by minimumm doesn't make sense
 normalize_heartrate = not test_data & True

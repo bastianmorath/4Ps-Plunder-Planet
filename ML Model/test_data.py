@@ -11,7 +11,7 @@ length_dataframe = 500  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
 
-test_data_case = 1
+test_data_case = 2
 
 
 def init_with_testdata():
@@ -53,7 +53,7 @@ def init_with_testdata_events_const_hr_const():
 
 def init_with_testdata_events_random_hr_const():
 
-    for i in range(0, 1):
+    for i in range(0, num_dataframes):
         times = []
         logtypes = []
         heartrates = []
@@ -65,7 +65,7 @@ def init_with_testdata_events_random_hr_const():
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
         current_event = ''
         next_event = 'CONTINUOUS'
-        for j in range(0, 80):
+        for j in range(0, length_dataframe):
 
             if next_event == 'EVENT_CRASH':
                 hr = np.random.normal(7, 1)

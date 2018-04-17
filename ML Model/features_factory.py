@@ -65,7 +65,7 @@ def get_mean_hr_feature():
                 corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
                 mean_hr_df.append(corresp_row['mean_hr'])
             else:
-                print('not_ok')
+                print('get_mean_hr_feature: no rows...')
                 mean_hr_df.append(mean_hr_df[-1])
         mean_hr_list.append(mean_hr_df)
 

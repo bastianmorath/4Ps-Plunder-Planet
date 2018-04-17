@@ -16,7 +16,6 @@ red_color = '#A62A2A'
 
 # TODO: Broken, since now the features are only stored in feature matrix (without time)
 
-'''
 
 def plot_features(gamma, c, auroc, percentage):
     fig, ax1 = plt.subplots()
@@ -57,12 +56,12 @@ def plot_features(gamma, c, auroc, percentage):
              transform=ax2.transAxes, fontsize=10)
 
     plt.savefig(gl.working_directory_path + '/features_plot_'+ str(gl.cw) + '_'+ str(gl.hw) + '.pdf')
-'''
+
 
 
 '''Plot features and corresponding labels to (hopefully) see patterns'''
 
-'''
+
 
 def plot_feature_correlations(X, y):
     f_names = f_factory.feature_names
@@ -81,10 +80,9 @@ def plot_feature_correlations(X, y):
 
         plt.savefig(gl.working_directory_path + '/Plots/Correlations/feature_correlation_' + f1 + '_' + f2 + '.pdf')
 
-'''
+
 
 '''Plots the distribution of the features'''
-'''
 
 
 def plot_feature_distributions(X):
@@ -97,12 +95,12 @@ def plot_feature_distributions(X):
 
     plt.tight_layout()
     plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
-'''
 
 
-'''Plots heartrate of all dataframes (Used to compare normalized hr to original hr)'''
 
-'''
+'''Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
+Only works for real data at the moment, because of name_logfile not existing if test_data...'''
+
 
 def plot_hr_of_dataframes():
     resolution=5
@@ -118,12 +116,12 @@ def plot_hr_of_dataframes():
 
             plt.savefig(gl.working_directory_path + '/Plots/Heartrates/HeartratesNormalized/hr_'+
                         gl.names_logfiles[idx] + '.pdf')
-'''
+
 
 
 '''Plots the heartrate in a histogram'''
 
-'''
+
 
 def plot_heartrate_histogram():
     _, _ = plt.subplots()
@@ -133,13 +131,12 @@ def plot_heartrate_histogram():
     plt.title('Histogram of HR: $\mu=' + str(np.mean(df)) + '$, $\sigma=' + str(np.std(df)) + '$')
     plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
 
-'''
+
 
 '''For each feature, print the average of it when there was a crash vs. there was no crash'''
 
 # TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
 
-'''
 def print_mean_features_crash(X, y):
     rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
     rows_without_crash = [val for (idx, val) in enumerate(X) if y[idx] == 0]
@@ -158,4 +155,4 @@ def print_mean_features_crash(X, y):
         plt.title('Average value of feature ' + str(i+1) + ' when crash or not crash')
         plt.savefig(gl.working_directory_path + '/Plots/Crash_Correlation/bar_feature' + str(i+1) + '_crash.pdf')
 
-'''
+

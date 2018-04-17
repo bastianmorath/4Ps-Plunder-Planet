@@ -45,7 +45,7 @@ if gl.test_data:
     test_data.init_with_testdata()
 else:
     setup.setup()
-    # plots.plot_hr_of_dataframes()
+    plots.plot_hr_of_dataframes()
 
 print('Creating feature matrix...')
 
@@ -56,10 +56,10 @@ print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
 
 
-# plots.plot_feature_correlations(X, y)
-# plots.plot_heartrate_histogram()
-# plots.plot_feature_distributions(X)
-# plots.print_mean_features_crash(X, y)
+plots.plot_feature_correlations(X, y)
+plots.plot_heartrate_histogram()
+plots.plot_feature_distributions(X)
+plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
@@ -70,7 +70,7 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 ''' Apply Model with Cross-Validation'''
 
-factory.test_windows()
+# factory.test_windows()
 print('Model fitting with ' + str(gl.model))
 
 X_train, X_test, y_train, y_test = train_test_split(
