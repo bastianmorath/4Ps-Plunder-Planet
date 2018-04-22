@@ -22,7 +22,6 @@ def setup():
     else:
         print('Dataframe not cached. Creating dataframe...')
 
-        refactor_crashes()
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
@@ -48,12 +47,19 @@ def read_and_prepare_logs():
 
     logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
-    gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
+    # This read_csv is used when using the original logfiles
+    # gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
+
+    # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
+    gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
     if gl.testing:
         # 2 dataframes with and 1 dataframe without heartrate
         gl.df_list = gl.df_list[19:21]
+    # NOTE: Has only ever been called once to refactore logs
+    # refactor_crashes()
 
     # cut_frames()  # Cut frames to same length
+    remove_logs_without_heartrates()
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
@@ -110,14 +116,19 @@ def add_log_column():
         gl.df_list[idx] = gl.df_list[idx].assign(logID=idx)
 
 
-'''At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc ase of a crash, which makes it more difficult to analyze the data. 
-    Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log'''
+'''At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc case of a crash, which makes it more difficult to analyze the data. 
+    Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log
+    
+    Input: Original files
+    Output: New logfiles, without headers or anything
+    
+    Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'. From now on, always those logs are used'''
 
 
 def refactor_crashes():
 
-    ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
-    print('refactoring crashes...')
+    ''' If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
+    print('Refactoring crashes...')
 
     def get_next_obstacle_row(index, df):
         cnt = 1
@@ -130,18 +141,32 @@ def refactor_crashes():
     for df_idx, dataframe in enumerate(gl.df_list):
         new_df = pd.DataFrame()
         count = 0
+        obst_indices = []
         for idx, row in dataframe.iterrows():
-            if row['Logtype'] == 'EVENT_CRASH':
-                if count == dataframe.index[-1]:
-                    row['obstacle'] = ''
-                else:
-                    obst_idx, obstacle_row = get_next_obstacle_row(count, dataframe)
-                    row['obstacle'] = obstacle_row['obstacle']
-                    dataframe.drop(obst_idx, inplace=True)
-
+            if not (idx in obst_indices):
+                if row['Logtype'] == 'EVENT_CRASH':
+                    if count == dataframe.index[-1]:
+                        row['obstacle'] = ''
+                    else:
+                        obst_idx, obstacle_row = get_next_obstacle_row(idx, dataframe)
+                        obst_indices.append(obst_idx)
+                        row['obstacle'] = obstacle_row['obstacle']
+                        # dataframe.drop(obst_idx, inplace=True)
                 new_df = new_df.append(row)
-            else:
-                new_df = new_df.append(row)
-            count += 1
 
-            gl.df_list[df_idx] = new_df
+                count += 1
+        new_df.reset_index(inplace=True, drop=True)
+        column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
+                        'psyDifficulty', 'obstacle']
+
+        new_df = new_df.reindex(column_names, axis=1)
+        gl.df_list[df_idx] = new_df
+        print('next')
+        new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
+
+
+'''Remove all logfiles that do not have any heartrate data )since we then can't calculate our features'''
+
+
+def remove_logs_without_heartrates():
+    gl.df_list = [df for df in gl.df_list if not (df['Heartrate'] == -1).all()]

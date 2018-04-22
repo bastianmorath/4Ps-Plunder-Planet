@@ -113,5 +113,5 @@ def print_keynumbers_logfiles():
     print('#files: ' + str(len(gl.df_list)))
     print('#files with heartrate: ' + str(len([a for a in gl.df_list if not (a['Heartrate'] == -1).all()])))
     print('#datapoints: ' + str(sum([len(a.index) for a in gl.df_list])))
-    print('#obstacles: ' + str(sum([len(a) for a in gl.obstacle_df_list])))
-    print('#crashes: ')
+    print('#obstacles: ' + str(sum([len(df.index) for df in gl.obstacle_df_list])))
+    print('#crashes: ' + str(sum([len(df[df['crash'] == 1]) for df in gl.obstacle_df_list ])))
