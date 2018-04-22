@@ -40,7 +40,6 @@ def get_obstacle_times_with_success():
                     obstacle_times_current_df.append((row['Time'], 1))
         times = np.asarray([a for (a, b) in obstacle_times_current_df])
         crashes = np.asarray([b for (a, b) in obstacle_times_current_df])
-
         obstacle_time_crash.append(pd.DataFrame({'Time': times, 'crash': crashes}))
 
     return obstacle_time_crash

@@ -58,9 +58,7 @@ def plot_features(gamma, c, auroc, percentage):
     plt.savefig(gl.working_directory_path + '/features_plot_'+ str(gl.cw) + '_'+ str(gl.hw) + '.pdf')
 
 
-
 '''Plot features and corresponding labels to (hopefully) see patterns'''
-
 
 
 def plot_feature_correlations(X, y):
@@ -81,7 +79,6 @@ def plot_feature_correlations(X, y):
         plt.savefig(gl.working_directory_path + '/Plots/Correlations/feature_correlation_' + f1 + '_' + f2 + '.pdf')
 
 
-
 '''Plots the distribution of the features'''
 
 
@@ -95,7 +92,6 @@ def plot_feature_distributions(X):
 
     plt.tight_layout()
     plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
-
 
 
 '''Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
@@ -118,9 +114,7 @@ def plot_hr_of_dataframes():
                         gl.names_logfiles[idx] + '.pdf')
 
 
-
 '''Plots the heartrate in a histogram'''
-
 
 
 def plot_heartrate_histogram():
@@ -132,10 +126,10 @@ def plot_heartrate_histogram():
     plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
 
 
-
 '''For each feature, print the average of it when there was a crash vs. there was no crash'''
 
 # TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
+
 
 def print_mean_features_crash(X, y):
     rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]

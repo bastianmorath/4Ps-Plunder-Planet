@@ -21,7 +21,6 @@ def setup():
         gl.df_list = pickle.load(open(gl.working_directory_path + '/Pickle/df_list.pickle', "rb"))
     else:
         print('Dataframe not cached. Creating dataframe...')
-
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
@@ -127,7 +126,8 @@ def add_log_column():
 
 def refactor_crashes():
 
-    ''' If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
+    # If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event
+
     print('Refactoring crashes...')
 
     def get_next_obstacle_row(index, df):
@@ -165,7 +165,7 @@ def refactor_crashes():
         new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
 
 
-'''Remove all logfiles that do not have any heartrate data )since we then can't calculate our features'''
+'''Remove all logfiles that do not have any heartrate data (since we then can't calculate our features)'''
 
 
 def remove_logs_without_heartrates():
