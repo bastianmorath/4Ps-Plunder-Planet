@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import math
 
 from scipy import stats
 import itertools
@@ -37,7 +38,6 @@ def get_feature_matrix_and_label():
         # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
         labels.append(df[df['Time'] > max(gl.cw, gl.hw)]['crash'].copy())
     labels = list(itertools.chain.from_iterable(labels))
-
     # Boxcox transformation
     if gl.use_boxcox:
         # Values must be positive. If not, shift it
@@ -57,17 +57,18 @@ def get_feature_matrix_and_label():
 def get_mean_hr_feature():
     mean_hr_list = []  # list that contains a list of mean_hrs for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
-        df['mean_hr'] = get_mean_heartrate_column(df)
-        df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
-        mean_hr_df = []
-        for _, row in gl.obstacle_df_list[list_idx].iterrows():
-            if len(df[df['Time'] <= row['Time']].index) > 0:
-                corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
-                mean_hr_df.append(corresp_row['mean_hr'])
-            else:
-                print('get_mean_hr_feature: no rows...')
-                mean_hr_df.append(mean_hr_df[-1])
-        mean_hr_list.append(mean_hr_df)
+        if not (df['Heartrate'] == -1).all():
+            df['mean_hr'] = get_mean_heartrate_column(df)
+            df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
+            mean_hr_df = []
+            for _, row in gl.obstacle_df_list[list_idx].iterrows():
+                if len(df[df['Time'] <= row['Time']].index) > 0:
+                    corresp_row = df[df['Time'] <= row['Time']].iloc[-1]
+                    mean_hr_df.append(corresp_row['mean_hr'])
+                else:
+                    print('get_mean_hr_feature: no rows...')
+                    mean_hr_df.append(mean_hr_df[-1])
+            mean_hr_list.append(mean_hr_df)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(mean_hr_list)), columns=['mean_hr'])
 
@@ -153,7 +154,9 @@ def get_mean_heartrate_column(df):
 
     def compute_mean_hr(row):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'])
-        return last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
+        mean = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
+        # first mean will be nan, so replace it withs second row instead
+        return mean if not math.isnan(mean) else compute_mean_hr(df.iloc[1])
 
     return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)
 
@@ -173,7 +176,7 @@ def get_max_over_min_column(df):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'])
         max_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
         min_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
-
+        print(max_hr, min_hr)
         return max_hr / min_hr
 
     return df[['Time', 'Heartrate']].apply(compute_mean_hr, axis=1)

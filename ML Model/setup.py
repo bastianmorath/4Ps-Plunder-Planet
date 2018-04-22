@@ -31,7 +31,7 @@ def setup():
 
         print('Dataframe created')
 
-    factory.print_keynumbers_logfiles()
+    # factory.print_keynumbers_logfiles()
 
 
 '''Reads the logfiles and parses them into Pandas dataframes. 
