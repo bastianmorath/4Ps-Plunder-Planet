@@ -11,7 +11,7 @@ length_dataframe = 500  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
 
-test_data_case = 2
+test_data_case = 1
 
 
 def init_with_testdata():

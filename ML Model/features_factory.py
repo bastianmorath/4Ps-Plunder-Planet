@@ -47,7 +47,7 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
-
+    print(len(matrix.index))
     return matrix.as_matrix(), labels
 
 

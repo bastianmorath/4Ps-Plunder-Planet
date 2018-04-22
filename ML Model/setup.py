@@ -8,7 +8,6 @@ from datetime import timedelta
 
 import globals as gl
 import factory
-import features_factory as f_factory
 
 
 def setup():
@@ -17,20 +16,22 @@ def setup():
 
     # Store computed dataframe in pickle file for faster processing
     if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
-        print('cacheee')
         print('Dataframe already cached. Used this file to improve performance')
         gl.obstacle_df_list = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
         gl.df_list = pickle.load(open(gl.working_directory_path + '/Pickle/df_list.pickle', "rb"))
     else:
         print('Dataframe not cached. Creating dataframe...')
-        gl.obstacle_df_list = factory.get_obstacle_times_with_success()
+
         refactor_crashes()
+        gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
         pickle.dump(gl.obstacle_df_list, open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "wb"))
         pickle.dump(gl.df_list, open(gl.working_directory_path + '/Pickle/df_list.pickle', "wb"))
 
         print('Dataframe created')
+
+    factory.print_keynumbers_logfiles()
 
 
 '''Reads the logfiles and parses them into Pandas dataframes. 
@@ -39,14 +40,20 @@ def setup():
 
 
 def read_and_prepare_logs():
-    gl.names_logfiles = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Flitz.{0,}.log', f)]
+    kinect_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
+    all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
+    fbmc_names = [item for item in all_names if item not in kinect_names]
+
+    gl.names_logfiles = fbmc_names
+
     logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
     gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
     if gl.testing:
         # 2 dataframes with and 1 dataframe without heartrate
         gl.df_list = gl.df_list[19:21]
-    cut_frames()  # Cut frames to same length
+
+    # cut_frames()  # Cut frames to same length
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
@@ -110,6 +117,7 @@ def add_log_column():
 def refactor_crashes():
 
     ''' If there was a crash, then there would be a 'EVENT_CRASH' in the preceding around 1 seconds of the event'''
+    print('refactoring crashes...')
 
     def get_next_obstacle_row(index, df):
         cnt = 1

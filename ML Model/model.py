@@ -45,13 +45,12 @@ if gl.test_data:
     test_data.init_with_testdata()
 else:
     setup.setup()
-    plots.plot_hr_of_dataframes()
+    # plots.plot_hr_of_dataframes()
 
 print('Creating feature matrix...')
 
 
 X, y = f_factory.get_feature_matrix_and_label()
-
 print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
 

@@ -26,6 +26,7 @@ def resample_dataframe(df, resolution):
 
 
 def get_obstacle_times_with_success():
+    print('Compute crashes...')
 
     obstacle_time_crash = []
 
@@ -97,3 +98,20 @@ def test_windows():
     print(results)
     pickle.dump(results, open(gl.working_directory_path + '/Pickle/window_results.pickle', "wb"))
 
+
+'''Print all important keynumbers, such as number of logs, number of features (=obstacles) etc.'''
+
+
+def print_keynumbers_logfiles():
+    # conc = pd.concat(gl.df_list, ignore_index=True)
+    df_lengths = []
+    for d in gl.df_list:
+        df_lengths.append(d['Time'].max())
+    print('average:' + str(np.mean(df_lengths)) + ', std: ' + str(np.std(df_lengths)) +
+          ', max: ' + str(np.max(df_lengths)) + ', min: ' + str(np.min(df_lengths)))
+
+    print('#files: ' + str(len(gl.df_list)))
+    print('#files with heartrate: ' + str(len([a for a in gl.df_list if not (a['Heartrate'] == -1).all()])))
+    print('#datapoints: ' + str(sum([len(a.index) for a in gl.df_list])))
+    print('#obstacles: ' + str(sum([len(a) for a in gl.obstacle_df_list])))
+    print('#crashes: ')
