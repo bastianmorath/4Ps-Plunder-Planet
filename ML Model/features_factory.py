@@ -13,7 +13,7 @@ import globals as gl
     3. Max over min heartrate in last x seconds
 '''
 
-feature_names = ['mean_hr', '%crashes', 'max_over_min', 'last_obstacle_crash']
+feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', '%crashes', 'max_over_min', 'last_obstacle_crash']
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle
@@ -27,15 +27,19 @@ def get_feature_matrix_and_label():
     if gl.use_cache & (not gl.test_data) & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
-        matrix['mean_hr'] = get_mean_hr_feature()
+        matrix['mean_hr'] = get_hr_feature('mean_hr')
+        matrix['max_hr'] = get_hr_feature('max_hr')
+        matrix['min_hr'] = get_hr_feature('min_hr')
+        matrix['std_hr'] = get_hr_feature('std_hr')
+        matrix['max_over_min'] = get_hr_feature('max_over_min')
         matrix['%crashes'] = get_percentage_crashes_feature()
-        matrix['max_over_min'] = get_max_over_min_feature()
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
 
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
+
+    # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
     for df in gl.obstacle_df_list:
-        # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
         labels.append(df[df['Time'] > max(gl.cw, gl.hw)]['crash'].copy())
     labels = list(itertools.chain.from_iterable(labels))
 
@@ -48,21 +52,23 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
+
     return matrix.as_matrix(), labels
 
 
 """The following methods append a column to the feature matrix"""
 
 
-def get_mean_hr_feature():
-    print('Creating mean_hr feature...')
-    mean_hr_list = []  # list that contains a list of mean_hrs for each logfile/df
+def get_hr_feature(hr_applier):
+    print('Creating ' + hr_applier + ' feature...')
+    hr_df_list = []  # list that contains a list of mean_hrs for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in setup.py
-            mean_hr_df = get_mean_heartrate_column(list_idx, df)
-            mean_hr_list.append(mean_hr_df)
 
-    return pd.DataFrame(list(itertools.chain.from_iterable(mean_hr_list)), columns=['mean_hr'])
+            hr_df = get_heartrate_column(list_idx, df, hr_applier)
+            hr_df_list.append(hr_df)
+
+    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=[hr_applier])
 
 
 # TODO: Normalize crashes depending on size/assembly of the obstacle
@@ -79,19 +85,6 @@ def get_percentage_crashes_feature():
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['%crashes'])
 
 
-def get_max_over_min_feature():
-    print('Creating max_over_min_hr feature...')
-    max_over_min_list = []  # list that contains a list of max_over_min  for each logfile/df
-
-    for list_idx, df in enumerate(gl.df_list):
-        if not (df['Heartrate'] == -1).all():
-            max_over_min = get_max_over_min_column(list_idx, df)
-            # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
-            max_over_min_list.append(max_over_min)
-
-    return pd.DataFrame(list(itertools.chain.from_iterable(max_over_min_list)), columns=['max_over_min'])
-
-
 def get_last_obstacle_crash_feature():
     print('Creating last_obstacle_crash feature...')
     crashes_list = []  # list that contains a list of whether crash or not for each logfile/df
@@ -106,65 +99,61 @@ def get_last_obstacle_crash_feature():
 """The following methods calculate the features as a new dataframe column"""
 
 
+'''Returns the dataframe where time is between _from and _to'''
+
+
+def df_from_to(_from, _to, df):
+    mask = (_from <= df['Time']) & (df['Time'] < _to)
+    return df[mask]
+
+
+''' Returns a dataframe column that indicates at each timestamp the 
+    heartrate over the last 'heartrate_window' seconds, after applying 'applyer' (e.g. mean, min, max, std)
+'''
+
+
+def get_heartrate_column(idx, df, hr_applier):
+
+    def compute_hr(row):
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'], df)
+        res = 0
+        if hr_applier == 'mean_hr':
+            res = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
+        elif hr_applier == 'min_hr':
+            res = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
+        elif hr_applier == 'max_hr':
+            res = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
+        elif hr_applier == 'std_hr':
+            res = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].std()
+        elif hr_applier == 'max_over_min':
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.max_over_min_hw), row['Time'], df)
+            max_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
+            min_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
+            res = max_hr / min_hr
+        if res == 0:
+            print('error')
+
+        # first mean will be nan, so replace it with second row instead
+        return res if not math.isnan(res) else compute_hr(df.iloc[1])
+
+    return gl.obstacle_df_list[idx].apply(compute_hr, axis=1)
+
+
 ''' Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the 
     last crash-window-seconds the user crashed into
 '''
 
 
 def get_percentage_crashes_column(idx, df):
-    def df_from_to(_from, _to):
-        mask = (_from <= df['Time']) & (df['Time'] < _to)
-        return df[mask]
 
     def compute_crashes(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.cw), row['Time'])
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.cw), row['Time'], df)
         num_obstacles = len(last_x_seconds_df[(last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE')
                                               | (last_x_seconds_df['Logtype'] == 'EVENT_CRASH')].index)
         num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
         return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
 
     return gl.obstacle_df_list[idx].apply(compute_crashes, axis=1)
-
-
-''' Returns a dataframe column that indicates at each timestamp the mean
-    heartrate over the last 'heartrate_window' seconds
-'''
-
-
-def get_mean_heartrate_column(idx, df):
-    def df_from_to(_from, _to):
-        mask = (_from <= df['Time']) & (df['Time'] < _to)
-        return df[mask]
-
-    def compute_mean_hr(row):
-
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'])
-        mean = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].mean()
-        # first mean will be nan, so replace it withs second row instead
-        return mean if not math.isnan(mean) else compute_mean_hr(df.iloc[1])
-
-    return gl.obstacle_df_list[idx].apply(compute_mean_hr, axis=1)
-
-
-'''Returns a dataframe column that indicates at each timestamp the difference between max and min 
-    heartrate in the last x seconds
-'''
-
-
-def get_max_over_min_column(idx, df):
-
-    def df_from_to(_from, _to):
-        mask = (_from <= df['Time']) & (df['Time'] < _to)
-        return df[mask]
-
-    def compute_feature(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw), row['Time'])
-        max_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
-        min_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
-        max_over_min = max_hr / min_hr
-        return max_over_min if not math.isnan(max_over_min) else compute_feature(df.iloc[1])
-
-    return gl.obstacle_df_list[idx].apply(compute_feature, axis=1)
 
 
 '''Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
