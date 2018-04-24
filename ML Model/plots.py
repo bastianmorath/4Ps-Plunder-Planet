@@ -100,7 +100,7 @@ Only works for real data at the moment, because of name_logfile not existing if 
 
 
 def plot_hr_of_dataframes():
-    resolution=5
+    resolution = 5
     for idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all():
             df_num_resampled = factory.resample_dataframe(df, resolution)
@@ -111,7 +111,7 @@ def plot_hr_of_dataframes():
             ax1.set_ylabel('Heartrate', color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 
-            plt.savefig(gl.working_directory_path + '/Plots/Heartrates/HeartratesNormalized/hr_'+
+            plt.savefig(gl.working_directory_path + '/Plots/Heartrates/hr_'+
                         gl.names_logfiles[idx] + '.pdf')
 
 

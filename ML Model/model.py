@@ -45,7 +45,8 @@ if gl.test_data:
     test_data.init_with_testdata()
 else:
     setup.setup()
-    # plots.plot_hr_of_dataframes()
+    if gl.plots_enabled:
+        plots.plot_hr_of_dataframes()
 
 print('Creating feature matrix...')
 
@@ -55,10 +56,12 @@ print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y))
 
 
-plots.plot_feature_correlations(X, y)
-plots.plot_heartrate_histogram()
-plots.plot_feature_distributions(X)
-plots.print_mean_features_crash(X, y)
+if gl.plots_enabled:
+    print('Plotting...')
+    plots.plot_feature_correlations(X, y)
+    plots.plot_heartrate_histogram()
+    plots.plot_feature_distributions(X)
+    plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution

@@ -3,6 +3,7 @@ import os
 import math
 
 from scipy import stats
+import numpy as np
 import itertools
 
 import globals as gl
@@ -13,7 +14,7 @@ import globals as gl
     3. Max over min heartrate in last x seconds
 '''
 
-feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', '%crashes', 'max_over_min', 'last_obstacle_crash']
+feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', '%crashes', 'max_over_min', 'last_obstacle_crash', 'lin_regression_hr_slope']
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle
@@ -24,7 +25,7 @@ def get_feature_matrix_and_label():
 
     matrix = pd.DataFrame()
 
-    if gl.use_cache & (not gl.test_data) & os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
+    if gl.use_cache and (not gl.test_data) and os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
         matrix['mean_hr'] = get_hr_feature('mean_hr')
@@ -34,8 +35,13 @@ def get_feature_matrix_and_label():
         matrix['max_over_min'] = get_hr_feature('max_over_min')
         matrix['%crashes'] = get_percentage_crashes_feature()
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
+        matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
 
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
+        gl.df_list[0].to_csv(gl.working_directory_path + '/Pickle/Lorenz.csv')
+        # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
+        # df = pd.concat(gl.obstacle_df_list)
+        # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')
 
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
@@ -96,6 +102,17 @@ def get_last_obstacle_crash_feature():
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['last_obstacle_crash'])
 
 
+def get_lin_regression_hr_slope_feature():
+    print('Creating lin_regression_hr_slope feature...')
+    slopes = []  # list that contains a list of the slope
+    for list_idx, df in enumerate(gl.df_list):
+        slope = get_slope_column(list_idx, df)
+        # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
+        slopes.append(slope)
+
+    return pd.DataFrame(list(itertools.chain.from_iterable(slopes)), columns=['lin_regression_hr_slope'])
+
+
 """The following methods calculate the features as a new dataframe column"""
 
 
@@ -126,7 +143,7 @@ def get_heartrate_column(idx, df, hr_applier):
         elif hr_applier == 'std_hr':
             res = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].std()
         elif hr_applier == 'max_over_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.max_over_min_hw), row['Time'], df)
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw_change), row['Time'], df)
             max_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].max()
             min_hr = last_x_seconds_df[last_x_seconds_df['Heartrate'] != -1]['Heartrate'].min()
             res = max_hr / min_hr
@@ -168,3 +185,30 @@ def get_last_obstacle_crash_column(idx, df):
         return 1 if last.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
 
     return gl.obstacle_df_list[idx].apply(compute_crashes, axis=1)
+
+
+'''Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression 
+        line over the heartrate in the last hw seconds
+'''
+
+# TODO: maybe also add intercept, r_value, p_value, std_err as features?
+
+
+def get_slope_column(idx, df):
+
+    def compute_slope(row):
+
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw_change), row['Time'], df)
+
+        slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
+
+        '''# Plot slopes
+        fit = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
+        fit_fn = np.poly1d(fit)
+        plt.plot(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], '', last_x_seconds_df['Time'], fit_fn(last_x_seconds_df['Time']))
+
+        plt.savefig(gl.working_directory_path + '/Plots/lin_regression.pdf')
+        '''
+        return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
+
+    return gl.obstacle_df_list[idx].apply(compute_slope, axis=1)

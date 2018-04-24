@@ -15,7 +15,7 @@ def setup():
     read_and_prepare_logs()
 
     # Store computed dataframe in pickle file for faster processing
-    if gl.use_cache & os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
+    if gl.use_cache and os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
         gl.obstacle_df_list = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
         gl.df_list = pickle.load(open(gl.working_directory_path + '/Pickle/df_list.pickle', "rb"))
@@ -53,6 +53,7 @@ def read_and_prepare_logs():
     gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
     if gl.testing:
         # 2 dataframes with and 1 dataframe without heartrate
+        print(len(gl.df_list))
         gl.df_list = gl.df_list[19:21]
     # NOTE: Has only ever been called once to refactore logs
     # refactor_crashes()
@@ -83,6 +84,7 @@ def cut_frames():
 
 def normalize_heartrate():
     if gl.normalize_heartrate:
+        print('Normalize hr...')
         normalized_df_list = []
         for dataframe in gl.df_list:
             if not (dataframe['Heartrate'] == -1).all():
