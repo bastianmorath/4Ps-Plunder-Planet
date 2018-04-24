@@ -37,7 +37,6 @@ def get_feature_matrix_and_label():
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
         matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
 
-        matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
         # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
         # df = pd.concat(gl.obstacle_df_list)
         # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')
@@ -57,6 +56,8 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
+
+    matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
 
     return matrix.as_matrix(), labels
 

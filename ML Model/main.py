@@ -81,34 +81,34 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 ''' Apply Model with Cross-Validation'''
 
 # factory.test_windows()
-print('Model fitting...\n')
+print('Model fitting with boxcox=' + str(gl.use_boxcox ) + '...\n')
 
+
+def apply_model(model):
+    y_pred = cross_val_predict(model, X, y, cv=10)
+    f1 = round(metrics.f1_score(y, y_pred), 3)
+    print('\tf1 score: ' + str(f1))
+    conf_mat = confusion_matrix(y, y_pred)
+    print('\tConfusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
+
+
+print('SVM with class_weights: ')
 class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(class_weight))
-model = svm.SVC(class_weight=class_weight_dict)
-model = neighbors.KNeighborsClassifier()
-model = naive_bayes.GaussianNB()
-
-f1 = round(cross_val_score(model, X, y, cv=10, scoring='f1').mean(), 2)
-recall = round(cross_val_score(model, X, y, cv=10, scoring='recall').mean(), 2)
-precision = round(cross_val_score(model, X, y, cv=10, scoring='precision').mean(), 2)
-average_precision = round(cross_val_score(model, X, y, cv=10, scoring='average_precision').mean(), 2)
-
-print('average-precision: ' + str(average_precision) + '\nprecision: ' + str(precision) +
-      '\nrecall: ' + str(recall) + '\nf1: ' + str(f1))
+clf = svm.SVC(class_weight=class_weight_dict)
+apply_model(clf)
 
 
-y_pred = cross_val_predict(model, X, y, cv=10, )
+print('\nKNearestNeighbors with class_weights: ')
+clf = neighbors.KNeighborsClassifier()
+apply_model(clf)
 
-null_accuracy = max(np.mean(y), 1 - np.mean(y)) * 100
-predicted_accuracy = metrics.accuracy_score(y, y_pred) * 100
 
-print('Null accuracy: ' + str(null_accuracy) + '%')
-print('Correctly classified data: ' + str(predicted_accuracy) + '%')
-conf_mat = confusion_matrix(y, y_pred)
-print('Confusion matrix: \n' + str(conf_mat))
+print('\nGaussian with class_weights: ')
+clf = naive_bayes.GaussianNB()
+apply_model(clf)
 
-# factory.print_confidentiality_scores(X_train, X_test, y_train, y_test)
+
 
 
 

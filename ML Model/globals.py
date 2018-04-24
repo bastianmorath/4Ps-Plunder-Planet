@@ -26,7 +26,7 @@ test_data = False  # If test_data==True, the model uses synthesized data
 # Whether we should use normalized heartrate (divide by baseline). If test_data, then don't normalize
 # since dividing by minimum doesn't make sense
 normalize_heartrate = not test_data and True
-use_boxcox = True   # Use boxcox (transforms features into a normal distribution)
+use_boxcox = False   # Use boxcox (transforms features into a normal distribution)
 
 plots_enabled = False  # Whether plots should be created
 
