@@ -20,7 +20,7 @@ hw_change = 10  # Over how many preceeding seconds should  hr features be calcul
 # model = m_svm.SVM  # Which model should be used?
 
 testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
-use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
+use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
 test_data = False  # If test_data==True, the model uses synthesized data
 
 # Whether we should use normalized heartrate (divide by baseline). If test_data, then don't normalize

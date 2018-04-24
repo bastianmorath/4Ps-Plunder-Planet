@@ -19,6 +19,7 @@ from sklearn.model_selection import cross_val_predict, cross_val_score
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import confusion_matrix
 from sklearn.utils import class_weight
+from sklearn.feature_selection import SelectKBest
 
 import numpy as np
 
@@ -29,6 +30,7 @@ from sklearn import neighbors
 
 import setup
 import plots
+import factory
 import test_data
 import globals as gl
 import features_factory as f_factory
@@ -63,6 +65,7 @@ X, y = f_factory.get_feature_matrix_and_label()
 print('Feature matrix X: \n' + str(X))
 print('labels y:\n' + str(y) + '\n')
 
+factory.feature_selection(X, y)
 
 if gl.plots_enabled:
     print('Plotting...')

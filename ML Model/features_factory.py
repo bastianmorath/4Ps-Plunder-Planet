@@ -14,9 +14,10 @@ import globals as gl
     3. Max over min heartrate in last x seconds
 '''
 
-feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_over_min_hr', '%crashes', 'max_minus_min_hr',
-                 'last_obstacle_crash', 'lin_regression_hr_slope', 'points_gradient_changes',
-                 'mean_points', 'max_points', 'min_points', 'std_points']
+# NOTE: Have to be the same order as below... (matrix[...]=...)
+feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+                 '%crashes', 'last_obstacle_crash',
+                 'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points', 'max_minus_min_points']
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle
@@ -31,28 +32,29 @@ def get_feature_matrix_and_label():
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
 
-        matrix['mean_hr'] = get_hr_feature('mean')
-        matrix['max_hr'] = get_hr_feature('max')
-        matrix['min_hr'] = get_hr_feature('min')
-        matrix['std_hr'] = get_hr_feature('std')
-        matrix['max_minus_min_hr'] = get_hr_feature('max_minus_min')
-        matrix['max_over_min_hr'] = get_hr_feature('max_over_min')
+        matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
+        matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
+        matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
+        matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
+        matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
+        matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
         matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
+        matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
 
         matrix['%crashes'] = get_percentage_crashes_feature()
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
 
-        matrix['points_gradient_changes'] = get_points_gradient_changes()
-        matrix['mean_points'] = get_points_feature('mean')
-        matrix['max_points'] = get_points_feature('max')
-        matrix['min_points'] = get_points_feature('min')
-        matrix['std_points'] = get_points_feature('std')
-        matrix['max_minus_min_points'] = get_points_feature('max_minus_min')
+        matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
+        matrix['mean_points'] = get_standard_feature('mean', 'Points')
+        matrix['max_points'] = get_standard_feature('max', 'Points')
+        matrix['min_points'] = get_standard_feature('min', 'Points')
+        matrix['std_points'] = get_standard_feature('std', 'Points')
+        matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
         # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
         # df = pd.concat(gl.obstacle_df_list)
         # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')
-
+    print(matrix)
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
     for df in gl.obstacle_df_list:
@@ -63,7 +65,6 @@ def get_feature_matrix_and_label():
     if gl.use_boxcox:
         # Values must be positive. If not, shift it
         for feature in feature_names:
-            print(matrix[feature])
             if not feature == 'last_obstacle_crash':  # Doesn't makes sense to do boxcox here
                 if matrix[feature].min() <= 0:
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
@@ -78,27 +79,18 @@ def get_feature_matrix_and_label():
 """The following methods append a column to the feature matrix"""
 
 
-def get_hr_feature(hr_applier):
-    print('Creating ' + hr_applier + '_hr feature...')
+def get_standard_feature(feature, data_name):
+    print('Creating ' + feature + '_' + data_name + ' feature...')
+
     hr_df_list = []  # list that contains a list of mean_hrs for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in setup.py
-            hr_df = get_column(list_idx, df, hr_applier, 'Heartrate')
+            hr_df = get_column(list_idx, df, feature, data_name)
             hr_df_list.append(hr_df)
 
-    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=[hr_applier])
+    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=[feature])
 
 
-def get_points_feature(points_applier):
-    print('Creating ' + points_applier + '_points feature...')
-    points_df_list = []  # list that contains a list of mean_hrs for each logfile/df
-    for list_idx, df in enumerate(gl.df_list):
-        if not (df['Points'] == 0).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in setup.py
-
-            points_df = get_column(list_idx, df, points_applier, 'Points')
-            points_df_list.append(points_df)
-
-    return pd.DataFrame(list(itertools.chain.from_iterable(points_df_list)), columns=[points_applier])
 # TODO: Normalize crashes depending on size/assembly of the obstacle
 
 
@@ -129,20 +121,22 @@ def get_lin_regression_hr_slope_feature():
     slopes = []  # list that contains a list of the slope
     for list_idx, df in enumerate(gl.df_list):
         slope = get_hr_slope_column(list_idx, df)
-        # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
         slopes.append(slope)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(slopes)), columns=['lin_regression_hr_slope'])
 
 
-def get_points_gradient_changes():
+def get_number_of_gradient_changes(data_name):
     print('Creating points_gradient_changes feature...')
     changes_list = []  # list that contains a list of the slope
     for list_idx, df in enumerate(gl.df_list):
-        changes = get_points_changes_column(list_idx, df)
+        changes = get_gradient_changes_column(list_idx, df, data_name)
         changes_list.append(changes)
+    if data_name == 'Points' :
+        return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['points_gradient_changes'])
+    else:
+        return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['hr_gradient_changes'])
 
-    return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['points_gradient_changes'])
 
 
 """The following methods calculate the features as a new dataframe column"""
@@ -256,41 +250,25 @@ def get_hr_slope_column(idx, df):
     return gl.obstacle_df_list[idx].apply(compute_slope, axis=1)
 
 
-'''Returns a dataframe column that indicates at each timestamp the number of times the points have changed from 
-increasing to decreasing and the other way around
+'''Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate) 
+have changed from increasing to decreasing and the other way around
 '''
 
 
-def get_points_changes_column(idx, df):
+def get_gradient_changes_column(idx, df, data_name):
 
-    def compute_point_gradient_changes(row):
+    def compute_gradient_changes(row):
 
         last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.cw), row['Time'], df)
-        points = last_x_seconds_df['Points'].tolist()
-        gradx = np.gradient(points)
+        data = last_x_seconds_df[data_name].tolist()
+        gradx = np.gradient(data)
         asign = np.sign(gradx)
 
         num_sign_changes = len(list(itertools.groupby(asign, lambda x: x >= 0))) - 1
         if num_sign_changes == 0:
             num_sign_changes = 1
-        return num_sign_changes if not math.isnan(num_sign_changes) else compute_point_gradient_changes(df.iloc[1])
+        return num_sign_changes if not math.isnan(num_sign_changes) else compute_gradient_changes(df.iloc[1])
 
-    return gl.obstacle_df_list[idx].apply(compute_point_gradient_changes, axis=1)
-
-
+    return gl.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
 
 
-'''Returns a dataframe column that indicates at each timestamp the absolute change in points in the last window seconds
-'''
-
-
-def get_points_abs_changes(idx, df):
-
-    def compute_points_abs_change(row):
-
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw_change), row['Time'], df)
-        points = last_x_seconds_df['Points'].tolist()
-        n = max(points) - min(points)
-        return n if not math.isnan(n) else compute_points_abs_change(df.iloc[1])
-
-    return gl.obstacle_df_list[idx].apply(compute_points_abs_change, axis=1)

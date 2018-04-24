@@ -6,6 +6,9 @@ from __future__ import division  # s.t. division uses float result
 import globals as gl
 import pandas as pd
 
+import matplotlib.pyplot as plt
+
+from sklearn.ensemble import ExtraTreesClassifier
 
 '''Resamples a dataframe with a sampling frquency of 'resolution'
     -> Smoothes the plots
@@ -114,3 +117,35 @@ def print_keynumbers_logfiles():
     print('#datapoints: ' + str(sum([len(a.index) for a in gl.df_list])))
     print('#obstacles: ' + str(sum([len(df.index) for df in gl.obstacle_df_list])))
     print('#crashes: ' + str(sum([len(df[df['crash'] == 1]) for df in gl.obstacle_df_list ])))
+
+
+''' Feature Selection. Prints and plots the importance of the features'''
+
+
+def feature_selection(X, y):
+
+    forest = ExtraTreesClassifier(n_estimators=250,
+                                  random_state=0)
+
+    forest.fit(X, y)
+    importances = forest.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in forest.estimators_],
+                 axis=0)
+    indices = np.argsort(importances)[::-1]
+    print(indices)
+    # Print the feature ranking
+    print("Feature ranking:")
+    x_ticks = []
+    for f in range(X.shape[1]):
+        x_ticks.append(f_factory.feature_names[indices[f]])
+        print("%d. feature %s (%f)" % (f + 1, f_factory.feature_names[indices[f]], importances[indices[f]]))
+
+    # Plot the feature importances of the forest
+    plt.figure()
+    plt.title("Feature importances")
+    plt.bar(range(X.shape[1]), importances[indices],
+            color="r", yerr=std[indices], align="center")
+    plt.xticks(range(X.shape[1]), x_ticks, rotation='vertical')
+    plt.xlim([-1, X.shape[1]])
+    plt.tight_layout()
+    plt.savefig(gl.working_directory_path + '/Plots/feature_importance.pdf')
