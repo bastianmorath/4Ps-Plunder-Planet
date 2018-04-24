@@ -38,7 +38,6 @@ def get_feature_matrix_and_label():
         matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
 
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
-        gl.df_list[0].to_csv(gl.working_directory_path + '/Pickle/Lorenz.csv')
         # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
         # df = pd.concat(gl.obstacle_df_list)
         # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')

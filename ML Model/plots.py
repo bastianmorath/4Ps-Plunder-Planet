@@ -87,12 +87,12 @@ def plot_feature_distributions(X):
     f_names = f_factory.feature_names
     for idx, feature in enumerate(f_names):
         x = X[:, idx]
-        plt.subplot(len(f_names), 1, idx+1)
+        plt.figure()
         plt.hist(x)
         plt.title(feature)
 
-    plt.tight_layout()
-    plt.savefig(gl.working_directory_path + '/Plots/feature_distributions.pdf')
+        plt.tight_layout()
+        plt.savefig(gl.working_directory_path + '/Plots/Feature_distributions/feature_distribution_' + feature + '.pdf')
 
 
 '''Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
@@ -113,6 +113,7 @@ def plot_hr_of_dataframes():
 
             plt.savefig(gl.working_directory_path + '/Plots/Heartrates/hr_'+
                         gl.names_logfiles[idx] + '.pdf')
+            plt.close('all')
 
 
 '''Plots the heartrate in a histogram'''

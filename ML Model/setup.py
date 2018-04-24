@@ -53,11 +53,9 @@ def read_and_prepare_logs():
     gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
     if gl.testing:
         # 2 dataframes with and 1 dataframe without heartrate
-        print(len(gl.df_list))
-        gl.df_list = gl.df_list[19:21]
+        gl.df_list = gl.df_list[20:23]
     # NOTE: Has only ever been called once to refactore logs
     # refactor_crashes()
-
     # cut_frames()  # Cut frames to same length
     remove_logs_without_heartrates()
     normalize_heartrate()

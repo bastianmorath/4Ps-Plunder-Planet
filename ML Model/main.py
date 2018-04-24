@@ -67,10 +67,10 @@ print('labels y:\n' + str(y) + '\n')
 
 if gl.plots_enabled:
     print('Plotting...')
-    plots.plot_feature_correlations(X, y)
-    plots.plot_heartrate_histogram()
+    # plots.plot_feature_correlations(X, y)
+    # plots.plot_heartrate_histogram()
     plots.plot_feature_distributions(X)
-    plots.print_mean_features_crash(X, y)
+    # plots.print_mean_features_crash(X, y)
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
@@ -85,9 +85,9 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 print('Model fitting...\n')
 
 
-# model = svm.SVC()
+model = svm.SVC()
 model = neighbors.KNeighborsClassifier()
-# model = naive_bayes.GaussianNB()
+model = naive_bayes.GaussianNB()
 
 
 y_pred = cross_val_predict(model, X, y, cv=10)
@@ -95,6 +95,8 @@ accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
 null_accuracy = round( max(np.mean(y), 1 - np.mean(y)) * 100, 2)
 
 print('Accuracy: ' + str(accuracy) + '% (vs. Null accuracy of ' + str(null_accuracy) + '%\n')
+
+
 
 conf_mat = confusion_matrix(y, y_pred)
 print('Confusion matrix: \n' + str(conf_mat))
