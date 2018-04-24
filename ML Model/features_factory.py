@@ -16,8 +16,14 @@ import globals as gl
 
 # NOTE: Have to be the same order as below... (matrix[...]=...)
 feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-                 '%crashes', 'last_obstacle_crash',
+                '%crashes', 'last_obstacle_crash',
                  'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points', 'max_minus_min_points']
+
+
+# feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+#                 '%crashes',
+#                 'mean_points', 'std_points']
+
 
 ''' Returns a matrix containing the features, and the labels
     There is one feature-row for each obstacle
@@ -31,30 +37,47 @@ def get_feature_matrix_and_label():
     if gl.use_cache and (not gl.test_data) and os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
     else:
+        # TODO: Ugly....
+        if 'mean_hr' in feature_names:
+            matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
+        if 'max_hr' in feature_names:
+            matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
+        if 'min_hr' in feature_names:
+            matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
+        if 'std_hr' in feature_names:
+            matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
+        if 'max_minus_min_hr' in feature_names:
+            matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
+        if 'max_over_min_hr' in feature_names:
+            matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
+        if 'lin_regression_hr_slope' in feature_names:
+            matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
+        if 'hr_gradient_changes' in feature_names:
+            matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
 
-        matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
-        matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
-        matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
-        matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
-        matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
-        matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
-        matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
-        matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
+        if '%crashes' in feature_names:
+            matrix['%crashes'] = get_percentage_crashes_feature()
+        if 'last_obstacle_crash' in feature_names:
+            matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
 
-        matrix['%crashes'] = get_percentage_crashes_feature()
-        matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
+        if 'points_gradient_changes' in feature_names:
+            matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
+        if 'mean_points' in feature_names:
+            matrix['mean_points'] = get_standard_feature('mean', 'Points')
+        if 'max_points' in feature_names:
+            matrix['max_points'] = get_standard_feature('max', 'Points')
+        if 'min_points' in feature_names:
+            matrix['min_points'] = get_standard_feature('min', 'Points')
+        if 'std_points' in feature_names:
+            matrix['std_points'] = get_standard_feature('std', 'Points')
+        if 'max_minus_min_points' in feature_names:
+            matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
-        matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
-        matrix['mean_points'] = get_standard_feature('mean', 'Points')
-        matrix['max_points'] = get_standard_feature('max', 'Points')
-        matrix['min_points'] = get_standard_feature('min', 'Points')
-        matrix['std_points'] = get_standard_feature('std', 'Points')
-        matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
+        matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
 
         # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
         # df = pd.concat(gl.obstacle_df_list)
         # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')
-    print(matrix)
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
     for df in gl.obstacle_df_list:
@@ -71,7 +94,6 @@ def get_feature_matrix_and_label():
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
 
-    matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
 
     return matrix.as_matrix(), labels
 

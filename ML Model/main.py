@@ -15,12 +15,12 @@
 
 from __future__ import division  # s.t. division uses float result
 
+from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import cross_val_predict, cross_val_score
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import confusion_matrix
 from sklearn.utils import class_weight
-from sklearn.feature_selection import SelectKBest
-
+from sklearn.svm import LinearSVC
 import numpy as np
 
 from sklearn import naive_bayes, metrics
@@ -56,23 +56,14 @@ if gl.test_data:
 else:
     setup.setup()
     if gl.plots_enabled:
-        plots.plot_hr_of_dataframes()
+        # plots.plot_hr_of_dataframes()
 
 print('Creating feature matrix...\n')
 
 
 X, y = f_factory.get_feature_matrix_and_label()
-print('Feature matrix X: \n' + str(X))
-print('labels y:\n' + str(y) + '\n')
-
-factory.feature_selection(X, y)
-
-if gl.plots_enabled:
-    print('Plotting...')
-    # plots.plot_feature_correlations(X, y)
-    # plots.plot_heartrate_histogram()
-    plots.plot_feature_distributions(X)
-    # plots.print_mean_features_crash(X, y)
+# print('Feature matrix X: \n' + str(X))
+# print('labels y:\n' + str(y) + '\n')
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
@@ -81,14 +72,31 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 
+'''Feature selection'''
+
+
+if gl.plots_enabled:
+    print('Plotting...')
+    # plots.plot_feature_correlations(X, y)
+    # plots.plot_heartrate_histogram()
+    plots.plot_feature_distributions(X)
+    plots.print_mean_features_crash(X, y)
+
+
+#forest = factory.feature_selection(X, y)
+#model = SelectFromModel(forest, prefit=True)
+#X = model.transform(X)
+#print('\n# features after feature-selection: ' + str(X.shape[1]) + '\n')
+
+
 ''' Apply Model with Cross-Validation'''
 
-# factory.test_windows()
+
 print('Model fitting with boxcox=' + str(gl.use_boxcox ) + '...\n')
 
 
-def apply_model(model):
-    y_pred = cross_val_predict(model, X, y, cv=10)
+def apply_model(model, X_new):
+    y_pred = cross_val_predict(model, X_new, y, cv=10)
     f1 = round(metrics.f1_score(y, y_pred), 3)
     print('\tf1 score: ' + str(f1))
     conf_mat = confusion_matrix(y, y_pred)
@@ -104,18 +112,25 @@ print('SVM with class_weights: ')
 class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(class_weight))
 clf = svm.SVC(class_weight=class_weight_dict)
-apply_model(clf)
+apply_model(clf, X)
 
 
 print('\nKNearestNeighbors with class_weights: ')
 clf = neighbors.KNeighborsClassifier()
-apply_model(clf)
+apply_model(clf, X)
 
 
 print('\nGaussian with class_weights: ')
 clf = naive_bayes.GaussianNB()
-apply_model(clf)
+apply_model(clf, X)
 
+
+print('LinearSVM with class_weights: ')
+lsvc = LinearSVC(C=0.8, penalty="l1", dual=False, class_weight=class_weight_dict).fit(X, y)
+model = SelectFromModel(lsvc, prefit=True)
+X_new = model.transform(X)
+print(X_new.shape)
+apply_model(lsvc, X_new)
 
 
 

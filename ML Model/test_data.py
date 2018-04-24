@@ -34,9 +34,10 @@ def init_with_testdata_events_const_hr_const():
         times = range(0, 400)
         logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'CONTINUOUS', 'EVENT_CRASH'] * 100
         heartrates = [20, 20, 30, 20] * 100
+        points = [20, 20, 30, 20] * 100
         timedeltas = [pd.to_timedelta(t, unit='S') for t in times]
 
-        dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
+        dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
         # plot_hr(dataframe, i)
 
@@ -58,6 +59,7 @@ def init_with_testdata_events_random_hr_const():
         logtypes = []
         heartrates = []
         timedeltas = []
+        points = []
 
         distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(length_dataframe)
@@ -74,6 +76,7 @@ def init_with_testdata_events_random_hr_const():
                 hr = np.random.normal(1, 1)
                 heartrates.append(hr)
 
+            points.append(np.random.normal(7, 1))
             times.append(j + noise[j])
             logtypes.append(current_event)
 
@@ -82,7 +85,7 @@ def init_with_testdata_events_random_hr_const():
 
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
-        dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
+        dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
         # plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
@@ -104,6 +107,7 @@ def init_with_testdata_events_random_hr_continuous():
         logtypes = []
         heartrates = []
         timedeltas = []
+        points = []
 
         distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(length_dataframe)
@@ -121,6 +125,7 @@ def init_with_testdata_events_random_hr_continuous():
                 hr = hr - 10
                 heartrates.append(hr)
 
+            points.append(np.random.normal(7, 1))
             times.append(j + noise[j])
             logtypes.append(current_event)
 
@@ -129,7 +134,7 @@ def init_with_testdata_events_random_hr_continuous():
 
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
-        dataframe = pd.DataFrame(data={'Time': times, 'Logtype': logtypes, 'Heartrate': heartrates,
+        dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
         # plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
