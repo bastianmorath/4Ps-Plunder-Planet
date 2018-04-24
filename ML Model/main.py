@@ -15,14 +15,23 @@
 
 from __future__ import division  # s.t. division uses float result
 
+from sklearn.model_selection import cross_val_predict, cross_val_score
 from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.metrics import confusion_matrix
+from sklearn import metrics
+
+import numpy as np
+
+from sklearn import naive_bayes
+from sklearn import svm
+from sklearn import neighbors
+
 
 import setup
 import plots
 import test_data
 import globals as gl
-import factory
 import features_factory as f_factory
 
 
@@ -36,7 +45,7 @@ import features_factory as f_factory
 '''
 
 print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl.use_cache) + ', \n\t test_data: ' +
-      str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox))
+      str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox) + ', \n\t plots_enabled: ' + str(gl.plots_enabled))
 
 print('Init dataframes...')
 
@@ -48,12 +57,12 @@ else:
     if gl.plots_enabled:
         plots.plot_hr_of_dataframes()
 
-print('Creating feature matrix...')
+print('Creating feature matrix...\n')
 
 
 X, y = f_factory.get_feature_matrix_and_label()
 print('Feature matrix X: \n' + str(X))
-print('labels y:\n' + str(y))
+print('labels y:\n' + str(y) + '\n')
 
 
 if gl.plots_enabled:
@@ -73,18 +82,22 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 ''' Apply Model with Cross-Validation'''
 
 # factory.test_windows()
-print('Model fitting with ' + str(gl.model))
-
-X_train, X_test, y_train, y_test = train_test_split(
-             X, y, test_size=0.3)
+print('Model fitting...\n')
 
 
-model = gl.model(X_train, y_train)
+# model = svm.SVC()
+model = neighbors.KNeighborsClassifier()
+# model = naive_bayes.GaussianNB()
 
-# Predict values on test data
-y_test_predicted = model.predict(X_test)
 
-model.print_score(y_test, y_test_predicted)
+y_pred = cross_val_predict(model, X, y, cv=10)
+accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
+null_accuracy = round( max(np.mean(y), 1 - np.mean(y)) * 100, 2)
+
+print('Accuracy: ' + str(accuracy) + '% (vs. Null accuracy of ' + str(null_accuracy) + '%\n')
+
+conf_mat = confusion_matrix(y, y_pred)
+print('Confusion matrix: \n' + str(conf_mat))
 
 # factory.print_confidentiality_scores(X_train, X_test, y_train, y_test)
 

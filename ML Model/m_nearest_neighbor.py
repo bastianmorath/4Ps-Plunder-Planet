@@ -16,13 +16,13 @@ import globals as gl
 
 class NearestNeighbor(AbstractMLModelClass):
 
-    def __init__(self, X_train, y_train):
+    def __init__(self, X, y):
         # self.plot_mse_vs_num_neigbors(X_train, y_train)
 
         self.model = KNeighborsClassifier()
         # find best hyperparameters
         # self.model = GridSearchCV(self.model, {'n_neighbors': range(1, 200)}, cv=5, scoring='accuracy')
-        self.model.fit(X_train, y_train)
+        self.model.fit(X, y)
 
     def predict(self, x_test):
         return self.model.predict(x_test)
