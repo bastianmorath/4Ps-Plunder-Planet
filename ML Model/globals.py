@@ -19,14 +19,14 @@ hw_change = 10  # Over how many preceeding seconds should  hr features be calcul
 # model = m_naive_bayes.NaiveBayes  # Which model should be used?
 # model = m_svm.SVM  # Which model should be used?
 
-testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
-use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
+testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
+use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
 test_data = False  # If test_data==True, the model uses synthesized data
 
 # Whether we should use normalized heartrate (divide by baseline). If test_data, then don't normalize
 # since dividing by minimum doesn't make sense
 normalize_heartrate = not test_data and True
-use_boxcox = False   # Use boxcox (transforms features into a normal distribution)
+use_boxcox = True   # Use boxcox (transforms features into a normal distribution)
 
 plots_enabled = False  # Whether plots should be created
 

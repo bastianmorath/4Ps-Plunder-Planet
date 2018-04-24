@@ -57,7 +57,7 @@ def read_and_prepare_logs():
     # NOTE: Has only ever been called once to refactore logs
     # refactor_crashes()
     # cut_frames()  # Cut frames to same length
-    remove_logs_without_heartrates()
+    remove_logs_without_heartrates_or_points()
     normalize_heartrate()
     add_log_column()
     add_timedelta_column()
@@ -165,8 +165,9 @@ def refactor_crashes():
         new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
 
 
-'''Remove all logfiles that do not have any heartrate data (since we then can't calculate our features)'''
+'''Remove all logfiles that do not have any heartrate data or points (since we then can't calculate our features)'''
 
 
-def remove_logs_without_heartrates():
+def remove_logs_without_heartrates_or_points():
     gl.df_list = [df for df in gl.df_list if not (df['Heartrate'] == -1).all()]
+    gl.df_list = [df for df in gl.df_list if not (df['Points'] == 0).all()]

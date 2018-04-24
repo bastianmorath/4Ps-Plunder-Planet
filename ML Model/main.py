@@ -91,6 +91,11 @@ def apply_model(model):
     conf_mat = confusion_matrix(y, y_pred)
     print('\tConfusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
 
+    predicted_accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
+    null_accuracy = round(max(np.mean(y), 1 - np.mean(y)) * 100, 2)
+
+    print('Correctly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' + str(null_accuracy) + '%)')
+
 
 print('SVM with class_weights: ')
 class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
