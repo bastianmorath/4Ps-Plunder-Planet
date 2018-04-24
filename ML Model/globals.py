@@ -28,7 +28,7 @@ test_data = False  # If test_data==True, the model uses synthesized data
 normalize_heartrate = not test_data and True
 use_boxcox = True   # Use boxcox (transforms features into a normal distribution)
 
-plots_enabled = True  # Whether plots should be created
+plots_enabled = False  # Whether plots should be created
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))

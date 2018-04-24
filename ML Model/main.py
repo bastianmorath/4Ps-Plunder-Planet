@@ -16,14 +16,13 @@
 from __future__ import division  # s.t. division uses float result
 
 from sklearn.model_selection import cross_val_predict, cross_val_score
-from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import confusion_matrix
-from sklearn import metrics
+from sklearn.utils import class_weight
 
 import numpy as np
 
-from sklearn import naive_bayes
+from sklearn import naive_bayes, metrics
 from sklearn import svm
 from sklearn import neighbors
 
@@ -84,20 +83,28 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 # factory.test_windows()
 print('Model fitting...\n')
 
-
-model = svm.SVC()
+class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
+class_weight_dict = dict(enumerate(class_weight))
+model = svm.SVC(class_weight=class_weight_dict)
 model = neighbors.KNeighborsClassifier()
 model = naive_bayes.GaussianNB()
 
+f1 = round(cross_val_score(model, X, y, cv=10, scoring='f1').mean(), 2)
+recall = round(cross_val_score(model, X, y, cv=10, scoring='recall').mean(), 2)
+precision = round(cross_val_score(model, X, y, cv=10, scoring='precision').mean(), 2)
+average_precision = round(cross_val_score(model, X, y, cv=10, scoring='average_precision').mean(), 2)
 
-y_pred = cross_val_predict(model, X, y, cv=10)
-accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
-null_accuracy = round( max(np.mean(y), 1 - np.mean(y)) * 100, 2)
-
-print('Accuracy: ' + str(accuracy) + '% (vs. Null accuracy of ' + str(null_accuracy) + '%\n')
+print('average-precision: ' + str(average_precision) + '\nprecision: ' + str(precision) +
+      '\nrecall: ' + str(recall) + '\nf1: ' + str(f1))
 
 
+y_pred = cross_val_predict(model, X, y, cv=10, )
 
+null_accuracy = max(np.mean(y), 1 - np.mean(y)) * 100
+predicted_accuracy = metrics.accuracy_score(y, y_pred) * 100
+
+print('Null accuracy: ' + str(null_accuracy) + '%')
+print('Correctly classified data: ' + str(predicted_accuracy) + '%')
 conf_mat = confusion_matrix(y, y_pred)
 print('Confusion matrix: \n' + str(conf_mat))
 
