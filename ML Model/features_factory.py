@@ -16,9 +16,13 @@ import globals as gl
 
 # NOTE: Have to be the same order as below... (matrix[...]=...)
 feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+
                 '%crashes', 'last_obstacle_crash',
+
                  'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points', 'max_minus_min_points']
 
+# feature_names = ['mean_hr','max_over_min_hr',
+#                '%crashes', 'last_obstacle_crash']
 
 # feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
 #                 '%crashes',
@@ -36,6 +40,7 @@ def get_feature_matrix_and_label():
 
     if gl.use_cache and (not gl.test_data) and os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
+        print(matrix)
     else:
         # TODO: Ugly....
         if 'mean_hr' in feature_names:
@@ -93,7 +98,6 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
-
 
     return matrix.as_matrix(), labels
 

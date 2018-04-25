@@ -17,7 +17,7 @@ from __future__ import division  # s.t. division uses float result
 
 from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import cross_val_predict, cross_val_score
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.metrics import confusion_matrix
 from sklearn.utils import class_weight
 from sklearn.svm import LinearSVC
@@ -55,7 +55,7 @@ if gl.test_data:
     test_data.init_with_testdata()
 else:
     setup.setup()
-    if gl.plots_enabled:
+    # if gl.plots_enabled:
         # plots.plot_hr_of_dataframes()
 
 print('Creating feature matrix...\n')
@@ -72,7 +72,6 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 
-'''Feature selection'''
 
 
 if gl.plots_enabled:
@@ -82,21 +81,22 @@ if gl.plots_enabled:
     plots.plot_feature_distributions(X)
     plots.print_mean_features_crash(X, y)
 
+'''Feature selection'''
 
-#forest = factory.feature_selection(X, y)
-#model = SelectFromModel(forest, prefit=True)
-#X = model.transform(X)
-#print('\n# features after feature-selection: ' + str(X.shape[1]) + '\n')
+# forest = factory.feature_selection(X, y)
+# model = SelectFromModel(forest, prefit=True)
+# X = model.transform(X)
+# print('\n# features after feature-selection: ' + str(X.shape[1]) + '\n')
 
 
 ''' Apply Model with Cross-Validation'''
 
 
-print('Model fitting with boxcox=' + str(gl.use_boxcox ) + '...\n')
+print('Model fitting with boxcox=' + str(gl.use_boxcox ) + '...')
 
 
-def apply_model(model, X_new):
-    y_pred = cross_val_predict(model, X_new, y, cv=10)
+def apply_model(model, x_new):
+    y_pred = cross_val_predict(model, x_new, y, cv=10)
     f1 = round(metrics.f1_score(y, y_pred), 3)
     print('\tf1 score: ' + str(f1))
     conf_mat = confusion_matrix(y, y_pred)
@@ -108,7 +108,7 @@ def apply_model(model, X_new):
     print('Correctly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' + str(null_accuracy) + '%)')
 
 
-print('SVM with class_weights: ')
+print('\nSVM with class_weights: ')
 class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(class_weight))
 clf = svm.SVC(class_weight=class_weight_dict)
@@ -125,12 +125,12 @@ clf = naive_bayes.GaussianNB()
 apply_model(clf, X)
 
 
-print('LinearSVM with class_weights: ')
+print('\nLinearSVM with class_weights: ')
 lsvc = LinearSVC(C=0.8, penalty="l1", dual=False, class_weight=class_weight_dict).fit(X, y)
 model = SelectFromModel(lsvc, prefit=True)
-X_new = model.transform(X)
-print(X_new.shape)
-apply_model(lsvc, X_new)
+x_n = model.transform(X)
+print(x_n.shape)
+apply_model(lsvc, x_n)
 
 
 
