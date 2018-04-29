@@ -11,6 +11,16 @@ import factory
 
 
 def setup():
+    all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
+
+    kinect_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
+    kinect_names_hr = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
+
+    fbmc_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
+    fbmc_names_hr_points = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if
+                            re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
+
+    gl.names_logfiles = fbmc_names_hr_points
 
     # Store computed dataframe in pickle file for faster processing
     if gl.use_cache and os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
@@ -29,7 +39,6 @@ def setup():
         pickle.dump(gl.df_list, open(gl.working_directory_path + '/Pickle/df_list.pickle', "wb"))
 
         print('Dataframe created')
-
     # factory.print_keynumbers_logfiles()
 
 
@@ -39,15 +48,6 @@ def setup():
 
 
 def read_and_prepare_logs():
-    all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
-
-    kinect_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
-    kinect_names_hr = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
-
-    fbmc_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
-    fbmc_names_hr_points = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
-
-    gl.names_logfiles = fbmc_names_hr_points
 
     logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
 

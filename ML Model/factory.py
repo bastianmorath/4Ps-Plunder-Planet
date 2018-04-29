@@ -33,6 +33,8 @@ def resample_dataframe(df, resolution):
 
 
 ''' Returns a list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+
+    userID/logID us used such that we cal later (after creating featurematrix), still differentiate logfiles
 '''
 
 
@@ -46,12 +48,17 @@ def get_obstacle_times_with_success():
         for idx, row in dataframe.iterrows():
             if row['Time'] > max(gl.cw, gl.hw):
                 if row['Logtype'] == 'EVENT_OBSTACLE':
-                    obstacle_times_current_df.append((row['Time'], 0))
+                    obstacle_times_current_df.append((row['Time'], 0, row['userID'], row['logID']))
                 if row['Logtype'] == 'EVENT_CRASH':
-                    obstacle_times_current_df.append((row['Time'], 1))
-        times = np.asarray([a for (a, b) in obstacle_times_current_df])
-        crashes = np.asarray([b for (a, b) in obstacle_times_current_df])
-        obstacle_time_crash.append(pd.DataFrame({'Time': times, 'crash': crashes}))
+                    obstacle_times_current_df.append((row['Time'], 1, row['userID'], row['logID']))
+        times = np.asarray([a for (a, b, c, d) in obstacle_times_current_df])
+        crashes = np.asarray([b for (a, b, c, d) in obstacle_times_current_df])
+        userIDs = np.asarray([c for (a, b, c, d) in obstacle_times_current_df])
+        logIDs = np.asarray([d for (a, b, c, d) in obstacle_times_current_df])
+
+        obstacle_time_crash.append(pd.DataFrame({'Time': times, 'crash': crashes,
+                                                 'userID': userIDs,
+                                                 'logID': logIDs}))
 
     return obstacle_time_crash
 
@@ -99,7 +106,6 @@ def test_windows():
             print([hw, cw, null_accuracy, predicted_accuracy])
 
     results.sort(key=lambda x: x[3])
-    print(results)
     pickle.dump(results, open(gl.working_directory_path + '/Pickle/window_results.pickle', "wb"))
 
 

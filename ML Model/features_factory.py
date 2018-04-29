@@ -98,7 +98,6 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
-
     return matrix.as_matrix(), labels
 
 
@@ -153,7 +152,7 @@ def get_lin_regression_hr_slope_feature():
 
 
 def get_number_of_gradient_changes(data_name):
-    print('Creating points_gradient_changes feature...')
+    print('Creating %s_gradient_changes feature...' % data_name)
     changes_list = []  # list that contains a list of the slope
     for list_idx, df in enumerate(gl.df_list):
         changes = get_gradient_changes_column(list_idx, df, data_name)
