@@ -1,14 +1,17 @@
 
 from __future__ import division  # s.t. division uses float result
 
-from sklearn.model_selection import cross_val_predict, LeaveOneGroupOut, GroupKFold
+import matplotlib.pyplot as plt
+
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.model_selection import cross_val_predict, LeaveOneGroupOut
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import pandas as pd
-import re
 from sklearn import metrics
 
 import globals as gl
+import features_factory as f_factory
 
 
 def apply_cv_model(model, X, y):
@@ -28,7 +31,7 @@ def apply_cv_model(model, X, y):
     specificity = conf_mat[0, 0 ] /(conf_mat[0, 0 ] +conf_mat[0, 1])
     print('\n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
           '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
-          '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; [n'
+          '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; \n'
           % (recall, specificity, precision))
 
     print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
@@ -115,3 +118,40 @@ def apply_cv_groups_model(model, X, y):
 
     print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' + str
     (null_accuracy) + '%)')
+
+
+
+
+
+''' Feature Selection. Prints and plots the importance of the features'''
+
+
+def feature_selection(X, y):
+
+    forest = ExtraTreesClassifier(n_estimators=250,
+                                  random_state=0)
+
+    forest.fit(X, y)
+    importances = forest.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in forest.estimators_],
+                 axis=0)
+    indices = np.argsort(importances)[::-1]
+
+    # Print the feature ranking
+    print("Feature ranking:")
+    x_ticks = []
+    for f in range(X.shape[1]):
+        x_ticks.append(f_factory.feature_names[indices[f]])
+        print("%d. feature %s (%f)" % (f + 1, f_factory.feature_names[indices[f]], importances[indices[f]]))
+
+    # Plot the feature importances of the forest
+    plt.figure()
+    plt.title("Feature importances")
+    plt.bar(range(X.shape[1]), importances[indices],
+            color="r", yerr=std[indices], align="center")
+    plt.xticks(range(X.shape[1]), x_ticks, rotation='vertical')
+    plt.xlim([-1, X.shape[1]])
+    plt.tight_layout()
+    # plt.savefig(gl.working_directory_path + '/Plots/feature_importance.pdf')
+
+    return forest

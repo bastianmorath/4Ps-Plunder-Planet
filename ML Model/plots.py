@@ -3,9 +3,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import itertools
 
-
+import seaborn as sns
 import factory
 import globals as gl
 import features_factory as f_factory
@@ -61,23 +60,30 @@ def plot_features(gamma, c, auroc, percentage):
 '''Plot features and corresponding labels to (hopefully) see patterns'''
 
 
-def plot_feature_correlations(X, y):
-    f_names = f_factory.feature_names
+def plot_feature_correlations(X):
+    '''Function plots a graphical correlation matrix for each pair of columns in the dataframe.
 
-    color = ['red' if x else 'green' for x in y]
+        Input:
+            df: pandas DataFrame
+            size: vertical and horizontal size of the plot
 
-    for (f1, f2) in itertools.combinations(f_names, r=2):
-        _, ax1 = plt.subplots()
+    Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
+    '''
 
-        x1 = X[:, f_names.index(f1)]
-        x2 = X[:, f_names.index(f2)]
+    corr = X.corr()
+    sns.set(style="white")
+    # Generate a mask for the upper triangle
+    mask = np.zeros_like(corr, dtype=np.bool)
+    mask[np.triu_indices_from(mask)] = True
+    # Set up the matplotlib figure
+    f, ax = plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
+    # Generate a custom diverging colormap
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
+                square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    plt.savefig(gl.working_directory_path + '/Plots/Correlations/correlation_matrix.pdf')
 
-        ax1.scatter(x1, x2, color=color)
-        ax1.set_xlabel(f1)
-        ax1.set_ylabel(f2)
-
-        plt.savefig(gl.working_directory_path + '/Plots/Correlations/feature_correlation_' + f1 + '_' + f2 + '.pdf')
-        plt.close('all')
 
 
 '''Plots the distribution of the features'''

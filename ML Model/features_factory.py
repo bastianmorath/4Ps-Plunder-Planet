@@ -7,6 +7,7 @@ import numpy as np
 import itertools
 
 import globals as gl
+import plots
 
 '''Current features:
     1. Mean_hr over last x seconds
@@ -98,6 +99,8 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
+
+    plots.plot_feature_correlations(matrix, labels)
     return matrix.as_matrix(), labels
 
 

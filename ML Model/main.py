@@ -75,7 +75,7 @@ X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 if gl.plots_enabled:
     print('Plotting...')
-    # plots.plot_feature_correlations(X, y)
+    plots.plot_feature_correlations(X, y)
     # plots.plot_heartrate_histogram()
     plots.plot_feature_distributions(X)
     plots.print_mean_features_crash(X, y)
@@ -98,17 +98,17 @@ print('\nSVM with class_weights: ')
 class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(class_weight))
 clf = svm.SVC(class_weight=class_weight_dict)
-model.apply_cv_groups_model(clf, X, y)
+model.apply_cv_model(clf, X, y)
 
 
 print('\nKNearestNeighbors: ')
 clf = neighbors.KNeighborsClassifier()
-model.apply_cv_groups_model(clf, X, y)
+model.apply_cv_model(clf, X, y)
 
 
 print('\nGaussian: ')
 clf = naive_bayes.GaussianNB()
-model.apply_cv_groups_model(clf, X, y)
+model.apply_cv_model(clf, X, y)
 
 
 
