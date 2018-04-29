@@ -40,7 +40,7 @@ def get_feature_matrix_and_label():
 
     if gl.use_cache and (not gl.test_data) and os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
         matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
-        print(matrix)
+        # print(matrix)
     else:
         # TODO: Ugly....
         if 'mean_hr' in feature_names:
