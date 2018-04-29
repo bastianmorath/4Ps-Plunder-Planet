@@ -16,20 +16,20 @@ hw_change = 10  # Over how many preceeding seconds should hr features be calcula
 
 
 testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
-use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
+use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
 test_data = False  # If test_data==True, the model uses synthesized data
 
 # Whether we should use normalized heartrate (divide by baseline). If test_data, then don't normalize
 # since dividing by minimum doesn't make sense
 normalize_heartrate = not test_data and True
-use_boxcox = True   # Use boxcox (transforms features into a normal distribution)
+use_boxcox = False   # Use boxcox (transforms features into a normal distribution)
 
 plots_enabled = False  # Whether plots should be created
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
 
-abs_path_logfiles = project_path + '/Logs/text_logs_original_annotated' # text_logs_refactored_crashes or text_logs_original
+abs_path_logfiles = project_path + '/Logs/text_logs_refactored_crashes'  # text_logs_refactored_crashes or text_logs_original
 names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile

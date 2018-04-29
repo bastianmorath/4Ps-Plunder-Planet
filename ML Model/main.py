@@ -58,6 +58,10 @@ else:
     # if gl.plots_enabled:
         # plots.plot_hr_of_dataframes()
 
+# factory.print_keynumbers_logfiles()
+# plots.plot_hr_of_dataframes()
+
+
 print('Creating feature matrix...\n')
 
 
@@ -72,14 +76,13 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 
-
-
 if gl.plots_enabled:
     print('Plotting...')
     # plots.plot_feature_correlations(X, y)
     # plots.plot_heartrate_histogram()
     plots.plot_feature_distributions(X)
     plots.print_mean_features_crash(X, y)
+
 
 '''Feature selection'''
 
@@ -92,14 +95,21 @@ if gl.plots_enabled:
 ''' Apply Model with Cross-Validation'''
 
 
-print('Model fitting with boxcox=' + str(gl.use_boxcox ) + '...')
+print('Model fitting...')
 
 
 def apply_model(model, x_new):
     y_pred = cross_val_predict(model, x_new, y, cv=10)
-    f1 = round(metrics.f1_score(y, y_pred), 3)
-    print('\tf1 score: ' + str(f1))
     conf_mat = confusion_matrix(y, y_pred)
+
+    precision = metrics.precision_score(y, y_pred)
+    recall = metrics.recall_score(y, y_pred)
+    specificity = conf_mat[0, 0]/(conf_mat[0, 0]+conf_mat[0, 1])
+    print('Note: \n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
+          '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
+          '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; [n'
+          % (recall, specificity, precision))
+
     print('\tConfusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
 
     predicted_accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
@@ -125,12 +135,6 @@ clf = naive_bayes.GaussianNB()
 apply_model(clf, X)
 
 
-print('\nLinearSVM with class_weights: ')
-lsvc = LinearSVC(C=0.8, penalty="l1", dual=False, class_weight=class_weight_dict).fit(X, y)
-model = SelectFromModel(lsvc, prefit=True)
-x_n = model.transform(X)
-print(x_n.shape)
-apply_model(lsvc, x_n)
 
 
 

@@ -69,13 +69,14 @@ def add_log_and_user_column():
         last_name = names[idx]
 
 
+
 '''At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc case of a crash, which makes it more difficult 
     to analyze the data. 
     Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log
     Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
-    I also add a timedelta-column
 
     Input: Original files
+    
     Output: New logfiles, without headers or anything
 
     Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'. From now on, always those logs are used'''
@@ -84,7 +85,6 @@ def add_log_and_user_column():
 def refactor_crashes():
     # If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event
     add_log_and_user_column()
-    add_timedelta_column()
 
     print('Refactoring crashes...')
 
@@ -116,11 +116,10 @@ def refactor_crashes():
                 count += 1
         new_df.reset_index(inplace=True, drop=True)
         column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
-                        'psyDifficulty', 'obstacle']
+                        'psyDifficulty', 'obstacle', 'userID', 'logID']
 
         new_df = new_df.reindex(column_names, axis=1)
         gl.df_list[df_idx] = new_df
-        print('next')
         new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
 
 

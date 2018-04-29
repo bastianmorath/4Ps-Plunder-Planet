@@ -12,15 +12,16 @@ import factory
 
 def setup():
 
-    read_and_prepare_logs()
-
     # Store computed dataframe in pickle file for faster processing
     if gl.use_cache and os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
+
         gl.obstacle_df_list = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
         gl.df_list = pickle.load(open(gl.working_directory_path + '/Pickle/df_list.pickle', "rb"))
     else:
         print('Dataframe not cached. Creating dataframe...')
+        read_and_prepare_logs()
+
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
@@ -38,26 +39,35 @@ def setup():
 
 
 def read_and_prepare_logs():
-    kinect_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
     all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
-    fbmc_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC_hr.{0,}.log', f)]
 
-    gl.names_logfiles = all_names
-    print(len(gl.names_logfiles))
+    kinect_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
+    kinect_names_hr = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
+
+    fbmc_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
+    fbmc_names_hr_points = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
+
+    gl.names_logfiles = fbmc_names_hr_points
 
     logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
-    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress', 'psyDifficulty', 'obstacle']
+
     # This read_csv is used when using the original logfiles
-    gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
+    # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
+    #                 'psyStress', 'psyDifficulty', 'obstacle']
+    # gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
 
     # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
-    # gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
+    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
+                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
+    gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
     if gl.testing:
         gl.df_list = gl.df_list[4:6]
 
     # NOTE: Has only ever to be called once to refactore logs
-    refactoring.refactor_crashes()
-    refactoring.remove_logs_without_heartrates_or_points()
+    # refactoring.refactor_crashes()
+
+    refactoring.add_timedelta_column()  # Is added after refactoring, since timedelta format gets lost otherwise
+    # refactoring.remove_logs_without_heartrates_or_points()  # Now done by using corresponding logs directly
     refactoring.normalize_heartrate()
 
 
