@@ -94,8 +94,6 @@ if gl.plots_enabled:
 
 print('Model fitting...')
 
-
-
 print('\nSVM with class_weights: ')
 class_weight = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(class_weight))

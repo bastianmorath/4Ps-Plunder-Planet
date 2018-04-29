@@ -22,6 +22,9 @@ def setup():
 
     gl.names_logfiles = fbmc_names_hr_points
 
+    if gl.testing:
+        gl.names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
+
     # Store computed dataframe in pickle file for faster processing
     if gl.use_cache and os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
@@ -60,8 +63,6 @@ def read_and_prepare_logs():
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
                     'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
     gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
-    if gl.testing:
-        gl.df_list = gl.df_list[4:6]
 
     # NOTE: Has only ever to be called once to refactore logs
     # refactoring.refactor_crashes()
