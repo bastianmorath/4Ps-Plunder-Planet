@@ -4,11 +4,13 @@ from __future__ import division  # s.t. division uses float result
 import matplotlib.pyplot as plt
 
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import cross_val_predict, LeaveOneGroupOut
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import pandas as pd
 from sklearn import metrics
+from sklearn.utils import class_weight
 
 import globals as gl
 import features_factory as f_factory
@@ -23,7 +25,7 @@ def apply_cv_model(model, X, y):
       :param y: True labels
       :return:
       """
-    y_pred = cross_val_predict(model, X, y, cv=10)
+    y_pred = cross_val_predict(model, X, y, cv=5)
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
@@ -55,7 +57,7 @@ def apply_cv_groups_model(model, X, y):
     """
     y = np.asarray(y)  # Used for .split() function
 
-    # Each file should be a separate group, s.t. we can aloways leaveout one logfile (NOT one user)
+    # Each file should be a separate group, s.t. we can always leaveout one logfile (NOT one user)
     groups_ids = (pd.concat(gl.obstacle_df_list)['userID'].map(str) + pd.concat(gl.obstacle_df_list)['logID'].map(str)).tolist()
     logo = LeaveOneGroupOut()
     scores_and_logid = []
@@ -89,7 +91,6 @@ def apply_cv_groups_model(model, X, y):
         print(logname + ':\t\t Recall = %.3f, Specificity= %.3f,'
                                        'Precision = %.3f' % (rec, spec, prec))
 
-
     # Print mean score
     recall_mean = np.mean([a for (a, _, _, _, _) in scores_and_logid])
     specificity_mean = np.mean([b for (_, b,_, _, _) in scores_and_logid])
@@ -120,29 +121,33 @@ def apply_cv_groups_model(model, X, y):
     (null_accuracy) + '%)')
 
 
-
-
-
-''' Feature Selection. Prints and plots the importance of the features'''
-
-
 def feature_selection(X, y):
+    """Feature Selection. Prints and plots the importance of the features
 
-    forest = ExtraTreesClassifier(n_estimators=250,
-                                  random_state=0)
+    Source: http://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
 
-    forest.fit(X, y)
+    :param X:  Feature matrix
+    :param y: labels
+
+    """
+    cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
+    class_weight_dict = dict(enumerate(cw))
+    clf = ExtraTreesClassifier(n_estimators=250, class_weight=class_weight_dict)
+
+    forest = clf.fit(X, y)
     importances = forest.feature_importances_
     std = np.std([tree.feature_importances_ for tree in forest.estimators_],
                  axis=0)
     indices = np.argsort(importances)[::-1]
 
+    X_new = SelectFromModel(clf).fit_transform(X, y)
+
     # Print the feature ranking
-    print("Feature ranking:")
+    # print("Feature ranking:")
     x_ticks = []
     for f in range(X.shape[1]):
         x_ticks.append(f_factory.feature_names[indices[f]])
-        print("%d. feature %s (%f)" % (f + 1, f_factory.feature_names[indices[f]], importances[indices[f]]))
+        # print("%d. feature %s (%.3f)" % (f + 1, f_factory.feature_names[indices[f]], importances[indices[f]]))
 
     # Plot the feature importances of the forest
     plt.figure()
@@ -153,5 +158,7 @@ def feature_selection(X, y):
     plt.xlim([-1, X.shape[1]])
     plt.tight_layout()
     # plt.savefig(gl.working_directory_path + '/Plots/feature_importance.pdf')
+    print('\n# features after feature-selection: ' + str(X_new.shape[1]))
 
-    return forest
+    apply_cv_model(clf, X_new, y)
+

@@ -9,10 +9,14 @@ import globals as gl
 
 """The following methods add additional columns to all dataframes in the gl.df_list"""
 
-'''Cuts dataframes to the same length, namely to the shortest of the dataframes in the list'''
 
 
 def cut_frames():
+    """Cuts dataframes to the same length, namely to the shortest of the dataframes in the list
+        Saves changes directly to gl.df_list
+
+    """
+
     cutted_df_list = []
     min_time = min(dataframe['Time'].max() for dataframe in gl.df_list)
     for dataframe in gl.df_list:
@@ -20,10 +24,11 @@ def cut_frames():
     gl.df_list = cutted_df_list
 
 
-'''Normalize heartrate of each dataframe/user by dividing by mean of first 60 seconds'''
-
-
 def normalize_heartrate():
+    """Normalizes heartrate of each dataframe/user by dividing by mean of first 60 seconds
+
+    """
+
     if gl.normalize_heartrate:
         print('Normalize hr...')
         normalized_df_list = []
@@ -38,18 +43,18 @@ def normalize_heartrate():
         gl.df_list = normalized_df_list
 
 
-'''For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object'''
-
 
 def add_timedelta_column():
+    """For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
+
+    """
     for idx, dataframe in enumerate(gl.df_list):
         new = dataframe['Time'].apply(lambda x: timedelta(seconds=x))
         gl.df_list[idx] = gl.df_list[idx].assign(timedelta=new)
 
 
 def add_log_and_user_column():
-    """
-     Add log_number and user_id
+    """Add log_number and user_id
 
     """
 
@@ -69,20 +74,20 @@ def add_log_and_user_column():
         last_name = names[idx]
 
 
-
-'''At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc case of a crash, which makes it more difficult 
-    to analyze the data. 
-    Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log
-    Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
-
-    Input: Original files
-    
-    Output: New logfiles, without headers or anything
-
-    Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'. From now on, always those logs are used'''
-
-
 def refactor_crashes():
+    """At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc case of a crash, which makes it more difficult
+        to analyze the data.
+        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log
+        Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
+
+        Input: Original files
+
+        Output: New logfiles, without headers or anything
+
+        Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'. From now on, always those logs are used
+
+    """
+
     # If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event
     add_log_and_user_column()
 
@@ -123,9 +128,10 @@ def refactor_crashes():
         new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
 
 
-'''Remove all logfiles that do not have any heartrate data or points (since we then can't calculate our features)'''
-
-
 def remove_logs_without_heartrates_or_points():
+    """Removes all logfiles that do not have any heartrate data or points (since we then can't calculate our features)
+
+    """
+
     gl.df_list = [df for df in gl.df_list if not (df['Heartrate'] == -1).all()]
     gl.df_list = [df for df in gl.df_list if not (df['Points'] == 0).all()]

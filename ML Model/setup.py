@@ -29,8 +29,8 @@ def setup():
     if gl.use_cache and os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
         print('Dataframe already cached. Used this file to improve performance')
 
-        gl.obstacle_df_list = pickle.load(open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "rb"))
-        gl.df_list = pickle.load(open(gl.working_directory_path + '/Pickle/df_list.pickle', "rb"))
+        gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/obstacle_df.pickle')
+        gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/df_list.pickle')
     else:
         print('Dataframe not cached. Creating dataframe...')
         read_and_prepare_logs()
@@ -38,9 +38,8 @@ def setup():
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
-        pickle.dump(gl.obstacle_df_list, open(gl.working_directory_path + '/Pickle/obstacle_df.pickle', "wb"))
-        pickle.dump(gl.df_list, open(gl.working_directory_path + '/Pickle/df_list.pickle', "wb"))
-
+        pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/obstacle_df.pickle')
+        pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/df_list.pickle')
         print('Dataframe created')
     # factory.print_keynumbers_logfiles()
 

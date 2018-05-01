@@ -1,5 +1,6 @@
 """Plots the mean_hr and %crashes that were calulated for the last x seconds for each each second"""
-
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -57,18 +58,14 @@ def plot_features(gamma, c, auroc, percentage):
     plt.savefig(gl.working_directory_path + '/features_plot_'+ str(gl.cw) + '_'+ str(gl.hw) + '.pdf')
 
 
-'''Plot features and corresponding labels to (hopefully) see patterns'''
+def plot_correlation_matrix(X):
+    """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
 
+        Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
 
-def plot_feature_correlations(X):
-    '''Function plots a graphical correlation matrix for each pair of columns in the dataframe.
+    :param X: feature matrix
+    """
 
-        Input:
-            df: pandas DataFrame
-            size: vertical and horizontal size of the plot
-
-    Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
-    '''
 
     corr = X.corr()
     sns.set(style="white")
@@ -80,16 +77,19 @@ def plot_feature_correlations(X):
     # Generate a custom diverging colormap
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
+    sns.heatmap(corr, mask=mask, cmap=cmap, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
     plt.savefig(gl.working_directory_path + '/Plots/Correlations/correlation_matrix.pdf')
 
 
 
-'''Plots the distribution of the features'''
-
 
 def plot_feature_distributions(X):
+    """Plots the distribution of the features
+
+    :param X: Feature matrix
+    """
+
     f_names = f_factory.feature_names
     for idx, feature in enumerate(f_names):
         x = X[:, idx]
@@ -101,11 +101,12 @@ def plot_feature_distributions(X):
         plt.savefig(gl.working_directory_path + '/Plots/Feature_distributions/feature_distribution_' + feature + '.pdf')
 
 
-'''Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
-Only works for real data at the moment, because of name_logfile not existing if test_data...'''
-
-
 def plot_hr_of_dataframes():
+    """Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
+        Only works for real data at the moment, because of name_logfile not existing if test_data...
+
+    :return:
+    """
     resolution = 5
     for idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all():
@@ -122,10 +123,11 @@ def plot_hr_of_dataframes():
             plt.close('all')
 
 
-'''Plots the heartrate in a histogram'''
-
-
 def plot_heartrate_histogram():
+    """ Plots a histogram of  heartrate data accumulated over all logfiles
+
+    """
+
     _, _ = plt.subplots()
     df = pd.concat(gl.df_list, ignore_index=True)
     df = df[df['Heartrate'] != -1]['Heartrate']
@@ -134,12 +136,18 @@ def plot_heartrate_histogram():
     plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
 
 
-'''For each feature, print the average of it when there was a crash vs. there was no crash'''
 
-# TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
 
 
 def print_mean_features_crash(X, y):
+    """For each feature, print the average of it when there was a crash vs. there was no crash
+
+    :param X: Feature matrix
+    :param y: labels
+
+    """
+    # TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
+
     rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
     rows_without_crash = [val for (idx, val) in enumerate(X) if y[idx] == 0]
     # Iterate over all features and plot corresponding plot

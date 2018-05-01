@@ -30,12 +30,16 @@ feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'm
 #                 'mean_points', 'std_points']
 
 
-''' Returns a matrix containing the features, and the labels
-    There is one feature-row for each obstacle
- '''
 
 
 def get_feature_matrix_and_label():
+    """ Returns a matrix containing the features, and the labels
+        There is one feature-row for each obstacle
+
+    :return:
+        matrix: Feature matrix
+        list:   labels
+    """
 
     matrix = pd.DataFrame()
 
@@ -84,6 +88,7 @@ def get_feature_matrix_and_label():
         # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
         # df = pd.concat(gl.obstacle_df_list)
         # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')
+
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
     for df in gl.obstacle_df_list:
@@ -100,34 +105,39 @@ def get_feature_matrix_and_label():
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
 
-    plots.plot_feature_correlations(matrix, labels)
+    plots.plot_correlation_matrix(matrix)
     return matrix.as_matrix(), labels
 
 
-"""The following methods append a column to the feature matrix"""
-
-
 def get_standard_feature(feature, data_name):
+    """This is a wrapper to compute common features such as min, max, mean for either POints or Heartrate
+
+    :param feature: min, max, mean, std
+    :param data_name: Either Heartrate or Points
+
+    :return: Dataframe column containing the feature
+
+    """
+
     print('Creating ' + feature + '_' + data_name + ' feature...')
 
     hr_df_list = []  # list that contains a list of mean_hrs for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in setup.py
-            hr_df = get_column(list_idx, df, feature, data_name)
+            hr_df = get_column(list_idx, feature, data_name)
             hr_df_list.append(hr_df)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=[feature])
 
 
-# TODO: Normalize crashes depending on size/assembly of the obstacle
-
-
 def get_percentage_crashes_feature():
+    # TODO: Normalize crashes depending on size/assembly of the obstacle
+
     print('Creating %crashes feature...')
 
     crashes_list = []  # list that contains a list of %crashes for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
-        crashes = get_percentage_crashes_column(list_idx, df)
+        crashes = get_percentage_crashes_column(list_idx)
         # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(crashes)
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['%crashes'])
@@ -166,26 +176,43 @@ def get_number_of_gradient_changes(data_name):
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['hr_gradient_changes'])
 
 
-
 """The following methods calculate the features as a new dataframe column"""
 
 
-'''Returns the dataframe where time is between _from and _to'''
-
-
 def df_from_to(_from, _to, df):
+    """Returns the dataframe where time is between _from and _to
+
+    :param _from: Start of dataframe ['Time']
+    :param _to: End of dataframe ['Time']
+    :param df: Dataframe
+
+    :return: new Dataframe where row['Time'] between _from and _to
+
+    """
     mask = (_from <= df['Time']) & (df['Time'] < _to)
     return df[mask]
 
 
-''' Returns a dataframe column that indicates at each timestamp the 
-    heartrate or points over the last 'window' seconds, after applying 'applyer' (e.g. mean, min, max, std)
+''' 
     
     data_name = Points or Heartrate
 '''
 
 
-def get_column(idx, df, applier, data_name):
+def get_column(idx, applier, data_name):
+    """This is a wrapper which returns a dataframe column that indicates at each timestamp the
+    heartrate or points over the last 'window' seconds, after applying 'applyer' (e.g. )
+
+    :param idx: Index of dataframe in gl.df_list
+    :param applier: mean, min, max, std
+    :param data_name: Heartrate or Points
+
+    :return: Dataframe column with feature
+
+    """
+
+    df = gl.df_list[idx]
+
     window = gl.hw
     if data_name == 'Points':
         window = gl.cw
@@ -220,12 +247,17 @@ def get_column(idx, df, applier, data_name):
     return gl.obstacle_df_list[idx].apply(compute, axis=1)
 
 
-''' Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the 
-    last crash-window-seconds the user crashed into
-'''
+def get_percentage_crashes_column(idx):
+    """Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the
+        last crash-window-seconds the user crashed into
 
+    :param idx: Index into gl.df_list (indicated the dataframe)
 
-def get_percentage_crashes_column(idx, df):
+    :return: Percentage feature column
+
+    """
+
+    df = gl.df_list[idx]
 
     def compute_crashes(row):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.cw), row['Time'], df)
@@ -241,7 +273,17 @@ def get_percentage_crashes_column(idx, df):
 '''
 
 
-def get_last_obstacle_crash_column(idx, df):
+def get_last_obstacle_crash_column(idx):
+    """Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
+
+      :param idx: Index into gl.df_list (indicated the dataframe)
+
+      :return: last_obstacle_crash feature column
+
+      """
+
+    df = gl.df_list[idx]
+
     def compute_crashes(row):
         last = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
         if last.empty:
@@ -258,7 +300,17 @@ def get_last_obstacle_crash_column(idx, df):
 # TODO: maybe also add intercept, r_value, p_value, std_err as features?
 
 
-def get_hr_slope_column(idx, df):
+def get_hr_slope_column(idx):
+    """Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression
+        line over the heartrate in the last hw seconds
+
+          :param idx: Index into gl.df_list (indicated the dataframe)
+
+          :return: hr_slope feature column
+
+          """
+
+    df = gl.df_list[idx]
 
     def compute_slope(row):
 
@@ -283,7 +335,18 @@ have changed from increasing to decreasing and the other way around
 '''
 
 
-def get_gradient_changes_column(idx, df, data_name):
+def get_gradient_changes_column(idx, data_name):
+    """Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate)
+        have changed from increasing to decreasing and the other way around
+
+        :param idx: Index into gl.df_list (indicated the dataframe)
+        :param data_name: Points or Heartrate
+
+        :return: gradient_changes feature column for either points or heartrate
+
+    """
+
+    df = gl.df_list[idx]
 
     def compute_gradient_changes(row):
 

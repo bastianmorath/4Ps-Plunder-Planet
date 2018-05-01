@@ -5,6 +5,7 @@ from scipy.stats import truncnorm
 import setup
 import globals as gl
 import factory
+import refactoring_logfiles
 
 num_dataframes = 3  # How many dataframes should be created?
 length_dataframe = 500  # How many rows should one dataframe have?
@@ -23,12 +24,11 @@ def init_with_testdata():
     options[test_data_case]()
 
 
-''' Inits with very simple synthesized data to check model performence
-    Alternates between heartrate 20 and 30 and crash/not crash
-'''
-
-
 def init_with_testdata_events_const_hr_const():
+    """Inits with very simple synthesized data to check model performance
+        Alternates between heartrate 20 and 30 and crash/not crash
+
+    """
 
     for i in range(0, num_dataframes):
         times = range(0, 400)
@@ -43,16 +43,15 @@ def init_with_testdata_events_const_hr_const():
 
         gl.df_list.append(dataframe)
 
-    setup.normalize_heartrate()
+    refactoring_logfiles.normalize_heartrate()
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 
-''' Inits with very simple synthesized data to check model performence
-    Random events, but heartrate either 1 or 10 depending on crash (with noise)
-'''
-
-
 def init_with_testdata_events_random_hr_const():
+    """Inits with very simple synthesized data to check model performence
+        Random events, but heartrate either 1 or 10 depending on crash (with noise)
+
+    """
 
     for i in range(0, num_dataframes):
         times = []
@@ -90,18 +89,16 @@ def init_with_testdata_events_random_hr_const():
         # plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
 
-    setup.normalize_heartrate()
+    refactoring_logfiles.normalize_heartrate()
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 
-''' Inits the dataframes not from the logfiles, but with synthesized data
-    Times: from 0 to length_dataframe, one every second with noise
-    logtypes: Randomly choosen; if EVENT_CRASH, then add EVENT_OBSTACLE in the next one!
-'''
-
-
 def init_with_testdata_events_random_hr_continuous():
+    """Inits the dataframes not from the logfiles, but with synthesized data
+        Times: from 0 to length_dataframe, one every second with noise
+        logtypes: Randomly choosen; if EVENT_CRASH, then add EVENT_OBSTACLE in the next one!
 
+    """
     for i in range(0, num_dataframes):
         times = []
         logtypes = []
@@ -139,14 +136,22 @@ def init_with_testdata_events_random_hr_continuous():
         # plot_hr(dataframe, i)
         gl.df_list.append(dataframe)
 
-    setup.normalize_heartrate()
+    refactoring_logfiles.normalize_heartrate()
     gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
 
-'''Returns a value from a normal distribution, truncated to a boundary'''
-
-
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
+    """Returns a value from a normal distribution, truncated to a boundary
+
+    :param mean:
+    :param sd:
+    :param low:
+    :param upp:
+
+    :return: Random value from normal distribution specified by arguments
+
+    """
+
     return truncnorm(
         (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 

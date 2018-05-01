@@ -8,7 +8,7 @@ import pandas as pd
 
 from sklearn import metrics
 
-from sklearn.model_selection import train_test_split  # IMPORTANT: use sklearn.cross_val for of Euler
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import pickle
@@ -16,12 +16,16 @@ import features_factory as f_factory
 
 import globals as gl
 
-'''Resamples a dataframe with a sampling frquency of 'resolution'
-    -> Smoothes the plots
-'''
-
 
 def resample_dataframe(df, resolution):
+    """Resamples a dataframe with a sampling frquency of 'resolution'
+    -> Smoothes the plots
+
+    :param df: Dataframe to be resampled. Must contain numbers only
+    :param resolution:  Resolution of the newly sampled plot
+    :return: Resampled dataframe
+
+    """
     df = df.set_index('timedelta', drop=True)  # set timedelta as new index
     resampled = df.resample(str(resolution)+'S').mean()
     resampled.reset_index(inplace=True)
@@ -30,13 +34,15 @@ def resample_dataframe(df, resolution):
     return resampled
 
 
-''' Returns a list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
-
-    userID/logID us used such that we cal later (after creating featurematrix), still differentiate logfiles
-'''
-
-
 def get_obstacle_times_with_success():
+    """Returns a list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+
+    userID/logID is used such that we cal later (after creating featurematrix), still differentiate logfiles
+
+    :return: List which contains a dataframe df per log. Each df contains the time, userID, logID and whether the user
+                crashed of each obstacle
+
+    """
     print('Compute crashes...')
 
     obstacle_time_crash = []
@@ -61,10 +67,16 @@ def get_obstacle_times_with_success():
     return obstacle_time_crash
 
 
-'''Prints all wrongly classifed datapoints and with which confidentiality the classifier classified them'''
-
-
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):
+    """Prints all wrongly classifed datapoints and with which confidentiality the classifier classified them
+
+    :param X_train: Training data (Feature matrix)
+    :param X_test:  Test data (Feature matrix)
+    :param y_train: labels of training data
+    :param y_test:  labels of test data
+
+    """
+
     from sklearn.neighbors import KNeighborsClassifier
     model = KNeighborsClassifier()
     model.fit(X_train, y_train)
@@ -74,8 +86,6 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
         if y_test[idx] != y_predicted[idx]:
             print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: '
                   + str(max(a,b)*100) + '%')
-
-
 
 
 def test_windows():
@@ -107,11 +117,11 @@ def test_windows():
     pickle.dump(results, open(gl.working_directory_path + '/Pickle/window_results.pickle', "wb"))
 
 
-'''Print all important keynumbers, such as number of logs, number of features (=obstacles) etc.'''
-
-
 def print_keynumbers_logfiles():
-    # conc = pd.concat(gl.df_list, ignore_index=True)
+    """ Print all important keynumbers, such as number of logs, number of features (=obstacles) etc.
+
+    """
+
     df_lengths = []
     for d in gl.df_list:
         df_lengths.append(d['Time'].max())
