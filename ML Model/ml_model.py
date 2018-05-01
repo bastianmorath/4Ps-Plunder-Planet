@@ -2,15 +2,17 @@
 from __future__ import division  # s.t. division uses float result
 
 import matplotlib.pyplot as plt
-
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.feature_selection import SelectFromModel
-from sklearn.model_selection import cross_val_predict, LeaveOneGroupOut
-from sklearn.metrics import confusion_matrix
 import numpy as np
 import pandas as pd
+
 from sklearn import metrics
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import SelectFromModel
+from sklearn.model_selection import cross_val_predict, LeaveOneGroupOut, train_test_split, GridSearchCV
+from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.utils import class_weight
+
+from sklearn.svm import SVC
 
 import globals as gl
 import features_factory as f_factory
@@ -23,14 +25,15 @@ def apply_cv_model(model, X, y):
       :param model: the model that should be applied
       :param X: the feature matrix
       :param y: True labels
-      :return:
+
+
       """
     y_pred = cross_val_predict(model, X, y, cv=5)
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
     recall = metrics.recall_score(y, y_pred)
-    specificity = conf_mat[0, 0 ] /(conf_mat[0, 0 ] +conf_mat[0, 1])
+    specificity = conf_mat[0, 0] /(conf_mat[0, 0 ] +conf_mat[0, 1])
     print('\n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
           '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
           '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; \n'
@@ -161,4 +164,97 @@ def feature_selection(X, y):
     print('\n# features after feature-selection: ' + str(X_new.shape[1]))
 
     apply_cv_model(clf, X_new, y)
+
+
+def param_estimation_grid_cv(X, y, classifier, tuned_params):
+    """This method optimizes hyperparameters of svm with cross-validation, which is done using GridSearchCV on a
+        training set
+        The performance of the selected hyper-parameters and trained model is then measured on a dedicated test
+        set that was not used during the model selection step.
+
+    :return: classifier with optimal tuned hyperparameters
+
+    """
+
+
+    # scores = ['precision', 'recall']
+    scores = ['precision']
+
+    for score in scores:
+        print("# Tuning hyper-parameters for %s" % score)
+        print()
+
+        clf = GridSearchCV(classifier, tuned_params, cv=5,
+                           scoring='%s_macro' % score)
+        clf.fit(X, y)
+
+        print("Best parameters set found on development set:")
+        print()
+        print(clf.best_params_)
+        print()
+        print("Grid scores on development set:")
+        print()
+        means = clf.cv_results_['mean_test_score']
+        stds = clf.cv_results_['std_test_score']
+        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r"
+                  % (mean, std * 2, params))
+        print()
+
+        print("Detailed classification report:")
+        print()
+        print("The model is trained on the full development set.")
+        print("The scores are computed on the full evaluation set.")
+        print()
+
+        y_pred = cross_val_predict(clf, X, y, cv=5)
+        conf_mat = confusion_matrix(y, y_pred)
+
+        print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
+        print(classification_report(y, y_pred, target_names=['No Crash: ', 'Crash: ']))
+        print()
+
+        return clf
+
+
+def test_classifiers(X, y):
+
+        from sklearn.model_selection import train_test_split
+
+        from sklearn.neural_network import MLPClassifier
+        from sklearn.neighbors import KNeighborsClassifier
+        from sklearn.svm import SVC
+        from sklearn.gaussian_process import GaussianProcessClassifier
+        from sklearn.tree import DecisionTreeClassifier
+        from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+        from sklearn.naive_bayes import GaussianNB
+        from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis, LinearDiscriminantAnalysis
+
+        names = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
+                 "Gradient Boosting", "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
+                 "Naive Bayes", "Linear DA", "QDA"]
+
+        classifiers = [
+            KNeighborsClassifier(3),
+            SVC(kernel="linear"),
+            SVC(),
+            GaussianProcessClassifier(),
+            GradientBoostingClassifier(),
+            DecisionTreeClassifier(),
+            RandomForestClassifier(),
+            MLPClassifier(),
+            AdaBoostClassifier(),
+            GaussianNB(),
+            LinearDiscriminantAnalysis(),
+            QuadraticDiscriminantAnalysis(),
+            ]
+
+        # iterate over classifiers
+        for name, clf in zip(names, classifiers):
+            print('\n' + name)
+
+            # clf.fit(X_train, y_train)
+            apply_cv_model(clf, X, y)
+
+
 

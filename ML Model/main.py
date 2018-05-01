@@ -11,13 +11,17 @@
 
 from __future__ import division, print_function  # s.t. division uses float result
 
+import sklearn as sk
 from sklearn.decomposition import PCA
+from sklearn.feature_selection import RFE, SelectFromModel
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import class_weight
 
 from sklearn import naive_bayes
 from sklearn import svm
 from sklearn import neighbors
+from sklearn import discriminant_analysis
+
 
 import time
 import numpy as np
@@ -27,7 +31,13 @@ import plots
 import test_data
 import globals as gl
 import features_factory as f_factory
-import ml_model as model
+import ml_model
+
+
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 
 # NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
@@ -66,7 +76,6 @@ X, y = f_factory.get_feature_matrix_and_label()
 scaler = MinMaxScaler(feature_range=(0, 1))
 X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
-
 if gl.plots_enabled:
     print('Plotting...')
     # plots.plot_heartrate_histogram()
@@ -74,77 +83,65 @@ if gl.plots_enabled:
     plots.print_mean_features_crash(X, y)
 
 
-
 ''' Apply Model with Cross-Validation'''
 
 
 print('Model fitting...')
 
-print('\nSVM with class_weights: ')
 cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(cw))
-clf = svm.SVC(class_weight=class_weight_dict, C=1000, kernel='rbf')
-# model.apply_cv_model(clf, X, y)
+
+feature_selection = True
+if feature_selection:
+    print('Feature selection with LinearSVC l1-loss: \n')
+    clf = svm.LinearSVC(class_weight=class_weight_dict, penalty="l1", dual=False).fit(X, y)
+    model = SelectFromModel(clf, prefit=True)
+    X = model.transform(X)
+    features = [f_factory.feature_names[i] for i in range(0, len(f_factory.feature_names)) if not model.get_support()[i]]
+    print('Features not selected:: ' + str(features))
+
+
+print('\nLinearSVC with class_weights: ')
+clf = svm.LinearSVC(class_weight=class_weight_dict).fit(X, y)
+ml_model.apply_cv_model(clf, X, y)
+
+
+print('\nSVC with class_weights: ')
+clf = svm.SVC(class_weight=class_weight_dict)
+ml_model.apply_cv_model(clf, X, y)
+
+
+# Set the parameters by cross-validation
+# tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
+#                     'C': [0.1, 1, 10, 100, 1000]}]
+# clf = ml_model.param_estimation_grid_cv(X, y, clf, tuned_parameters)
+# print('\nSVC with class_weights and hypertuning: ')
+
+# ml_model.apply_cv_model(clf, X, y)
 
 
 print('\nKNearestNeighbors: ')
 clf = neighbors.KNeighborsClassifier()
-# model.apply_cv_model(clf, X, y)
+ml_model.apply_cv_model(clf, X, y)
 
 
 print('\nGaussian: ')
 clf = naive_bayes.GaussianNB()
-# model.apply_cv_model(clf, X, y)
-
-print('\nExtraTreesClassifier with feature selection and class_weights: ')
-
-# model.feature_selection(X, y)
+ml_model.apply_cv_model(clf, X, y)
 
 
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
-from sklearn.svm import SVC
+print('\nQuadratic Discriminant analysis: ')
+clf = discriminant_analysis.QuadraticDiscriminantAnalysis()
+ml_model.apply_cv_model(clf, X, y)
 
 
-# Split the dataset in two equal parts
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.7, random_state=0)
+# print('\nExtraTreesClassifier with feature selection and class_weights: ')
 
-# Set the parameters by cross-validation
-tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                     'C': [1, 10, 100, 1000]},
-                    {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+# ml_model.feature_selection(X, y)
 
-scores = ['precision', 'recall']
 
-for score in scores:
-    print("# Tuning hyper-parameters for %s" % score)
-    print()
-    cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
-    class_weight_dict = dict(enumerate(cw))
-    clf = GridSearchCV(SVC(class_weight=class_weight_dict), tuned_parameters, cv=5,
-                       scoring='recall')
-    clf.fit(X_train, y_train)
+# ml_model.test_classifiers(X, y)
 
-    print("Best parameters set found on development set:")
-    print()
-    print(clf.best_params_)
-    print()
-    print("Grid scores on development set:")
-    print()
-    means = clf.cv_results_['mean_test_score']
-    stds = clf.cv_results_['std_test_score']
-    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r"
-              % (mean, std * 2, params))
-    print()
 
-    print("Detailed classification report:")
-    print()
-    print("The model is trained on the full development set.")
-    print("The scores are computed on the full evaluation set.")
-    print()
-    y_true, y_pred = y_test, clf.predict(X_test)
-    print(classification_report(y_true, y_pred, target_names=['No Crash: ', 'Crash: ']))
-    print()
+end = time.time()
+print('Time elapsed: ' + str(end - start))

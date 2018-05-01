@@ -147,7 +147,7 @@ def get_last_obstacle_crash_feature():
     print('Creating last_obstacle_crash feature...')
     crashes_list = []  # list that contains a list of whether crash or not for each logfile/df
     for list_idx, df in enumerate(gl.df_list):
-        df_obstacles = get_last_obstacle_crash_column(list_idx, df)
+        df_obstacles = get_last_obstacle_crash_column(list_idx)
         # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(df_obstacles)
 
@@ -158,7 +158,7 @@ def get_lin_regression_hr_slope_feature():
     print('Creating lin_regression_hr_slope feature...')
     slopes = []  # list that contains a list of the slope
     for list_idx, df in enumerate(gl.df_list):
-        slope = get_hr_slope_column(list_idx, df)
+        slope = get_hr_slope_column(list_idx)
         slopes.append(slope)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(slopes)), columns=['lin_regression_hr_slope'])
@@ -168,7 +168,7 @@ def get_number_of_gradient_changes(data_name):
     print('Creating %s_gradient_changes feature...' % data_name)
     changes_list = []  # list that contains a list of the slope
     for list_idx, df in enumerate(gl.df_list):
-        changes = get_gradient_changes_column(list_idx, df, data_name)
+        changes = get_gradient_changes_column(list_idx, data_name)
         changes_list.append(changes)
     if data_name == 'Points' :
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['points_gradient_changes'])
