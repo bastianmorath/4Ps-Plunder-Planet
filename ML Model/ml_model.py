@@ -18,7 +18,7 @@ import globals as gl
 import features_factory as f_factory
 
 
-def apply_cv_model(model, X, y):
+def apply_cv_model(model, X, y, verbose = True):
     """
         Build feature matrix, then do cross-validation over the entire data
 
@@ -26,6 +26,7 @@ def apply_cv_model(model, X, y):
       :param X: the feature matrix
       :param y: True labels
 
+      :return: recall, specificity and precision average
 
       """
     y_pred = cross_val_predict(model, X, y, cv=5)
@@ -34,18 +35,22 @@ def apply_cv_model(model, X, y):
     precision = metrics.precision_score(y, y_pred)
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] /(conf_mat[0, 0 ] +conf_mat[0, 1])
-    print('\n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
-          '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
-          '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; \n'
-          % (recall, specificity, precision))
+    if verbose:
+        print('\n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
+              '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
+              '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; \n'
+              % (recall, specificity, precision))
 
-    print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
+        print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
 
     predicted_accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
     null_accuracy = round(max(np.mean(y), 1 - np.mean(y)) * 100, 2)
 
-    print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' + str
-        (null_accuracy) + '%)')
+    if verbose:
+        print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' + str
+            (null_accuracy) + '%)')
+
+    return recall, specificity, precision
 
 
 def apply_cv_groups_model(model, X, y):
@@ -56,7 +61,7 @@ def apply_cv_groups_model(model, X, y):
     :param model: the model that should be applied
     :param X: the feature matrix
     :param y: True labels
-    :return:
+    :return: recall, specificity and precision average
     """
     y = np.asarray(y)  # Used for .split() function
 
@@ -267,7 +272,7 @@ def test_classifiers(X, y):
         from sklearn.naive_bayes import GaussianNB
         from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis, LinearDiscriminantAnalysis
 
-        names = ["Nearest Neighbors", "Linear SVM", "RBF SVM", "Gaussian Process",
+        names = ["Nearest Neighbors", "Linear SVM", "RBF SVM",
                  "Gradient Boosting", "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
                  "Naive Bayes", "Linear DA", "QDA"]
 
@@ -275,7 +280,6 @@ def test_classifiers(X, y):
             KNeighborsClassifier(3),
             SVC(kernel="linear"),
             SVC(),
-            GaussianProcessClassifier(),
             GradientBoostingClassifier(),
             DecisionTreeClassifier(),
             RandomForestClassifier(),
@@ -287,11 +291,46 @@ def test_classifiers(X, y):
             ]
 
         # iterate over classifiers
+        recalls = []
+        specificities = []
+        precisions = []
+
         for name, clf in zip(names, classifiers):
             print('\n' + name)
+            r, s, p = apply_cv_model(clf, X, y, verbose=False)
+            recalls.append(r)
+            specificities.append(s)
+            precisions.append(p)
 
-            # clf.fit(X_train, y_train)
-            apply_cv_model(clf, X, y)
+        plt.subplots()
+        bar_width = 0.3
+        opacity = 0.4
+        index = np.arange(len(classifiers))
+
+        plt.bar(index, recalls, bar_width,
+                alpha=opacity,
+                color='r',
+                label='Recall')
+
+        plt.bar(index + bar_width, specificities, bar_width,
+                alpha=opacity,
+                color='b',
+                label='Specificity')
+
+        plt.bar(index + 2 * bar_width, precisions, bar_width,
+                alpha=opacity,
+                color='g',
+                label='Precision')
+        plt.xlabel('Classifier')
+        plt.ylabel('Performance')
+        plt.title('Scores by classifier without hyperparameter tuning')
+        plt.xticks(index + 3 * bar_width / 2, names, rotation='vertical')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.savefig(gl.working_directory_path + '/Plots/performace_per_classifier.pdf')
+
+
 
 
 

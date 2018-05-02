@@ -103,12 +103,12 @@ if feature_selection:
 
 print('\nLinearSVC with class_weights: ')
 clf = svm.LinearSVC(class_weight=class_weight_dict).fit(X, y)
-ml_model.apply_cv_model(clf, X, y)
+# ml_model.apply_cv_model(clf, X, y)
 
 
 print('\nSVC with class_weights: ')
 clf = svm.SVC(class_weight=class_weight_dict)
-ml_model.apply_cv_groups_model(clf, X, y)
+# ml_model.apply_cv_model(clf, X, y)
 
 
 # Set the parameters by cross-validation
@@ -122,17 +122,17 @@ ml_model.apply_cv_groups_model(clf, X, y)
 
 print('\nKNearestNeighbors: ')
 clf = neighbors.KNeighborsClassifier()
-ml_model.apply_cv_model(clf, X, y)
+# ml_model.apply_cv_model(clf, X, y)
 
 
 print('\nGaussian: ')
 clf = naive_bayes.GaussianNB()
-ml_model.apply_cv_model(clf, X, y)
+# ml_model.apply_cv_model(clf, X, y)
 
 
 print('\nQuadratic Discriminant analysis: ')
 clf = discriminant_analysis.QuadraticDiscriminantAnalysis()
-ml_model.apply_cv_model(clf, X, y)
+# ml_model.apply_cv_model(clf, X, y)
 
 
 # print('\nExtraTreesClassifier with feature selection and class_weights: ')
@@ -140,7 +140,7 @@ ml_model.apply_cv_model(clf, X, y)
 # ml_model.feature_selection(X, y)
 
 
-# ml_model.test_classifiers(X, y)
+ml_model.test_classifiers(X, y)
 
 
 end = time.time()
