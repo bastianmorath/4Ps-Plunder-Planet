@@ -84,16 +84,52 @@ def apply_cv_groups_model(model, X, y):
 
         scores_and_logid.append((recall, specificity, precision, user_id, log_id))
 
+    lognames = []
     # Print scores for each individual logfile left out in cross_validation
     for idx, (rec, spec, prec, user_id, log_id) in enumerate(scores_and_logid):
         # Get the logname out of userID and log_id (1 or 2)
-        logname = ''
         for df_idx, df in enumerate(gl.df_list):
             if df.iloc[0]['userID'] == user_id and df.iloc[0]['logID'] == log_id:
-                logname = gl.names_logfiles[df_idx]
-        print(logname + ':\t\t Recall = %.3f, Specificity= %.3f,'
-                                       'Precision = %.3f' % (rec, spec, prec))
+                logname = gl.names_logfiles[df_idx][:2] + '_' + gl.names_logfiles[df_idx][-5]
+                lognames.append(logname)
 
+        print(logname + ':\t\t Recall = %.3f, Specificity= %.3f,'
+                                        'Precision = %.3f' % (rec, spec, prec))
+
+    index = np.arange(len(gl.names_logfiles))
+    recalls = [a for (a, _, _, _, _) in scores_and_logid]
+    specificities = [b for (_, b, _, _, _) in scores_and_logid]
+    precisions = [c for (_, _, c, _, _) in scores_and_logid]
+    sum_per_logfile = [a+b+c for (a,b,c) in zip(recalls, specificities, precisions)]
+    print('Sum of recall, specificity and precision per logfile: ' + str(sum_per_logfile))
+
+    plt.subplots()
+    bar_width = 0.3
+    opacity = 0.4
+    plt.bar(index, recalls, bar_width,
+            alpha=opacity,
+            color='r',
+            label='Recall')
+
+    plt.bar(index + bar_width, specificities, bar_width,
+            alpha=opacity,
+            color='b',
+            label='Specificity')
+
+    plt.bar(index + 2*bar_width, precisions, bar_width,
+            alpha=opacity,
+            color='g',
+            label='Precision')
+    plt.xlabel('Logfile')
+    plt.ylabel('Performance')
+    plt.title('Scores by logfile with SVM')
+    plt.xticks(index + 3*bar_width / 2, lognames, rotation='vertical')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(gl.working_directory_path + '/Plots/performace_per_logfile.pdf')
+
+    print('Performance score when doing LeaveOneGroupOut with logfiles: ')
     # Print mean score
     recall_mean = np.mean([a for (a, _, _, _, _) in scores_and_logid])
     specificity_mean = np.mean([b for (_, b,_, _, _) in scores_and_logid])
@@ -106,6 +142,7 @@ def apply_cv_groups_model(model, X, y):
     recall_max = np.max([a for (a, _, _, _, _) in scores_and_logid])
     specificity_max = np.max([b for (_, b, _, _, _) in scores_and_logid])
     precision_max = np.max([c for (_, _, c, _, _) in scores_and_logid])
+
 
     print('\n Performance:' + ': Recall = %.3f (+-%.3f, max: %.3f), Specificity= %.3f (+-%.3f, max: %.3f),'
                           ' Precision = %.3f (+-%.3f, max: %.3f)'
