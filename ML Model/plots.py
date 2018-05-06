@@ -1,4 +1,4 @@
-"""Plots the mean_hr and %crashes that were calulated for the last x seconds for each each second"""
+"""Plots the mean_hr and %crashes that were calculated for the last x seconds for each each second"""
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -14,6 +14,7 @@ green_color = '#AEBD38'
 blue_color = '#68829E'
 red_color = '#A62A2A'
 
+
 def plot_correlation_matrix(X):
     """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
 
@@ -21,7 +22,6 @@ def plot_correlation_matrix(X):
 
     :param X: feature matrix
     """
-
 
     corr = X.corr()
     sns.set(style="white")
@@ -36,8 +36,6 @@ def plot_correlation_matrix(X):
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
     plt.savefig(gl.working_directory_path + '/Plots/Correlations/correlation_matrix.pdf')
-
-
 
 
 def plot_feature_distributions(X):
@@ -93,8 +91,6 @@ def plot_heartrate_histogram():
 
 
 
-
-
 def print_mean_features_crash(X, y):
     """For each feature, print the average of it when there was a crash vs. there was no crash
 
@@ -143,10 +139,10 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
     opacity = 0.4
     index = np.arange(len(x_labels))
     
-    rects = plt.bar(index, values, bar_width,
-            alpha=opacity,
-            color=green_color,
-            label=lbl)
+    r = plt.bar(index, values, bar_width,
+                alpha=opacity,
+                color=green_color,
+                label=lbl)
 
     plt.xlabel(x_axis_name)
     plt.ylabel(y_axis_name)
@@ -164,7 +160,7 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
                     '%0.3f' % values[i],
                     ha='center', va='bottom', size=5)
 
-    autolabel(rects)
+    autolabel(r)
 
     plt.tight_layout()
 

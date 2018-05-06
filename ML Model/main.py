@@ -32,6 +32,7 @@ import test_data
 import globals as gl
 import features_factory as f_factory
 import ml_model
+import grid_search
 
 def warn(*args, **kwargs):
     pass
@@ -108,38 +109,28 @@ classifiers = [
         discriminant_analysis.QuadraticDiscriminantAnalysis()
         ]
 
-auc_scores = []
+plot_classifier_scores = False
+if plot_classifier_scores:
+    auc_scores = []
+    for name, clf in zip(names, classifiers):
+        print(name+'...')
+        clf.fit(X, y)
+        auc_scores.append(ml_model.apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
+        # ml_model.plot_roc_curve(clf, X, y, name)
 
-for name, clf in zip(names, classifiers):
-    print(name+'...')
-    clf.fit(X, y)
-    auc_scores.append(ml_model.apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
-    # ml_model.plot_roc_curve(clf, X, y, name)
+    plt = plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
+                              x_axis_name='',
+                              y_axis_name='roc_auc',
+                              x_labels=names,
+                              values=auc_scores,
+                              lbl=None,
+                              )
 
-plt = plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
-                          x_axis_name='',
-                          y_axis_name='roc_auc',
-                          x_labels=names,
-                          values=auc_scores,
-                          lbl=None,
-                          )
+    plt.savefig(gl.working_directory_path + '/Plots/roc_auc_per_classifier.pdf')
 
-plt.savefig(gl.working_directory_path + '/Plots/roc_auc_per_classifier.pdf')
-
-grid_search = False
-if grid_search:
-    # Set the parameters by cross-validation
-    tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                         'C': [10, 100, 1000]}]
-    clf = ml_model.param_estimation_grid_cv(X, y, classifiers[1], tuned_parameters)
-    print('\nSVC with class_weights and hypertuning: ')
-
-    auc, _, _, _ = ml_model.get_performance(clf, names[1], X, y)
-    print(auc)
-
-# print('\nExtraTreesClassifier with feature selection and class_weights: ')
-
-# ml_model.feature_selection(X, y)
+grid_s = True
+if grid_s:
+    grid_search.do_grid_search_for_classifiers(X, y)
 
 
 end = time.time()

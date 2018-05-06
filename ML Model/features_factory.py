@@ -64,7 +64,6 @@ def get_feature_matrix_and_label():
             matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
         if 'hr_gradient_changes' in feature_names:
             matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
-
         if '%crashes' in feature_names:
             matrix['%crashes'] = get_percentage_crashes_feature()
         if 'last_obstacle_crash' in feature_names:

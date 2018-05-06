@@ -15,7 +15,7 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, classification_report, confusion_matrix,
                              roc_curve)
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV, LeaveOneGroupOut,
-                                     cross_val_predict, train_test_split)
+                                     cross_val_predict, train_test_split, cross_val_score)
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
@@ -41,12 +41,12 @@ def get_performance(model, clf_name, X, y, verbose = False):
       :return: roc_auc, recall, specificity and precision
 
       """
-    y_pred = cross_val_predict(model, X, y, cv=5)
+    y_pred = cross_val_predict(model, X, y, cv=2)
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
     recall = metrics.recall_score(y, y_pred)
-    specificity = conf_mat[0, 0] /(conf_mat[0, 0 ] +conf_mat[0, 1])
+    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
     auc = metrics.roc_auc_score(y, y_pred)
     
     predicted_accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
@@ -137,18 +137,18 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
     names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
 
     index = np.arange(len(names))
-    aucs =          [a[0] for a in scores_and_ids]
-    recalls =       [a[1] for a in scores_and_ids]
+    aucs = [a[0] for a in scores_and_ids]
+    recalls = [a[1] for a in scores_and_ids]
     specificities = [a[2] for a in scores_and_ids]
-    precisions =    [a[3] for a in scores_and_ids]
+    precisions = [a[3] for a in scores_and_ids]
 
     _, ax = plt.subplots()
     bar_width = 0.3
     opacity = 0.4
-    rects = plt.bar(index, aucs, bar_width,
-            alpha=opacity,
-            color=plots.blue_color,
-            label='Auc')
+    r = plt.bar(index, aucs, bar_width,
+                    alpha=opacity,
+                    color=plots.blue_color,
+                    label='Auc')
 
     if per_logfile:
         plt.xlabel('Logfile')
@@ -171,7 +171,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
                     '%0.3f' % aucs[i],
                     ha='center', va='bottom', size=5)
 
-    autolabel(rects)
+    autolabel(r)
 
     plt.tight_layout()
     if per_logfile:
@@ -259,93 +259,6 @@ def feature_selection(X, y):
     plt.tight_layout()
     # plt.savefig(gl.working_directory_path + '/Plots/feature_importance.pdf')
     print('\n# features after feature-selection: ' + str(X_new.shape[1]))
-
-    apply_cv_model(clf, 'ExtraTreeClassifier', X_new, y)
-
-
-def param_estimation_grid_cv(X, y, classifier, tuned_params, verbose=False):
-    """This method optimizes hyperparameters of svm with cross-validation, which is done using GridSearchCV on a
-        training set
-        The performance of the selected hyper-parameters and trained model is then measured on a dedicated test
-        set that was not used during the model selection step.
-
-    :return: classifier with optimal tuned hyperparameters
-
-    """
-    if verbose:
-        print('# Tuning hyper-parameters for roc_auc \n')
-
-    clf = GridSearchCV(classifier, tuned_params, cv=5,
-                       scoring='roc_auc')
-    clf.fit(X, y)
-    print("Best parameters set found on training set:")
-    print()
-    print(clf.best_params_)
-    if verbose:
-        print()
-        print("auxroc-auc grid scores on development set:")
-        print()
-        means = clf.cv_results_['mean_test_score']
-        stds = clf.cv_results_['std_test_score']
-        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-            print("%0.3f (+/-%0.03f) for %r"
-                  % (mean, std * 2, params))
-        print()
-
-        print("Detailed classification report: \n")
-
-        y_pred = cross_val_predict(clf, X, y, cv=5)
-        conf_mat = confusion_matrix(y, y_pred)
-
-        print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
-        print(classification_report(y, y_pred, target_names=['No Crash: ', 'Crash: ']))
-        print()
-
-    return clf
-
-
-def test_classifiers(X, y):
-    """Test different classifiers wihtout hyperparameter optimization, and prints its auc scores in a barplot
-    
-    Arguments:
-        X {matrix} -- Feature matrix
-        y {list/ndarray} -- labels
-    """
-
-
-    names = ["Nearest Neighbors", "Linear SVM", "RBF SVM",
-                "Gradient Boosting", "Decision Tree", "Random Forest", "Neural Net", "AdaBoost",
-                "Naive Bayes", "Linear DA", "QDA"]
-
-    classifiers = [
-        KNeighborsClassifier(3),
-        SVC(kernel="linear"),
-        SVC(),
-        GradientBoostingClassifier(),
-        DecisionTreeClassifier(),
-        RandomForestClassifier(),
-        MLPClassifier(),
-        AdaBoostClassifier(),
-        GaussianNB(),
-        LinearDiscriminantAnalysis(),
-        QuadraticDiscriminantAnalysis(),
-        ]
-
-    # iterate over classifiers
-    
-    auc_scores = []
-    for clf, name in zip(classifiers, names):
-        a, _, _, _ = apply_cv_model(clf, X, y, name, verbose=False)
-        auc_scores.append(a)
-
-    plt = plots.plot_barchart(title='Scores by classifier without hyperparameter tuning',
-                        x_axis_name='Classifier',
-                        y_axis_name='Performance',
-                        x_labels=names,
-                        values=auc_scores,
-                        lbl='auc_score'
-                        )
-    plt.savefig(gl.working_directory_path + '/Plots/performace_per_classifier.pdf')
 
 
 def plot_roc_curve(classifier, X, y, classifier_name):
