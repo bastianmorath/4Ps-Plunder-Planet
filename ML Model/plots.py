@@ -14,50 +14,6 @@ green_color = '#AEBD38'
 blue_color = '#68829E'
 red_color = '#A62A2A'
 
-# TODO: Broken, since now the features are only stored in feature matrix (without time)
-
-
-def plot_features(gamma, c, auroc, percentage):
-    fig, ax1 = plt.subplots()
-    fig.suptitle('%Crashes and mean_hr over last x seconds')
-
-    # Plot mean_hr
-    df = gl.df.sort_values('Time')
-    ax1.plot(df['Time'], df['mean_hr'], blue_color)
-    ax1.set_xlabel('Playing time [s]')
-    ax1.set_ylabel('Heartrate', color=blue_color)
-    ax1.tick_params('y', colors=blue_color)
-
-    
-    # Plot max_over_min_hr
-    df = setup.df.sort_values('Time')
-    ax1.plot(df['Time'], df['max_over_min'], blue_color)
-    ax1.set_xlabel('Playing time [s]')
-    ax1.set_ylabel('max_over_min_hr', color=blue_color)
-    ax1.tick_params('y', colors=blue_color)
-    
-    # Plot %crashes
-    ax2 = ax1.twinx()
-    ax2.plot(df['Time'], df['%crashes'], red_color)
-    ax2.set_ylabel('Crashes [%]', color=red_color)
-    ax2.tick_params('y', colors=red_color)
-
-    ax2.text(0.5, 0.35, 'Crash_window: ' + str(gl.cw),
-         transform=ax2.transAxes, fontsize=10)
-    ax2.text(0.5, 0.3, 'Max_over_min window: ' + str(gl.hw),
-             transform=ax2.transAxes, fontsize=10)
-    ax2.text(0.5, 0.25, 'Best gamma: 10e' + str(round(gamma, 3)),
-             transform=ax2.transAxes, fontsize=10)
-    ax2.text(0.5, 0.2, 'Best c: 10e' + str(round(c, 3)),
-             transform=ax2.transAxes, fontsize=10)
-    ax2.text(0.5, 0.15, 'Auroc: ' + str(round(auroc, 3)),
-             transform=ax2.transAxes, fontsize=10)
-    ax2.text(0.5, 0.1, 'Correctly predicted: ' + str(round(percentage, 2)),
-             transform=ax2.transAxes, fontsize=10)
-
-    plt.savefig(gl.working_directory_path + '/features_plot_'+ str(gl.cw) + '_'+ str(gl.hw) + '.pdf')
-
-
 def plot_correlation_matrix(X):
     """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
 
@@ -73,7 +29,7 @@ def plot_correlation_matrix(X):
     mask = np.zeros_like(corr, dtype=np.bool)
     mask[np.triu_indices_from(mask)] = True
     # Set up the matplotlib figure
-    f, ax = plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
+    plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
     # Generate a custom diverging colormap
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
@@ -112,7 +68,7 @@ def plot_hr_of_dataframes():
         if not (df['Heartrate'] == -1).all():
             df_num_resampled = factory.resample_dataframe(df, resolution)
             # Plot Heartrate
-            fig, ax1 = plt.subplots()
+            _, ax1 = plt.subplots()
             ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color)
             ax1.set_xlabel('Playing time [s]')
             ax1.set_ylabel('Heartrate', color=blue_color)
@@ -166,3 +122,38 @@ def print_mean_features_crash(X, y):
         plt.savefig(gl.working_directory_path + '/Plots/Crash_Correlation/bar_feature_' + str(f_factory.feature_names[i]) + '_crash.pdf')
         plt.close('all')
 
+
+def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
+    """Plots a barchart with the given arguments
+    
+    Arguments:
+        title {String} -- Title of the plot
+        x_axis_name {String} -- name of the x_axis
+        y_axis_name {String} -- name of the y-axis
+        x_labels {[String]} -- labels of the x_indices
+        values {[type]} -- values to plot
+        label {String} -- Name of the values label
+    
+    Returns:
+        matplotlib.plt -- Generated plot
+    """
+
+    plt.subplots()
+    bar_width = 0.3
+    opacity = 0.4
+    index = np.arange(len(x_labels))
+    
+    plt.bar(index, values, bar_width,
+            alpha=opacity,
+            color=green_color,
+            label=lbl)
+
+    plt.xlabel(x_axis_name)
+    plt.ylabel(y_axis_name)
+    plt.title(title)
+    plt.xticks(index, x_labels, rotation='vertical')
+    plt.legend()
+
+    plt.tight_layout()
+
+    return plt

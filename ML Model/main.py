@@ -33,13 +33,11 @@ import globals as gl
 import features_factory as f_factory
 import ml_model
 
-
 def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
 
-# NOTE: heartrate is normalized, i.e. on a scale around ~ 1
 
 ''' Get data and create feature matrix and labels
     Column 0: Id/Time
@@ -100,15 +98,24 @@ if feature_selection:
     features = [f_factory.feature_names[i] for i in range(0, len(f_factory.feature_names)) if not model.get_support()[i]]
     print('Features not selected:: ' + str(features))
 
+auc_scores = []
+names = [] # Stores the auc scores and names of the classifiers to plot it in a chart afterwards
 
-print('\nLinearSVC with class_weights: ')
-clf = svm.LinearSVC(class_weight=class_weight_dict).fit(X, y)
-# ml_model.apply_cv_model(clf, X, y)
+names = ["Linear SVM", "RBF SVM", "Nearest Neighbor", "Naive Bayes", "QDA"]
 
+classifiers = [
+        svm.LinearSVC(class_weight=class_weight_dict),
+        svm.SVC(class_weight=class_weight_dict),
+        neighbors.KNeighborsClassifier(),
+        naive_bayes.GaussianNB(),
+        discriminant_analysis.QuadraticDiscriminantAnalysis()
+        ]
 
-print('\nSVC with class_weights: ')
-clf = svm.SVC(class_weight=class_weight_dict)
-# ml_model.apply_cv_model(clf, X, y)
+for name, clf in zip(names, classifiers):
+    print(name+'...')
+    clf.fit(X, y)
+    auc_scores.append(ml_model.apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
+    ml_model.plot_roc_curve(clf, X, y, name)
 
 
 # Set the parameters by cross-validation
@@ -120,28 +127,18 @@ clf = svm.SVC(class_weight=class_weight_dict)
 # ml_model.apply_cv_model(clf, X, y)
 
 
-print('\nKNearestNeighbors: ')
-clf = neighbors.KNeighborsClassifier()
-# ml_model.apply_cv_model(clf, X, y)
-
-
-print('\nGaussian: ')
-clf = naive_bayes.GaussianNB()
-# ml_model.apply_cv_model(clf, X, y)
-
-
-print('\nQuadratic Discriminant analysis: ')
-clf = discriminant_analysis.QuadraticDiscriminantAnalysis()
-# ml_model.apply_cv_model(clf, X, y)
-
-
 # print('\nExtraTreesClassifier with feature selection and class_weights: ')
 
 # ml_model.feature_selection(X, y)
 
-
-ml_model.test_classifiers(X, y)
-
+plt = plots.plot_barchart(title='Scores by classifier without hyperparameter tuning',
+                            x_axis_name='',
+                            y_axis_name='Performance',
+                            x_labels=names,
+                            values=auc_scores,
+                            lbl='auc_score',
+                            )
+plt.savefig(gl.working_directory_path + '/Plots/auc_per_main_classifiers.pdf')
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))
