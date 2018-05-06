@@ -14,7 +14,7 @@ from __future__ import division, print_function  # s.t. division uses float resu
 import sklearn as sk
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import RFE, SelectFromModel
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.utils import class_weight
 
 from sklearn import naive_bayes
@@ -65,8 +65,7 @@ print('Creating feature matrix...\n')
 
 
 X, y = f_factory.get_feature_matrix_and_label()
-# print('Feature matrix X: \n' + str(X))
-# print('labels y:\n' + str(y) + '\n')
+
 
 '''Preprocess data'''
 # scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
@@ -98,8 +97,6 @@ if feature_selection:
     features = [f_factory.feature_names[i] for i in range(0, len(f_factory.feature_names)) if not model.get_support()[i]]
     print('Features not selected:: ' + str(features))
 
-auc_scores = []
-names = [] # Stores the auc scores and names of the classifiers to plot it in a chart afterwards
 
 names = ["Linear SVM", "RBF SVM", "Nearest Neighbor", "Naive Bayes", "QDA"]
 
@@ -111,34 +108,39 @@ classifiers = [
         discriminant_analysis.QuadraticDiscriminantAnalysis()
         ]
 
+auc_scores = []
+
 for name, clf in zip(names, classifiers):
     print(name+'...')
     clf.fit(X, y)
     auc_scores.append(ml_model.apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
-    ml_model.plot_roc_curve(clf, X, y, name)
+    # ml_model.plot_roc_curve(clf, X, y, name)
 
+plt = plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
+                          x_axis_name='',
+                          y_axis_name='roc_auc',
+                          x_labels=names,
+                          values=auc_scores,
+                          lbl=None,
+                          )
 
-# Set the parameters by cross-validation
-# tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-#                     'C': [0.1, 1, 10, 100, 1000]}]
-# clf = ml_model.param_estimation_grid_cv(X, y, clf, tuned_parameters)
-# print('\nSVC with class_weights and hypertuning: ')
+plt.savefig(gl.working_directory_path + '/Plots/roc_auc_per_classifier.pdf')
 
-# ml_model.apply_cv_model(clf, X, y)
+grid_search = False
+if grid_search:
+    # Set the parameters by cross-validation
+    tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
+                         'C': [10, 100, 1000]}]
+    clf = ml_model.param_estimation_grid_cv(X, y, classifiers[1], tuned_parameters)
+    print('\nSVC with class_weights and hypertuning: ')
 
+    auc, _, _, _ = ml_model.get_performance(clf, names[1], X, y)
+    print(auc)
 
 # print('\nExtraTreesClassifier with feature selection and class_weights: ')
 
 # ml_model.feature_selection(X, y)
 
-plt = plots.plot_barchart(title='Scores by classifier without hyperparameter tuning',
-                            x_axis_name='',
-                            y_axis_name='Performance',
-                            x_labels=names,
-                            values=auc_scores,
-                            lbl='auc_score',
-                            )
-plt.savefig(gl.working_directory_path + '/Plots/auc_per_main_classifiers.pdf')
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

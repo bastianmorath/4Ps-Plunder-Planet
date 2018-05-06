@@ -138,12 +138,12 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
         matplotlib.plt -- Generated plot
     """
 
-    plt.subplots()
+    fix, ax = plt.subplots()
     bar_width = 0.3
     opacity = 0.4
     index = np.arange(len(x_labels))
     
-    plt.bar(index, values, bar_width,
+    rects = plt.bar(index, values, bar_width,
             alpha=opacity,
             color=green_color,
             label=lbl)
@@ -153,6 +153,18 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
     plt.title(title)
     plt.xticks(index, x_labels, rotation='vertical')
     plt.legend()
+
+    def autolabel(rects):
+        """
+        Attach a text label above each bar displaying its height
+        """
+        for i, rect in enumerate(rects):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.02 * height,
+                    '%0.3f' % values[i],
+                    ha='center', va='bottom', size=5)
+
+    autolabel(rects)
 
     plt.tight_layout()
 

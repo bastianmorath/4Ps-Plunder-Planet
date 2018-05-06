@@ -12,10 +12,9 @@ from sklearn.ensemble import (AdaBoostClassifier, ExtraTreesClassifier,
                               GradientBoostingClassifier,
                               RandomForestClassifier)
 from sklearn.feature_selection import SelectFromModel
-from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.metrics import (auc, classification_report, confusion_matrix,
                              roc_curve)
-from sklearn.model_selection import (GridSearchCV, LeaveOneGroupOut,
+from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV, LeaveOneGroupOut,
                                      cross_val_predict, train_test_split)
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -30,15 +29,16 @@ import globals as gl
 import plots
 
 
-def apply_cv_model(model, clf_name, X, y, verbose = False):
+def get_performance(model, clf_name, X, y, verbose = False):
     """
-        Build feature matrix, then do cross-validation over the entire data
+        Get performance of the model by doing cross validation with 5 folds, using
+        cross_val_predict
 
-      :param model: the model that should be applied
+      :param model: the classifier that should be applied
       :param X: the feature matrix
       :param y: True labels
 
-      :return: auc, recall, specificity and precision
+      :return: roc_auc, recall, specificity and precision
 
       """
     y_pred = cross_val_predict(model, X, y, cv=5)
@@ -53,15 +53,15 @@ def apply_cv_model(model, clf_name, X, y, verbose = False):
     null_accuracy = round(max(np.mean(y), 1 - np.mean(y)) * 100, 2)
 
     if verbose:
+        print('CS scores for ' + clf_name)
         print('\n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
               '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
               '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; \n'
               % (recall, specificity, precision))
 
         print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
-        print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' + str
-                (null_accuracy) + '%)')      
-
+        print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: '
+              + str(null_accuracy) + '%)')
     return auc, recall, specificity, precision
 
 
@@ -220,6 +220,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
 
     return auc_mean, recall_mean, specificity_mean, precision_mean
 
+
 def feature_selection(X, y):
     """Feature Selection. Prints and plots the importance of the features
 
@@ -262,7 +263,7 @@ def feature_selection(X, y):
     apply_cv_model(clf, 'ExtraTreeClassifier', X_new, y)
 
 
-def param_estimation_grid_cv(X, y, classifier, tuned_params):
+def param_estimation_grid_cv(X, y, classifier, tuned_params, verbose=False):
     """This method optimizes hyperparameters of svm with cross-validation, which is done using GridSearchCV on a
         training set
         The performance of the selected hyper-parameters and trained model is then measured on a dedicated test
@@ -271,24 +272,18 @@ def param_estimation_grid_cv(X, y, classifier, tuned_params):
     :return: classifier with optimal tuned hyperparameters
 
     """
+    if verbose:
+        print('# Tuning hyper-parameters for roc_auc \n')
 
-
-    # scores = ['precision', 'recall']
-    scores = ['precision']
-
-    for score in scores:
-        print("# Tuning hyper-parameters for %s" % score)
+    clf = GridSearchCV(classifier, tuned_params, cv=5,
+                       scoring='roc_auc')
+    clf.fit(X, y)
+    print("Best parameters set found on training set:")
+    print()
+    print(clf.best_params_)
+    if verbose:
         print()
-
-        clf = GridSearchCV(classifier, tuned_params, cv=5,
-                           scoring='%s_macro' % score)
-        clf.fit(X, y)
-
-        print("Best parameters set found on development set:")
-        print()
-        print(clf.best_params_)
-        print()
-        print("Grid scores on development set:")
+        print("auxroc-auc grid scores on development set:")
         print()
         means = clf.cv_results_['mean_test_score']
         stds = clf.cv_results_['std_test_score']
@@ -297,11 +292,7 @@ def param_estimation_grid_cv(X, y, classifier, tuned_params):
                   % (mean, std * 2, params))
         print()
 
-        print("Detailed classification report:")
-        print()
-        print("The model is trained on the full development set.")
-        print("The scores are computed on the full evaluation set.")
-        print()
+        print("Detailed classification report: \n")
 
         y_pred = cross_val_predict(clf, X, y, cv=5)
         conf_mat = confusion_matrix(y, y_pred)
@@ -310,7 +301,7 @@ def param_estimation_grid_cv(X, y, classifier, tuned_params):
         print(classification_report(y, y_pred, target_names=['No Crash: ', 'Crash: ']))
         print()
 
-        return clf
+    return clf
 
 
 def test_classifiers(X, y):
