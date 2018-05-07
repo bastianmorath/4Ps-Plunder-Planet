@@ -1,0 +1,12 @@
+Params: 
+	 testing: True, 
+	 use_cache: True, 
+	 test_data: False, 
+	 use_boxcox: False, 
+	 plots_enabled: False
+Init dataframes...
+Dataframe already cached. Used this file to improve performance
+Creating feature matrix...
+
+Model fitting...
+Time elapsed: 34.97591519355774

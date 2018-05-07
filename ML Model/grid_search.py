@@ -5,19 +5,10 @@ This module is responsible for doing GridSearchCV  over the hyperparameters of t
 import numpy as np
 import pandas as pd
 
-from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
-                                           QuadraticDiscriminantAnalysis)
-from sklearn.ensemble import (AdaBoostClassifier,
-                              GradientBoostingClassifier,
-                              RandomForestClassifier)
 from sklearn.metrics import (classification_report, confusion_matrix,
                              roc_curve)
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV, cross_val_predict)
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
+
 import matplotlib.pyplot as plt
 
 import seaborn as sns
@@ -28,7 +19,7 @@ import globals as gl
 import classifiers
 
 
-def get_optimal_clf(classifier, X, y, tuned_params, verbose=False):
+def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
     """This method optimizes hyperparameters of svm with cross-validation, which is done using GridSearchCV on a
         training set
         The performance of the selected hyper-parameters and trained model is then measured on a dedicated test
@@ -39,8 +30,10 @@ def get_optimal_clf(classifier, X, y, tuned_params, verbose=False):
     """
     if verbose:
         print('# Tuning hyper-parameters for roc_auc \n')
-    clf = RandomizedSearchCV(classifier, param_distributions=tuned_params, cv=2,
-                             scoring='roc_auc', n_iter=2)
+
+    clf = RandomizedSearchCV(classifier, tuned_params, cv=5,
+                             scoring='roc_auc', n_iter=num_iter, n_jobs=4)
+
     clf.fit(X, y)
 
     if verbose:
@@ -66,7 +59,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, verbose=False):
     return clf
 
 
-def do_grid_search_for_classifiers(X, y):
+def do_grid_search_for_classifiers(X, y, idx, num_iter):
     """Test different classifiers wihtout hyperparameter optimization, and prints its auc scores in a barplot
 
       Arguments:
@@ -74,36 +67,33 @@ def do_grid_search_for_classifiers(X, y):
           y {list/ndarray} -- labels
       """
 
-    clfs = [
-        SVC(),
-        KNeighborsClassifier(),
-        GaussianNB(),
-        QuadraticDiscriminantAnalysis(),
-        GradientBoostingClassifier(),
-        DecisionTreeClassifier(),
-        RandomForestClassifier(),
-        MLPClassifier(),
-        AdaBoostClassifier(),
-        LinearDiscriminantAnalysis(),
-    ]
-    names = ["SVM", "Nearest Neighbor", "Naive Bayes", "QDA", "Gradient Boosting", "Decision Tree",
-             "Random Forest", "Neural Net", "AdaBoost", "Linear DA"]
 
     clfs = [
-        classifiers.SVM(X, y),
-        classifiers.NearestNeighbors(X, y),
+        classifiers.CSVM(X, y),
+        classifiers.CNearestNeighbors(X, y),
+        classifiers.CQuadraticDiscriminantAnalysis(X, y),
+        classifiers.CGradientBoostingClassifier(X, y),
+        classifiers.CDecisionTreeClassifier(X, y),
+        classifiers.CRandomForest(X, y),
+        classifiers.CAdaBoost(X, y)
     ]
-    names = ["SVM", "Nearest Neighbor"]
+
+    names = [clf.name for clf in clfs]
 
     scores = []
     optimal_params = []
+    if idx > 0:
+        clfs = [clfs[idx]]
+        names = [names[idx]]
+
     for idx, (Classifier, name) in enumerate(zip(clfs, names)):
-        optimal_clf = Classifier.optimal_clf(X, y)
-        plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
+        optimal_clf = Classifier.optimal_clf(X, y, num_iter)
+        # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
         optimal_params.append(optimal_clf.best_params_)
 
         roc_auc, recall, specificity, precision = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
         scores.append([roc_auc, recall, specificity, precision])
+
 
     plt = plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
                               x_axis_name='Classifier',
@@ -122,17 +112,21 @@ def do_grid_search_for_classifiers(X, y):
             'recall: %.3f, ' \
             'specificity: %.3f, ' \
             'precision: %.3f \n' \
-            '\tOptimal params: %s \n\n'  % (names[idx], sc[0], sc[1], sc[2], sc[3], optimal_params[idx])
-    file = open(gl.working_directory_path + '/performance.txt', 'w')
+            '\tOptimal params: %s \n\n\n' % (names[idx], sc[0], sc[1], sc[2], sc[3], optimal_params[idx])
+
+    file = open(gl.working_directory_path + '/performance_' + str(idx) + '_' + str(num_iter) + '.txt', 'w+')
     file.write(s)
 
 
 def plot_heat_map_of_grid_search(cv_results, Classifier):
+    params = ([list(set(v.compressed())) for k, v in cv_results.items() if k.startswith('param_')])
+    print(params)
     plt.figure()
     results_df = pd.DataFrame(cv_results)
-    scores = np.array(results_df.mean_test_score).reshape(len(Classifier.param1), len(Classifier.param2))
+    print(results_df)
+    scores = np.array(results_df.mean_test_score).reshape(len(params[0]), len(params[1]))
     sns.heatmap(scores, annot=True,
-                xticklabels=Classifier.param2, yticklabels=Classifier.param1, cmap=plt.cm.RdYlGn)
+                xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
     plt.title('Grid Search roc_auc Score')
     plt.savefig(gl.working_directory_path + '/Plots/GridSearch_heatmaps/' + Classifier.name + '.pdf')
 

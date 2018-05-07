@@ -11,10 +11,9 @@
 
 from __future__ import division, print_function  # s.t. division uses float result
 
-import sklearn as sk
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import RFE, SelectFromModel
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+from sklearn.feature_selection import SelectFromModel
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import class_weight
 
 from sklearn import naive_bayes
@@ -38,6 +37,12 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
+
+import sys
+
+print('Number of arguments:', len(sys.argv), 'arguments.')
+print('Argument List:', str(sys.argv))
+
 
 
 ''' Get data and create feature matrix and labels
@@ -130,7 +135,12 @@ if plot_classifier_scores:
 
 grid_s = True
 if grid_s:
-    grid_search.do_grid_search_for_classifiers(X, y)
+    # Specific classifier-index was passed. USer for euler, s.t. we can do RandomSearchCV
+    # for each calssifier separately
+    if len(sys.argv) > 1:
+        grid_search.do_grid_search_for_classifiers(X, y, int(sys.argv[1]), int(sys.argv[2]))
+    else:
+        grid_search.do_grid_search_for_classifiers(X, y, -1, 20)
 
 
 end = time.time()

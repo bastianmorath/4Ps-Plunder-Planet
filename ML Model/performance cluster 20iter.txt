@@ -1,0 +1,35 @@
+Scores for SVM: 
+	roc_auc: 0.531, recall: 0.420, specificity: 0.642, precision: 0.202 
+	Optimal params: {'C': 66, 'gamma': 1} 
+
+
+Scores for Nearest Neighbor: 
+	roc_auc: 0.505, recall: 0.018, specificity: 0.993, precision: 0.352 
+	Optimal params: {'metric': 'euclidean', 'n_neighbors': 81} 
+
+
+Scores for QDA: 
+	roc_auc: 0.578, recall: 0.271, specificity: 0.885, precision: 0.336 
+	Optimal params: {'reg_param': 0, 'tol': 0} 
+
+
+Scores for Gradient Boosting: 
+	roc_auc: 0.502, recall: 0.019, specificity: 0.985, precision: 0.214 
+	Optimal params: {'learning_rate': 0.11072073004995987, 'loss': 'exponential', 'max_depth': 1, 'max_features': 12, 'min_samples_leaf': 1, 'min_samples_split': 0.5418876839172269, 'n_estimators': 5369, 'subsample': 0.8503856189271962} 
+
+
+Scores for Descision Tree: 
+	roc_auc: 0.500, recall: 0.005, specificity: 0.996, precision: 0.192 
+	Optimal params: {'criterion': 'gini', 'max_depth': 4, 'max_features': 15, 'min_samples_leaf': 2, 'min_samples_split': 0.23916465456390357, 'splitter': 'best'} 
+
+
+Scores for Random Forest: 
+	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
+	Optimal params: {'max_depth': None, 'max_features': 8, 'min_samples_leaf': 8, 'min_samples_split': 0.6027191845325051} 
+
+
+Scores for Descision Tree: 
+	roc_auc: 0.502, recall: 0.005, specificity: 0.999, precision: 0.500 
+	Optimal params: {'algorithm': 'SAMME.R', 'learning_rate': 0.014143810601924944, 'n_estimators': 54} 
+
+

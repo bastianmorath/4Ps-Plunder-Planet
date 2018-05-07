@@ -1,8 +1,15 @@
-Scores for SVM: 
-	roc_auc: 0.503, recall: 0.342, specificity: 0.665, precision: 0.224 
-	Optimal params: {'C': 0.31622776601683794, 'gamma': 0.31622776601683794} 
+Scores for Nearest Neighbor: 
+	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
+	Optimal params: {'metric': 'euclidean', 'n_neighbors': 98} 
+
 
 Scores for Nearest Neighbor: 
-	roc_auc: 0.469, recall: 0.198, specificity: 0.739, precision: 0.177 
-	Optimal params: {'metric': 'manhattan', 'n_neighbors': 3} 
+	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
+	Optimal params: {'metric': 'minkowski', 'n_neighbors': 97} 
+
+
+Scores for Nearest Neighbor: 
+	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
+	Optimal params: {'metric': 'euclidean', 'n_neighbors': 90} 
+
 
