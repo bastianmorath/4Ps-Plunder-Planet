@@ -140,7 +140,7 @@ if grid_s:
     if len(sys.argv) > 1:
         grid_search.do_grid_search_for_classifiers(X, y, int(sys.argv[1]), int(sys.argv[2]))
     else:
-        grid_search.do_grid_search_for_classifiers(X, y, -1, 20)
+        grid_search.do_grid_search_for_classifiers(X, y, -1, 1)
 
 
 end = time.time()

@@ -1,0 +1,5 @@
+Scores for Decision Tree: 
+	roc_auc: 0.506, recall: 0.064, specificity: 0.948, precision: 0.260 
+	Optimal params: {'criterion': 'entropy', 'max_depth': 1, 'max_features': 15, 'min_samples_leaf': 4, 'min_samples_split': 0.6353881136093112, 'splitter': 'best'} 
+
+

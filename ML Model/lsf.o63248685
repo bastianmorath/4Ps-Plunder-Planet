@@ -1,0 +1,848 @@
+Number of arguments: 1 arguments.
+Argument List: ['main.py']
+Params: 
+	 testing: False, 
+	 use_cache: True, 
+	 test_data: False, 
+	 use_boxcox: False, 
+	 plots_enabled: False
+Init dataframes...
+Dataframe already cached. Used this file to improve performance
+Creating feature matrix...
+
+Model fitting...
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/_parallel_backends.py", line 344, in __call__
+    return self.func(*args, **kwargs)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 131, in __call__
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 131, in <listcomp>
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py", line 260, in _fit_and_score
+    test_score = _score(estimator, X_test, y_test, scorer)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py", line 288, in _score
+    score = scorer(estimator, X_test, y_test)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/scorer.py", line 196, in __call__
+    return self._sign * self._score_func(y, y_pred, **self._kwargs)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py", line 260, in roc_auc_score
+    sample_weight=sample_weight)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/base.py", line 84, in _average_binary_score
+    return binary_metric(y_true, y_score, sample_weight=sample_weight)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py", line 255, in _binary_roc_auc_score
+    sample_weight=sample_weight)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py", line 505, in roc_curve
+    y_true, y_score, pos_label=pos_label, sample_weight=sample_weight)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py", line 301, in _binary_clf_curve
+    assert_all_finite(y_score)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py", line 65, in assert_all_finite
+    _assert_all_finite(X.data if sp.issparse(X) else X)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py", line 58, in _assert_all_finite
+    " or a value too large for %r." % X.dtype)
+ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/multiprocessing/pool.py", line 119, in worker
+    result = (True, func(*args, **kwds))
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/_parallel_backends.py", line 353, in __call__
+    raise TransportableException(text, e_type)
+sklearn.externals.joblib.my_exceptions.TransportableException: TransportableException
+___________________________________________________________________________
+ValueError                                         Mon May  7 13:38:33 2018
+PID: 2449        Python 3.6.0: /cluster/apps/python/3.6.0/x86_64/bin/python
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in __call__(self=<sklearn.externals.joblib.parallel.BatchedCalls object>)
+    126     def __init__(self, iterator_slice):
+    127         self.items = list(iterator_slice)
+    128         self._size = len(self.items)
+    129 
+    130     def __call__(self):
+--> 131         return [func(*args, **kwargs) for func, args, kwargs in self.items]
+        self.items = [(<function _fit_and_score>, (GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], make_scorer(roc_auc_score, needs_threshold=True), array([   0,    1,    2, ..., 5034, 5038, 5040]), array([4883, 4884, 4885, ..., 6118, 6119, 6120]), 0, {'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448}), {'error_score': 'raise', 'fit_params': {}, 'return_n_test_samples': True, 'return_parameters': True, 'return_times': True, 'return_train_score': True})]
+    132 
+    133     def __len__(self):
+    134         return self._size
+    135 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in <listcomp>(.0=<list_iterator object>)
+    126     def __init__(self, iterator_slice):
+    127         self.items = list(iterator_slice)
+    128         self._size = len(self.items)
+    129 
+    130     def __call__(self):
+--> 131         return [func(*args, **kwargs) for func, args, kwargs in self.items]
+        func = <function _fit_and_score>
+        args = (GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], make_scorer(roc_auc_score, needs_threshold=True), array([   0,    1,    2, ..., 5034, 5038, 5040]), array([4883, 4884, 4885, ..., 6118, 6119, 6120]), 0, {'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448})
+        kwargs = {'error_score': 'raise', 'fit_params': {}, 'return_n_test_samples': True, 'return_parameters': True, 'return_times': True, 'return_train_score': True}
+    132 
+    133     def __len__(self):
+    134         return self._size
+    135 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py in _fit_and_score(estimator=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], scorer=make_scorer(roc_auc_score, needs_threshold=True), train=array([   0,    1,    2, ..., 5034, 5038, 5040]), test=array([4883, 4884, 4885, ..., 6118, 6119, 6120]), verbose=0, parameters={'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448}, fit_params={}, return_train_score=True, return_parameters=True, return_n_test_samples=True, return_times=True, error_score='raise')
+    255                              " numeric value. (Hint: if using 'raise', please"
+    256                              " make sure that it has been spelled correctly.)")
+    257 
+    258     else:
+    259         fit_time = time.time() - start_time
+--> 260         test_score = _score(estimator, X_test, y_test, scorer)
+        test_score = undefined
+        estimator = GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False)
+        X_test = array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y_test = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+    261         score_time = time.time() - start_time - fit_time
+    262         if return_train_score:
+    263             train_score = _score(estimator, X_train, y_train, scorer)
+    264 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py in _score(estimator=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X_test=array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y_test=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], scorer=make_scorer(roc_auc_score, needs_threshold=True))
+    283 def _score(estimator, X_test, y_test, scorer):
+    284     """Compute the score of an estimator on a given test set."""
+    285     if y_test is None:
+    286         score = scorer(estimator, X_test)
+    287     else:
+--> 288         score = scorer(estimator, X_test, y_test)
+        score = undefined
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+        estimator = GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False)
+        X_test = array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y_test = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+    289     if hasattr(score, 'item'):
+    290         try:
+    291             # e.g. unwrap memmapped scalars
+    292             score = score.item()
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/scorer.py in __call__(self=make_scorer(roc_auc_score, needs_threshold=True), clf=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X=array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], sample_weight=None)
+    191         if sample_weight is not None:
+    192             return self._sign * self._score_func(y, y_pred,
+    193                                                  sample_weight=sample_weight,
+    194                                                  **self._kwargs)
+    195         else:
+--> 196             return self._sign * self._score_func(y, y_pred, **self._kwargs)
+        self._sign = 1
+        self._score_func = <function roc_auc_score>
+        y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_pred = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        self._kwargs = {}
+    197 
+    198     def _factory_args(self):
+    199         return ", needs_threshold=True"
+    200 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in roc_auc_score(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), average='macro', sample_weight=None)
+    255                                         sample_weight=sample_weight)
+    256         return auc(fpr, tpr, reorder=True)
+    257 
+    258     return _average_binary_score(
+    259         _binary_roc_auc_score, y_true, y_score, average,
+--> 260         sample_weight=sample_weight)
+        sample_weight = None
+    261 
+    262 
+    263 def _binary_clf_curve(y_true, y_score, pos_label=None, sample_weight=None):
+    264     """Calculate true and false positives per binary classification threshold.
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/base.py in _average_binary_score(binary_metric=<function roc_auc_score.<locals>._binary_roc_auc_score>, y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), average='macro', sample_weight=None)
+     79     y_type = type_of_target(y_true)
+     80     if y_type not in ("binary", "multilabel-indicator"):
+     81         raise ValueError("{0} format is not supported".format(y_type))
+     82 
+     83     if y_type == "binary":
+---> 84         return binary_metric(y_true, y_score, sample_weight=sample_weight)
+        binary_metric = <function roc_auc_score.<locals>._binary_roc_auc_score>
+        y_true = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        sample_weight = None
+     85 
+     86     check_consistent_length(y_true, y_score, sample_weight)
+     87     y_true = check_array(y_true)
+     88     y_score = check_array(y_score)
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in _binary_roc_auc_score(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), sample_weight=None)
+    250         if len(np.unique(y_true)) != 2:
+    251             raise ValueError("Only one class present in y_true. ROC AUC score "
+    252                              "is not defined in that case.")
+    253 
+    254         fpr, tpr, tresholds = roc_curve(y_true, y_score,
+--> 255                                         sample_weight=sample_weight)
+        sample_weight = None
+    256         return auc(fpr, tpr, reorder=True)
+    257 
+    258     return _average_binary_score(
+    259         _binary_roc_auc_score, y_true, y_score, average,
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in roc_curve(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), pos_label=None, sample_weight=None, drop_intermediate=True)
+    500     >>> thresholds
+    501     array([ 0.8 ,  0.4 ,  0.35,  0.1 ])
+    502 
+    503     """
+    504     fps, tps, thresholds = _binary_clf_curve(
+--> 505         y_true, y_score, pos_label=pos_label, sample_weight=sample_weight)
+        y_true = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        pos_label = None
+        sample_weight = None
+    506 
+    507     # Attempt to drop thresholds corresponding to points in between and
+    508     # collinear with other points. These are always suboptimal and do not
+    509     # appear on a plotted ROC curve (and thus do not affect the AUC).
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in _binary_clf_curve(y_true=array([0, 0, 0, ..., 0, 0, 0]), y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), pos_label=None, sample_weight=None)
+    296     """
+    297     check_consistent_length(y_true, y_score)
+    298     y_true = column_or_1d(y_true)
+    299     y_score = column_or_1d(y_score)
+    300     assert_all_finite(y_true)
+--> 301     assert_all_finite(y_score)
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+    302 
+    303     if sample_weight is not None:
+    304         sample_weight = column_or_1d(sample_weight)
+    305 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py in assert_all_finite(X=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]))
+     60 
+     61 def assert_all_finite(X):
+     62     """Throw a ValueError if X contains NaN or infinity.
+     63 
+     64     Input MUST be an np.ndarray instance or a scipy.sparse matrix."""
+---> 65     _assert_all_finite(X.data if sp.issparse(X) else X)
+        X.data = <memory>
+        X = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+     66 
+     67 
+     68 def as_float_array(X, copy=True, force_all_finite=True):
+     69     """Converts an array-like to an array of floats
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py in _assert_all_finite(X=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]))
+     53     # everything is finite; fall back to O(n) space np.isfinite to prevent
+     54     # false positives from overflow in sum method.
+     55     if (X.dtype.char in np.typecodes['AllFloat'] and not np.isfinite(X.sum())
+     56             and not np.isfinite(X).all()):
+     57         raise ValueError("Input contains NaN, infinity"
+---> 58                          " or a value too large for %r." % X.dtype)
+        X.dtype = dtype('float64')
+     59 
+     60 
+     61 def assert_all_finite(X):
+     62     """Throw a ValueError if X contains NaN or infinity.
+
+ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+___________________________________________________________________________
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 682, in retrieve
+    self._output.extend(job.get(timeout=self.timeout))
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/multiprocessing/pool.py", line 608, in get
+    raise self._value
+sklearn.externals.joblib.my_exceptions.TransportableException: TransportableException
+___________________________________________________________________________
+ValueError                                         Mon May  7 13:38:33 2018
+PID: 2449        Python 3.6.0: /cluster/apps/python/3.6.0/x86_64/bin/python
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in __call__(self=<sklearn.externals.joblib.parallel.BatchedCalls object>)
+    126     def __init__(self, iterator_slice):
+    127         self.items = list(iterator_slice)
+    128         self._size = len(self.items)
+    129 
+    130     def __call__(self):
+--> 131         return [func(*args, **kwargs) for func, args, kwargs in self.items]
+        self.items = [(<function _fit_and_score>, (GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], make_scorer(roc_auc_score, needs_threshold=True), array([   0,    1,    2, ..., 5034, 5038, 5040]), array([4883, 4884, 4885, ..., 6118, 6119, 6120]), 0, {'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448}), {'error_score': 'raise', 'fit_params': {}, 'return_n_test_samples': True, 'return_parameters': True, 'return_times': True, 'return_train_score': True})]
+    132 
+    133     def __len__(self):
+    134         return self._size
+    135 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in <listcomp>(.0=<list_iterator object>)
+    126     def __init__(self, iterator_slice):
+    127         self.items = list(iterator_slice)
+    128         self._size = len(self.items)
+    129 
+    130     def __call__(self):
+--> 131         return [func(*args, **kwargs) for func, args, kwargs in self.items]
+        func = <function _fit_and_score>
+        args = (GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], make_scorer(roc_auc_score, needs_threshold=True), array([   0,    1,    2, ..., 5034, 5038, 5040]), array([4883, 4884, 4885, ..., 6118, 6119, 6120]), 0, {'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448})
+        kwargs = {'error_score': 'raise', 'fit_params': {}, 'return_n_test_samples': True, 'return_parameters': True, 'return_times': True, 'return_train_score': True}
+    132 
+    133     def __len__(self):
+    134         return self._size
+    135 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py in _fit_and_score(estimator=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], scorer=make_scorer(roc_auc_score, needs_threshold=True), train=array([   0,    1,    2, ..., 5034, 5038, 5040]), test=array([4883, 4884, 4885, ..., 6118, 6119, 6120]), verbose=0, parameters={'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448}, fit_params={}, return_train_score=True, return_parameters=True, return_n_test_samples=True, return_times=True, error_score='raise')
+    255                              " numeric value. (Hint: if using 'raise', please"
+    256                              " make sure that it has been spelled correctly.)")
+    257 
+    258     else:
+    259         fit_time = time.time() - start_time
+--> 260         test_score = _score(estimator, X_test, y_test, scorer)
+        test_score = undefined
+        estimator = GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False)
+        X_test = array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y_test = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+    261         score_time = time.time() - start_time - fit_time
+    262         if return_train_score:
+    263             train_score = _score(estimator, X_train, y_train, scorer)
+    264 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py in _score(estimator=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X_test=array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y_test=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], scorer=make_scorer(roc_auc_score, needs_threshold=True))
+    283 def _score(estimator, X_test, y_test, scorer):
+    284     """Compute the score of an estimator on a given test set."""
+    285     if y_test is None:
+    286         score = scorer(estimator, X_test)
+    287     else:
+--> 288         score = scorer(estimator, X_test, y_test)
+        score = undefined
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+        estimator = GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False)
+        X_test = array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y_test = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+    289     if hasattr(score, 'item'):
+    290         try:
+    291             # e.g. unwrap memmapped scalars
+    292             score = score.item()
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/scorer.py in __call__(self=make_scorer(roc_auc_score, needs_threshold=True), clf=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X=array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], sample_weight=None)
+    191         if sample_weight is not None:
+    192             return self._sign * self._score_func(y, y_pred,
+    193                                                  sample_weight=sample_weight,
+    194                                                  **self._kwargs)
+    195         else:
+--> 196             return self._sign * self._score_func(y, y_pred, **self._kwargs)
+        self._sign = 1
+        self._score_func = <function roc_auc_score>
+        y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_pred = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        self._kwargs = {}
+    197 
+    198     def _factory_args(self):
+    199         return ", needs_threshold=True"
+    200 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in roc_auc_score(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), average='macro', sample_weight=None)
+    255                                         sample_weight=sample_weight)
+    256         return auc(fpr, tpr, reorder=True)
+    257 
+    258     return _average_binary_score(
+    259         _binary_roc_auc_score, y_true, y_score, average,
+--> 260         sample_weight=sample_weight)
+        sample_weight = None
+    261 
+    262 
+    263 def _binary_clf_curve(y_true, y_score, pos_label=None, sample_weight=None):
+    264     """Calculate true and false positives per binary classification threshold.
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/base.py in _average_binary_score(binary_metric=<function roc_auc_score.<locals>._binary_roc_auc_score>, y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), average='macro', sample_weight=None)
+     79     y_type = type_of_target(y_true)
+     80     if y_type not in ("binary", "multilabel-indicator"):
+     81         raise ValueError("{0} format is not supported".format(y_type))
+     82 
+     83     if y_type == "binary":
+---> 84         return binary_metric(y_true, y_score, sample_weight=sample_weight)
+        binary_metric = <function roc_auc_score.<locals>._binary_roc_auc_score>
+        y_true = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        sample_weight = None
+     85 
+     86     check_consistent_length(y_true, y_score, sample_weight)
+     87     y_true = check_array(y_true)
+     88     y_score = check_array(y_score)
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in _binary_roc_auc_score(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), sample_weight=None)
+    250         if len(np.unique(y_true)) != 2:
+    251             raise ValueError("Only one class present in y_true. ROC AUC score "
+    252                              "is not defined in that case.")
+    253 
+    254         fpr, tpr, tresholds = roc_curve(y_true, y_score,
+--> 255                                         sample_weight=sample_weight)
+        sample_weight = None
+    256         return auc(fpr, tpr, reorder=True)
+    257 
+    258     return _average_binary_score(
+    259         _binary_roc_auc_score, y_true, y_score, average,
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in roc_curve(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), pos_label=None, sample_weight=None, drop_intermediate=True)
+    500     >>> thresholds
+    501     array([ 0.8 ,  0.4 ,  0.35,  0.1 ])
+    502 
+    503     """
+    504     fps, tps, thresholds = _binary_clf_curve(
+--> 505         y_true, y_score, pos_label=pos_label, sample_weight=sample_weight)
+        y_true = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        pos_label = None
+        sample_weight = None
+    506 
+    507     # Attempt to drop thresholds corresponding to points in between and
+    508     # collinear with other points. These are always suboptimal and do not
+    509     # appear on a plotted ROC curve (and thus do not affect the AUC).
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in _binary_clf_curve(y_true=array([0, 0, 0, ..., 0, 0, 0]), y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), pos_label=None, sample_weight=None)
+    296     """
+    297     check_consistent_length(y_true, y_score)
+    298     y_true = column_or_1d(y_true)
+    299     y_score = column_or_1d(y_score)
+    300     assert_all_finite(y_true)
+--> 301     assert_all_finite(y_score)
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+    302 
+    303     if sample_weight is not None:
+    304         sample_weight = column_or_1d(sample_weight)
+    305 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py in assert_all_finite(X=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]))
+     60 
+     61 def assert_all_finite(X):
+     62     """Throw a ValueError if X contains NaN or infinity.
+     63 
+     64     Input MUST be an np.ndarray instance or a scipy.sparse matrix."""
+---> 65     _assert_all_finite(X.data if sp.issparse(X) else X)
+        X.data = <memory>
+        X = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+     66 
+     67 
+     68 def as_float_array(X, copy=True, force_all_finite=True):
+     69     """Converts an array-like to an array of floats
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py in _assert_all_finite(X=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]))
+     53     # everything is finite; fall back to O(n) space np.isfinite to prevent
+     54     # false positives from overflow in sum method.
+     55     if (X.dtype.char in np.typecodes['AllFloat'] and not np.isfinite(X.sum())
+     56             and not np.isfinite(X).all()):
+     57         raise ValueError("Input contains NaN, infinity"
+---> 58                          " or a value too large for %r." % X.dtype)
+        X.dtype = dtype('float64')
+     59 
+     60 
+     61 def assert_all_finite(X):
+     62     """Throw a ValueError if X contains NaN or infinity.
+
+ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+___________________________________________________________________________
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "main.py", line 143, in <module>
+    grid_search.do_grid_search_for_classifiers(X, y, -1)
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/grid_search.py", line 90, in do_grid_search_for_classifiers
+    optimal_clf = Classifier.optimal_clf(X, y)
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/classifiers.py", line 24, in optimal_clf
+    return grid_search.get_optimal_clf(self.clf, X, y, self.tuned_params)
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/grid_search.py", line 37, in get_optimal_clf
+    clf.fit(X, y)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_search.py", line 1190, in fit
+    return self._fit(X, y, groups, sampled_params)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_search.py", line 564, in _fit
+    for parameters in parameter_iterable
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 768, in __call__
+    self.retrieve()
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 719, in retrieve
+    raise exception
+sklearn.externals.joblib.my_exceptions.JoblibValueError: JoblibValueError
+___________________________________________________________________________
+Multiprocessing exception:
+...........................................................................
+/cluster/home/morathba/Code/plunder-planet/ML Model/main.py in <module>()
+    138     # Specific classifier-index was passed. USer for euler, s.t. we can do RandomSearchCV
+    139     # for each calssifier separately
+    140     if len(sys.argv) > 1:
+    141         grid_search.do_grid_search_for_classifiers(X, y, int(sys.argv[1]))
+    142     else:
+--> 143         grid_search.do_grid_search_for_classifiers(X, y, -1)
+    144 
+    145 
+    146 end = time.time()
+    147 print('Time elapsed: ' + str(end - start))
+
+...........................................................................
+/cluster/home/morathba/Code/plunder-planet/ML Model/grid_search.py in do_grid_search_for_classifiers(X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], i=-1)
+     85     if i > 0:
+     86         clfs = [clfs[i]]
+     87         names = [names[i]]
+     88 
+     89     for idx, (Classifier, name) in enumerate(zip(clfs, names)):
+---> 90         optimal_clf = Classifier.optimal_clf(X, y)
+        optimal_clf = RandomizedSearchCV(cv=5, error_score='raise',
+  ...n_train_score=True, scoring='roc_auc', verbose=0)
+        Classifier.optimal_clf = <bound method Classifier.optimal_clf of <classifiers.CGradientBoostingClassifier object>>
+        X = array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y = [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...]
+     91         # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
+     92         optimal_params.append(optimal_clf.best_params_)
+     93 
+     94         roc_auc, recall, specificity, precision = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
+
+...........................................................................
+/cluster/home/morathba/Code/plunder-planet/ML Model/classifiers.py in optimal_clf(self=<classifiers.CGradientBoostingClassifier object>, X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...])
+     19         self.class_weight_dict = dict(enumerate(cw))
+     20         self.X = X
+     21         self.y = y
+     22 
+     23     def optimal_clf(self, X, y):
+---> 24         return grid_search.get_optimal_clf(self.clf, X, y, self.tuned_params)
+        self.clf = GradientBoostingClassifier(criterion='friedman_m...      subsample=1.0, verbose=0, warm_start=False)
+        X = array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y = [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...]
+        self.tuned_params = {'learning_rate': <scipy.stats._distn_infrastructure.rv_frozen object>, 'loss': ['deviance', 'exponential'], 'max_depth': <scipy.stats._distn_infrastructure.rv_frozen object>, 'max_features': <scipy.stats._distn_infrastructure.rv_frozen object>, 'min_samples_leaf': <scipy.stats._distn_infrastructure.rv_frozen object>, 'min_samples_split': <scipy.stats._distn_infrastructure.rv_frozen object>, 'n_estimators': <scipy.stats._distn_infrastructure.rv_frozen object>, 'subsample': <scipy.stats._distn_infrastructure.rv_frozen object>}
+     25 
+     26 
+     27 class CSVM(Classifier):
+     28     def __init__(self, X, y):
+
+...........................................................................
+/cluster/home/morathba/Code/plunder-planet/ML Model/grid_search.py in get_optimal_clf(classifier=GradientBoostingClassifier(criterion='friedman_m...      subsample=1.0, verbose=0, warm_start=False), X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], tuned_params={'learning_rate': <scipy.stats._distn_infrastructure.rv_frozen object>, 'loss': ['deviance', 'exponential'], 'max_depth': <scipy.stats._distn_infrastructure.rv_frozen object>, 'max_features': <scipy.stats._distn_infrastructure.rv_frozen object>, 'min_samples_leaf': <scipy.stats._distn_infrastructure.rv_frozen object>, 'min_samples_split': <scipy.stats._distn_infrastructure.rv_frozen object>, 'n_estimators': <scipy.stats._distn_infrastructure.rv_frozen object>, 'subsample': <scipy.stats._distn_infrastructure.rv_frozen object>}, verbose=False)
+     32         print('# Tuning hyper-parameters for roc_auc \n')
+     33 
+     34     clf = RandomizedSearchCV(classifier, tuned_params, cv=5,
+     35                              scoring='roc_auc', n_iter=200, n_jobs=4)
+     36 
+---> 37     clf.fit(X, y)
+        clf.fit = <bound method RandomizedSearchCV.fit of Randomiz..._train_score=True, scoring='roc_auc', verbose=0)>
+        X = array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y = [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...]
+     38 
+     39     if verbose:
+     40         print()
+     41         print("roc-auc grid scores on development set:")
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_search.py in fit(self=RandomizedSearchCV(cv=5, error_score='raise',
+  ...n_train_score=True, scoring='roc_auc', verbose=0), X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], groups=None)
+   1185             train/test set.
+   1186         """
+   1187         sampled_params = ParameterSampler(self.param_distributions,
+   1188                                           self.n_iter,
+   1189                                           random_state=self.random_state)
+-> 1190         return self._fit(X, y, groups, sampled_params)
+        self._fit = <bound method BaseSearchCV._fit of RandomizedSea..._train_score=True, scoring='roc_auc', verbose=0)>
+        X = array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y = [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...]
+        groups = None
+        sampled_params = <sklearn.model_selection._search.ParameterSampler object>
+   1191 
+   1192 
+   1193 
+   1194 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_search.py in _fit(self=RandomizedSearchCV(cv=5, error_score='raise',
+  ...n_train_score=True, scoring='roc_auc', verbose=0), X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], groups=None, parameter_iterable=<sklearn.model_selection._search.ParameterSampler object>)
+    559                                   fit_params=self.fit_params,
+    560                                   return_train_score=self.return_train_score,
+    561                                   return_n_test_samples=True,
+    562                                   return_times=True, return_parameters=True,
+    563                                   error_score=self.error_score)
+--> 564           for parameters in parameter_iterable
+        parameters = undefined
+        parameter_iterable = <sklearn.model_selection._search.ParameterSampler object>
+    565           for train, test in cv_iter)
+    566 
+    567         # if one choose to see train score, "out" will contain train score info
+    568         if self.return_train_score:
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in __call__(self=Parallel(n_jobs=4), iterable=<generator object BaseSearchCV._fit.<locals>.<genexpr>>)
+    763             if pre_dispatch == "all" or n_jobs == 1:
+    764                 # The iterable was consumed all at once by the above for loop.
+    765                 # No need to wait for async callbacks to trigger to
+    766                 # consumption.
+    767                 self._iterating = False
+--> 768             self.retrieve()
+        self.retrieve = <bound method Parallel.retrieve of Parallel(n_jobs=4)>
+    769             # Make sure that we get a last message telling us we are done
+    770             elapsed_time = time.time() - self._start_time
+    771             self._print('Done %3i out of %3i | elapsed: %s finished',
+    772                         (len(self._output), len(self._output),
+
+---------------------------------------------------------------------------
+Sub-process traceback:
+---------------------------------------------------------------------------
+ValueError                                         Mon May  7 13:38:33 2018
+PID: 2449        Python 3.6.0: /cluster/apps/python/3.6.0/x86_64/bin/python
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in __call__(self=<sklearn.externals.joblib.parallel.BatchedCalls object>)
+    126     def __init__(self, iterator_slice):
+    127         self.items = list(iterator_slice)
+    128         self._size = len(self.items)
+    129 
+    130     def __call__(self):
+--> 131         return [func(*args, **kwargs) for func, args, kwargs in self.items]
+        self.items = [(<function _fit_and_score>, (GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], make_scorer(roc_auc_score, needs_threshold=True), array([   0,    1,    2, ..., 5034, 5038, 5040]), array([4883, 4884, 4885, ..., 6118, 6119, 6120]), 0, {'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448}), {'error_score': 'raise', 'fit_params': {}, 'return_n_test_samples': True, 'return_parameters': True, 'return_times': True, 'return_train_score': True})]
+    132 
+    133     def __len__(self):
+    134         return self._size
+    135 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py in <listcomp>(.0=<list_iterator object>)
+    126     def __init__(self, iterator_slice):
+    127         self.items = list(iterator_slice)
+    128         self._size = len(self.items)
+    129 
+    130     def __call__(self):
+--> 131         return [func(*args, **kwargs) for func, args, kwargs in self.items]
+        func = <function _fit_and_score>
+        args = (GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], make_scorer(roc_auc_score, needs_threshold=True), array([   0,    1,    2, ..., 5034, 5038, 5040]), array([4883, 4884, 4885, ..., 6118, 6119, 6120]), 0, {'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448})
+        kwargs = {'error_score': 'raise', 'fit_params': {}, 'return_n_test_samples': True, 'return_parameters': True, 'return_times': True, 'return_train_score': True}
+    132 
+    133     def __len__(self):
+    134         return self._size
+    135 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py in _fit_and_score(estimator=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X=array([[0.29325501, 0.33015686, 0.26987149, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...], scorer=make_scorer(roc_auc_score, needs_threshold=True), train=array([   0,    1,    2, ..., 5034, 5038, 5040]), test=array([4883, 4884, 4885, ..., 6118, 6119, 6120]), verbose=0, parameters={'learning_rate': 0.8653787569639414, 'loss': 'deviance', 'max_depth': 2, 'max_features': 15, 'min_samples_leaf': 3, 'min_samples_split': 0.5181873131252003, 'n_estimators': 6788, 'subsample': 0.5473367843292448}, fit_params={}, return_train_score=True, return_parameters=True, return_n_test_samples=True, return_times=True, error_score='raise')
+    255                              " numeric value. (Hint: if using 'raise', please"
+    256                              " make sure that it has been spelled correctly.)")
+    257 
+    258     else:
+    259         fit_time = time.time() - start_time
+--> 260         test_score = _score(estimator, X_test, y_test, scorer)
+        test_score = undefined
+        estimator = GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False)
+        X_test = array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y_test = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+    261         score_time = time.time() - start_time - fit_time
+    262         if return_train_score:
+    263             train_score = _score(estimator, X_train, y_train, scorer)
+    264 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py in _score(estimator=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X_test=array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y_test=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], scorer=make_scorer(roc_auc_score, needs_threshold=True))
+    283 def _score(estimator, X_test, y_test, scorer):
+    284     """Compute the score of an estimator on a given test set."""
+    285     if y_test is None:
+    286         score = scorer(estimator, X_test)
+    287     else:
+--> 288         score = scorer(estimator, X_test, y_test)
+        score = undefined
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+        estimator = GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False)
+        X_test = array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]])
+        y_test = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+    289     if hasattr(score, 'item'):
+    290         try:
+    291             # e.g. unwrap memmapped scalars
+    292             score = score.item()
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/scorer.py in __call__(self=make_scorer(roc_auc_score, needs_threshold=True), clf=GradientBoostingClassifier(criterion='friedman_m...=0.5473367843292448, verbose=0, warm_start=False), X=array([[0.47056104, 0.36304604, 0.51535226, ...,....., 0.75961538, 0.18026618,
+        0.2       ]]), y=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], sample_weight=None)
+    191         if sample_weight is not None:
+    192             return self._sign * self._score_func(y, y_pred,
+    193                                                  sample_weight=sample_weight,
+    194                                                  **self._kwargs)
+    195         else:
+--> 196             return self._sign * self._score_func(y, y_pred, **self._kwargs)
+        self._sign = 1
+        self._score_func = <function roc_auc_score>
+        y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_pred = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        self._kwargs = {}
+    197 
+    198     def _factory_args(self):
+    199         return ", needs_threshold=True"
+    200 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in roc_auc_score(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), average='macro', sample_weight=None)
+    255                                         sample_weight=sample_weight)
+    256         return auc(fpr, tpr, reorder=True)
+    257 
+    258     return _average_binary_score(
+    259         _binary_roc_auc_score, y_true, y_score, average,
+--> 260         sample_weight=sample_weight)
+        sample_weight = None
+    261 
+    262 
+    263 def _binary_clf_curve(y_true, y_score, pos_label=None, sample_weight=None):
+    264     """Calculate true and false positives per binary classification threshold.
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/base.py in _average_binary_score(binary_metric=<function roc_auc_score.<locals>._binary_roc_auc_score>, y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), average='macro', sample_weight=None)
+     79     y_type = type_of_target(y_true)
+     80     if y_type not in ("binary", "multilabel-indicator"):
+     81         raise ValueError("{0} format is not supported".format(y_type))
+     82 
+     83     if y_type == "binary":
+---> 84         return binary_metric(y_true, y_score, sample_weight=sample_weight)
+        binary_metric = <function roc_auc_score.<locals>._binary_roc_auc_score>
+        y_true = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        sample_weight = None
+     85 
+     86     check_consistent_length(y_true, y_score, sample_weight)
+     87     y_true = check_array(y_true)
+     88     y_score = check_array(y_score)
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in _binary_roc_auc_score(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), sample_weight=None)
+    250         if len(np.unique(y_true)) != 2:
+    251             raise ValueError("Only one class present in y_true. ROC AUC score "
+    252                              "is not defined in that case.")
+    253 
+    254         fpr, tpr, tresholds = roc_curve(y_true, y_score,
+--> 255                                         sample_weight=sample_weight)
+        sample_weight = None
+    256         return auc(fpr, tpr, reorder=True)
+    257 
+    258     return _average_binary_score(
+    259         _binary_roc_auc_score, y_true, y_score, average,
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in roc_curve(y_true=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...], y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), pos_label=None, sample_weight=None, drop_intermediate=True)
+    500     >>> thresholds
+    501     array([ 0.8 ,  0.4 ,  0.35,  0.1 ])
+    502 
+    503     """
+    504     fps, tps, thresholds = _binary_clf_curve(
+--> 505         y_true, y_score, pos_label=pos_label, sample_weight=sample_weight)
+        y_true = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+        pos_label = None
+        sample_weight = None
+    506 
+    507     # Attempt to drop thresholds corresponding to points in between and
+    508     # collinear with other points. These are always suboptimal and do not
+    509     # appear on a plotted ROC curve (and thus do not affect the AUC).
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/metrics/ranking.py in _binary_clf_curve(y_true=array([0, 0, 0, ..., 0, 0, 0]), y_score=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]), pos_label=None, sample_weight=None)
+    296     """
+    297     check_consistent_length(y_true, y_score)
+    298     y_true = column_or_1d(y_true)
+    299     y_score = column_or_1d(y_score)
+    300     assert_all_finite(y_true)
+--> 301     assert_all_finite(y_score)
+        y_score = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+    302 
+    303     if sample_weight is not None:
+    304         sample_weight = column_or_1d(sample_weight)
+    305 
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py in assert_all_finite(X=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]))
+     60 
+     61 def assert_all_finite(X):
+     62     """Throw a ValueError if X contains NaN or infinity.
+     63 
+     64     Input MUST be an np.ndarray instance or a scipy.sparse matrix."""
+---> 65     _assert_all_finite(X.data if sp.issparse(X) else X)
+        X.data = <memory>
+        X = array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ])
+     66 
+     67 
+     68 def as_float_array(X, copy=True, force_all_finite=True):
+     69     """Converts an array-like to an array of floats
+
+...........................................................................
+/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/utils/validation.py in _assert_all_finite(X=array([-1.76392553, -1.4409893 , -3.19700464, ..., -3.0091463 ,
+       -3.0091463 , -3.0091463 ]))
+     53     # everything is finite; fall back to O(n) space np.isfinite to prevent
+     54     # false positives from overflow in sum method.
+     55     if (X.dtype.char in np.typecodes['AllFloat'] and not np.isfinite(X.sum())
+     56             and not np.isfinite(X).all()):
+     57         raise ValueError("Input contains NaN, infinity"
+---> 58                          " or a value too large for %r." % X.dtype)
+        X.dtype = dtype('float64')
+     59 
+     60 
+     61 def assert_all_finite(X):
+     62     """Throw a ValueError if X contains NaN or infinity.
+
+ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+___________________________________________________________________________

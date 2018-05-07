@@ -32,7 +32,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
         print('# Tuning hyper-parameters for roc_auc \n')
 
     clf = RandomizedSearchCV(classifier, tuned_params, cv=5,
-                             scoring='roc_auc', n_iter=num_iter, n_jobs=4)
+                             scoring='roc_auc', n_iter=num_iter)
 
     clf.fit(X, y)
 
@@ -86,7 +86,7 @@ def do_grid_search_for_classifiers(X, y, idx, num_iter):
         clfs = [clfs[idx]]
         names = [names[idx]]
 
-    for idx, (Classifier, name) in enumerate(zip(clfs, names)):
+    for i, (Classifier, name) in enumerate(zip(clfs, names)):
         optimal_clf = Classifier.optimal_clf(X, y, num_iter)
         # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
         optimal_params.append(optimal_clf.best_params_)
@@ -94,7 +94,7 @@ def do_grid_search_for_classifiers(X, y, idx, num_iter):
         roc_auc, recall, specificity, precision = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
         scores.append([roc_auc, recall, specificity, precision])
 
-
+    '''
     plt = plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
                               x_axis_name='Classifier',
                               y_axis_name='Performance',
@@ -104,17 +104,17 @@ def do_grid_search_for_classifiers(X, y, idx, num_iter):
                               )
 
     plt.savefig(gl.working_directory_path + '/Performance_scores/performance_per_clf_after_grid_search.pdf')
-
+    '''
     s = ''
-    for idx, sc in enumerate(scores):
+    for i, sc in enumerate(scores):
         s += 'Scores for %s: \n' \
             '\troc_auc: %.3f, ' \
             'recall: %.3f, ' \
             'specificity: %.3f, ' \
             'precision: %.3f \n' \
-            '\tOptimal params: %s \n\n\n' % (names[idx], sc[0], sc[1], sc[2], sc[3], optimal_params[idx])
+            '\tOptimal params: %s \n\n\n' % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i])
 
-    file = open(gl.working_directory_path + '/performance_' + str(idx) + '_' + str(num_iter) + '.txt', 'w+')
+    file = open(gl.working_directory_path + '/performance_clf_' + str(idx) + '_' + str(num_iter) + '_iter.txt', 'w+')
     file.write(s)
 
 

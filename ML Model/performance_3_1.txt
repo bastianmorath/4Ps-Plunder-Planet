@@ -1,0 +1,5 @@
+Scores for Gradient Boosting: 
+	roc_auc: 0.481, recall: 0.054, specificity: 0.907, precision: 0.143 
+	Optimal params: {'learning_rate': 0.19500271610828568, 'loss': 'deviance', 'max_depth': 3, 'max_features': 13, 'min_samples_leaf': 3, 'min_samples_split': 0.32476875108645287, 'n_estimators': 9017, 'subsample': 0.3741177670746213} 
+
+

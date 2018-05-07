@@ -41,7 +41,8 @@ def get_performance(model, clf_name, X, y, verbose = False):
       :return: roc_auc, recall, specificity and precision
 
       """
-    y_pred = cross_val_predict(model, X, y, cv=2)
+
+    y_pred = cross_val_predict(model, X, y, cv=5)
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
