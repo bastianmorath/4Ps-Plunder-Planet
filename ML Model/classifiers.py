@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.utils import class_weight
-from scipy.stats import uniform, randint as sp_randint
+from scipy.stats import randint as sp_randint
 
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.ensemble import (AdaBoostClassifier,
@@ -10,7 +10,7 @@ from sklearn.ensemble import (AdaBoostClassifier,
                               RandomForestClassifier)
 from sklearn.tree import DecisionTreeClassifier
 import grid_search
-
+import features_factory as f_factory
 EPSILON = 0.0001
 
 class Classifier(object):
@@ -79,19 +79,19 @@ class CGradientBoostingClassifier(Classifier):
 
         self.param1 = ['deviance', 'exponential']  # loss
         self.param1_name = 'loss'
-        self.param2 = uniform(EPSILON, 1)  # learning_rate
+        self.param2 = np.random.uniform(EPSILON, 1)  # learning_rate
         self.param2_name = 'learning_rate'
         self.param3 = sp_randint(1, 10000)  # n_estimators
         self.param3_name = 'n_estimators'
         self.param4 = sp_randint(1, 5)  # max_depth
         self.param4_name = 'max_depth'
-        self.param5 = uniform(EPSILON, 1)  # min_samples_split
+        self.param5 = np.random.uniform(EPSILON, 1)  # min_samples_split
         self.param5_name = 'min_samples_split'
         self.param6 = sp_randint(1, 5)  # min_samples_leaf
         self.param6_name = 'min_samples_leaf'
-        self.param7 = sp_randint(10, 16)  # max_features
+        self.param7 = sp_randint(len(f_factory.feature_names) -5, len(f_factory.feature_names))  # max_features
         self.param7_name = 'max_features'
-        self.param8 = uniform(EPSILON, 1)  # subsample
+        self.param8 = np.random.uniform(EPSILON, 1)  # subsample
         self.param8_name = 'subsample'
         self.tuned_params = {'loss': self.param1, 'learning_rate': self.param2,
                              'n_estimators': self.param3, 'max_depth': self.param4,
@@ -113,11 +113,11 @@ class CDecisionTreeClassifier(Classifier):
         self.param2_name = 'splitter'
         self.param3 = sp_randint(1, 5)  # max_depth
         self.param3_name = 'max_depth'
-        self.param4 = uniform(EPSILON, 1)  # min_samples_split
+        self.param4 = np.random.uniform(EPSILON, 1)  # min_samples_split
         self.param4_name = 'min_samples_split'
         self.param5 = sp_randint(1, 5)  # min_samples_leaf
         self.param5_name = 'min_samples_leaf'
-        self.param6 = sp_randint(10, 16)  # max_features
+        self.param6 = len(f_factory.feature_names) -5, len(f_factory.feature_names)  # max_features
         self.param6_name = 'max_features'
 
         self.tuned_params = {'criterion': self.param1, 'splitter': self.param2,
@@ -136,9 +136,9 @@ class CRandomForest(Classifier):
 
         self.param1 = [3, None]  # max_depth
         self.param1_name = 'max_depth'
-        self.param2 = sp_randint(1, 11)  # max_features
+        self.param2 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
         self.param2_name = 'max_features'
-        self.param3 = uniform(EPSILON, 1)  # min_samples_split
+        self.param3 = np.random.uniform(EPSILON, 1)  # min_samples_split
         self.param3_name = 'min_samples_split'
         self.param4 = sp_randint(1, 11)  # min_samples_leaf
         self.param4_name = 'min_samples_leaf'
@@ -157,7 +157,7 @@ class CAdaBoost(Classifier):
 
         self.param1 = sp_randint(1, 200)  # n_estimators
         self.param1_name = 'n_estimators'
-        self.param2 = uniform(EPSILON, 1)  # learning_rate
+        self.param2 = np.random.uniform(EPSILON, 1)  # learning_rate
         self.param2_name = 'learning_rate'
         self.param3 = ['SAMME', 'SAMME.R']  # algorithm
         self.param3_name = 'algorithm'

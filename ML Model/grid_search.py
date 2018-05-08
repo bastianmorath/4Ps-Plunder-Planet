@@ -1,5 +1,5 @@
 """
-This module is responsible for doing GridSearchCV  over the hyperparameters of the different classifiers
+This module is responsible for doing GridSearchCV/RandomSearchCV over the hyperparameters of the different classifiers
 """
 
 import numpy as np
@@ -14,13 +14,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import ml_model
-import plots
 import globals as gl
 import classifiers
 
 
 def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
-    """This method optimizes hyperparameters of svm with cross-validation, which is done using GridSearchCV on a
+    """This method optimizes hyperparameters of svm with cross-validation, which is done using RandomSearchCV on a
         training set
         The performance of the selected hyper-parameters and trained model is then measured on a dedicated test
         set that was not used during the model selection step.
@@ -31,7 +30,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
     if verbose:
         print('# Tuning hyper-parameters for roc_auc \n')
 
-    clf = RandomizedSearchCV(classifier, tuned_params, cv=5,
+    clf = RandomizedSearchCV(classifier, tuned_params, cv=10,
                              scoring='roc_auc', n_iter=num_iter)
 
     clf.fit(X, y)
@@ -49,7 +48,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
 
         print("Detailed classification report: \n")
 
-        y_pred = cross_val_predict(clf, X, y, cv=5)
+        y_pred = cross_val_predict(clf, X, y, cv=10)
         conf_mat = confusion_matrix(y, y_pred)
 
         print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
@@ -59,14 +58,13 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
     return clf
 
 
-def do_grid_search_for_classifiers(X, y, idx, num_iter):
+def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
     """Test different classifiers wihtout hyperparameter optimization, and prints its auc scores in a barplot
 
       Arguments:
           X {matrix} -- Feature matrix
           y {list/ndarray} -- labels
       """
-
 
     clfs = [
         classifiers.CSVM(X, y),
@@ -82,7 +80,8 @@ def do_grid_search_for_classifiers(X, y, idx, num_iter):
 
     scores = []
     optimal_params = []
-    if idx > 0:
+    conf_mats = []
+    if idx >= 0:
         clfs = [clfs[idx]]
         names = [names[idx]]
 
@@ -91,8 +90,9 @@ def do_grid_search_for_classifiers(X, y, idx, num_iter):
         # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
         optimal_params.append(optimal_clf.best_params_)
 
-        roc_auc, recall, specificity, precision = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
+        roc_auc, recall, specificity, precision, conf_mat = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
         scores.append([roc_auc, recall, specificity, precision])
+        conf_mats.append(conf_mat)
 
     '''
     plt = plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
@@ -105,16 +105,19 @@ def do_grid_search_for_classifiers(X, y, idx, num_iter):
 
     plt.savefig(gl.working_directory_path + '/Performance_scores/performance_per_clf_after_grid_search.pdf')
     '''
+
     s = ''
     for i, sc in enumerate(scores):
-        s += 'Scores for %s: \n' \
-            '\troc_auc: %.3f, ' \
+        s += 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
+             '\troc_auc: %.3f, ' \
             'recall: %.3f, ' \
             'specificity: %.3f, ' \
-            'precision: %.3f \n' \
-            '\tOptimal params: %s \n\n\n' % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i])
-
-    file = open(gl.working_directory_path + '/performance_clf_' + str(idx) + '_' + str(num_iter) + '_iter.txt', 'w+')
+            'precision: %.3f \n\n' \
+            '\tOptimal params: %s \n\n' \
+            '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
+             % (names[i], gl.hw, gl.cw, gl.gradient_w, sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2*i], conf_mat[2*i + 1])
+    file = open(gl.working_directory_path + '/performance_clf_' + str(idx) + '_' + str(num_iter) + '_iter_'
+                + str(gl.hw) + '_' + str(gl.cw) + '_' + str(gl.gradient_w) + '.txt', 'w+')
     file.write(s)
 
 

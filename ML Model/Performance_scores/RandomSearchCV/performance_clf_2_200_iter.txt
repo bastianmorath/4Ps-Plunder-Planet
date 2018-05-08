@@ -1,0 +1,5 @@
+Scores for QDA: 
+	roc_auc: 0.569, recall: 0.240, specificity: 0.897, precision: 0.335 
+	Optimal params: {'reg_param': 0, 'tol': 0} 
+
+

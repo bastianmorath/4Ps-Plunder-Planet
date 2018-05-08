@@ -1,5 +1,0 @@
-Scores for Nearest Neighbor: 
-	roc_auc: 0.511, recall: 0.030, specificity: 0.992, precision: 0.500 
-	Optimal params: {'metric': 'minkowski', 'n_neighbors': 54} 
-
-

@@ -9,10 +9,10 @@ import os
 
 cw = 30  # Over how many preceeding seconds should %crashes be calculated?
 hw = 30  # Over how many preceeding seconds should heartrate features such as min, max, mean be averaged?
-hw_change = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change (likely smaller than hw!)?
+gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change (likely smaller than hw!)?
 
 
-testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
+testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
 use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
 test_data = False  # If test_data==True, the model uses synthesized data
 

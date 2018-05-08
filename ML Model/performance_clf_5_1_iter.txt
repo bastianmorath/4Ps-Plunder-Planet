@@ -1,5 +1,0 @@
-Scores for Random Forest: 
-	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
-	Optimal params: {'max_depth': None, 'max_features': 5, 'min_samples_leaf': 7, 'min_samples_split': 0.4779466584360563} 
-
-

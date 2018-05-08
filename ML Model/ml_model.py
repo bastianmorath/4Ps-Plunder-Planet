@@ -31,7 +31,7 @@ import plots
 
 def get_performance(model, clf_name, X, y, verbose = False):
     """
-        Get performance of the model by doing cross validation with 5 folds, using
+        Get performance of the model by doing cross validation with 10 folds, using
         cross_val_predict
 
       :param model: the classifier that should be applied
@@ -42,7 +42,7 @@ def get_performance(model, clf_name, X, y, verbose = False):
 
       """
 
-    y_pred = cross_val_predict(model, X, y, cv=5)
+    y_pred = cross_val_predict(model, X, y, cv=10)
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
@@ -63,7 +63,7 @@ def get_performance(model, clf_name, X, y, verbose = False):
         print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
         print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: '
               + str(null_accuracy) + '%)')
-    return auc, recall, specificity, precision
+    return auc, recall, specificity, precision, conf_mat
 
 
 def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=False):
@@ -275,8 +275,8 @@ def plot_roc_curve(classifier, X, y, classifier_name):
 
     plt.figure()
     plt.title('Receiver Operating Characteristic')
-    plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-    plt.legend(loc = 'lower right')
+    plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
+    plt.legend(loc='lower right')
     plt.plot([0, 1], [0, 1],'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])

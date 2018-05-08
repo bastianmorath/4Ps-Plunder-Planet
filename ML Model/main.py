@@ -24,6 +24,7 @@ from sklearn import discriminant_analysis
 
 import time
 import numpy as np
+import sys
 
 import setup
 import plots
@@ -33,23 +34,18 @@ import features_factory as f_factory
 import ml_model
 import grid_search
 
+import warnings
+import argparse
+
+
 def warn(*args, **kwargs):
     pass
-import warnings
+
+
 warnings.warn = warn
 
-import sys
-
 print('Number of arguments:', len(sys.argv), 'arguments.')
-print('Argument List:', str(sys.argv))
 
-
-
-''' Get data and create feature matrix and labels
-    Column 0: Id/Time
-    Column 1: %Crashes in last x seconds
-    Column 2: mean heartrate over last y seconds
-'''
 
 print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl.use_cache) + ', \n\t test_data: ' +
       str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox) + ', \n\t plots_enabled: ' + str(gl.plots_enabled))
@@ -135,12 +131,12 @@ if plot_classifier_scores:
 
 grid_s = True
 if grid_s:
-    # Specific classifier-index was passed. USer for euler, s.t. we can do RandomSearchCV
-    # for each calssifier separately
+    # If idx and n_iter is passed, do RandomSearchCV on calssifier idx with n_iter iterations
     if len(sys.argv) > 1:
         grid_search.do_grid_search_for_classifiers(X, y, int(sys.argv[1]), int(sys.argv[2]))
     else:
-        grid_search.do_grid_search_for_classifiers(X, y, -1, 1)
+        # Else, do RandomSearchCV with all classifiers and default n_iter=20
+        grid_search.do_grid_search_for_classifiers(X, y)
 
 
 end = time.time()

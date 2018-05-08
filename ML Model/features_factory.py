@@ -16,20 +16,19 @@ import plots
 '''
 
 # NOTE: Have to be the same order as below... (matrix[...]=...)
-feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+# feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
 
-                '%crashes', 'last_obstacle_crash',
+#                 '%crashes', 'last_obstacle_crash',
 
-                 'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points', 'max_minus_min_points']
+#                 'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points', 'max_minus_min_points']
 
 # feature_names = ['mean_hr','max_over_min_hr',
 #                '%crashes', 'last_obstacle_crash']
 
-# feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-#                 '%crashes',
-#                 'mean_points', 'std_points']
-
-
+# Feature names after removing highly correlated features
+feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+                 '%crashes',
+                 'mean_points', 'std_points']
 
 
 def get_feature_matrix_and_label():
@@ -83,10 +82,6 @@ def get_feature_matrix_and_label():
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
         matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
-
-        # matrix.to_csv(gl.working_directory_path + '/Pickle/feature_matrix.csv')
-        # df = pd.concat(gl.obstacle_df_list)
-        # df.to_csv(gl.working_directory_path + '/Pickle/obstacle_df.csv')
 
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
@@ -228,12 +223,12 @@ def get_column(idx, applier, data_name):
         elif applier == 'std':
             res = last_x_seconds_df[data_name].std()
         elif applier == 'max_minus_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw_change), row['Time'], df)
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.gradient_w), row['Time'], df)
             max_v = last_x_seconds_df[data_name].max()
             min_v = last_x_seconds_df[data_name].min()
             res = max_v - min_v
         elif applier == 'max_over_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw_change), row['Time'], df)
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.gradient_w), row['Time'], df)
             max_v = last_x_seconds_df[data_name].max()
             min_v = last_x_seconds_df[data_name].min()
             res = max_v / min_v
@@ -313,7 +308,7 @@ def get_hr_slope_column(idx):
 
     def compute_slope(row):
 
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.hw_change), row['Time'], df)
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.gradient_w), row['Time'], df)
 
         slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
