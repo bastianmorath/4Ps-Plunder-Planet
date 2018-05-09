@@ -6,12 +6,16 @@ from __future__ import division  # s.t. division uses float result
 import pandas as pd
 
 
-from sklearn import metrics
+from sklearn import metrics, svm
+from sklearn.metrics import confusion_matrix
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import pickle
+
+from sklearn.utils import class_weight
+
 import features_factory as f_factory
 
 import globals as gl
@@ -90,28 +94,34 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
 
 def test_windows():
     # CHECK performance depending on window sizes
-    hws = [5, 10, 20, 30, 40, 50]
-    cws = [2, 3, 5, 10, 20, 30, 40, 50]
+    hws = [2, 5, 10, 30, 60]
+    cws = [5, 10, 30, 60]
+    gradient_ws = [5, 10, 30]
     results = []  # hw, cw, null_accuracy, predicted_accuracy
     for hw in hws:
         for cw in cws:
             gl.hw = hw
             gl.cw = cw
+            gl.use_boxcox = False
             X, y = f_factory.get_feature_matrix_and_label()
-            scaler = MinMaxScaler(feature_range=(0, 1))
-            X = scaler.fit_transform(X)  # Rescale between 0 and 1
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.3)
 
-            model = gl.model(X_train, y_train)
+            class_w = class_weight.compute_class_weight('balanced', np.unique(y), y)
+            class_weight_dict = dict(enumerate(class_w))
+
+            clf = svm.SVC(class_weight=class_weight_dict)
+            clf.fit(X_train, y_train)
 
             # Predict values on test data
-            y_test_predicted = model.predict(X_test)
-
-            null_accuracy = max(np.mean(y_test), 1 - np.mean(y_test)) * 100
-            predicted_accuracy = metrics.accuracy_score(y_test, y_test_predicted) * 100
-            results.append([hw, cw, null_accuracy, predicted_accuracy])
-            print([hw, cw, null_accuracy, predicted_accuracy])
+            y_test_predicted = clf.predict(X_test)
+            conf_mat = confusion_matrix(y_test, y_test_predicted)
+            precision = metrics.precision_score(y_test, y_test_predicted)
+            recall = metrics.recall_score(y_test, y_test_predicted)
+            specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+            auc = metrics.roc_auc_score(y_test, y_test_predicted)
+            results.append([hw, cw, auc, recall, precision, specificity])
+            print([hw, cw, auc, recall, precision, specificity])
 
     results.sort(key=lambda x: x[3])
     pickle.dump(results, open(gl.working_directory_path + '/Pickle/window_results.pickle', "wb"))

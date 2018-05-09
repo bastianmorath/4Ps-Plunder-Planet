@@ -1,0 +1,58 @@
+Init dataframes...
+Dataframe not cached. Creating dataframe...
+Normalize hr...
+Compute crashes...
+Dataframe created
+Creating feature matrix...
+
+Creating mean_Heartrate feature...
+Creating std_Heartrate feature...
+Traceback (most recent call last):
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/window_optimization.py", line 53, in <module>
+    X, y = f_factory.get_feature_matrix_and_label()
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 70, in get_feature_matrix_and_label
+    matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 144, in get_standard_feature
+    hr_df = get_column(list_idx, feature, data_name)
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 264, in get_column
+    return gl.obstacle_df_list[idx].apply(compute, axis=1)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/frame.py", line 4877, in apply
+    ignore_failures=ignore_failures)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/frame.py", line 4973, in _apply_standard
+    results[i] = func(v)
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 262, in compute
+    return res if not math.isnan(res) else compute(df.iloc[1])
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 262, in compute
+    return res if not math.isnan(res) else compute(df.iloc[1])
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 262, in compute
+    return res if not math.isnan(res) else compute(df.iloc[1])
+  [Previous line repeated 960 more times]
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 238, in compute
+    last_x_seconds_df = df_from_to(max(0, row['Time'] - window), row['Time'], df)
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/features_factory.py", line 209, in df_from_to
+    mask = (_from <= df['Time']) & (df['Time'] < _to)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/ops.py", line 939, in wrapper
+    other = fill_int(other) if is_other_int_dtype else fill_bool(other)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/ops.py", line 932, in <lambda>
+    fill_bool = lambda x: x.fillna(False).astype(bool)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/util/_decorators.py", line 118, in wrapper
+    return func(*args, **kwargs)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/generic.py", line 4004, in astype
+    **kwargs)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 3462, in astype
+    return self.apply('astype', dtype=dtype, **kwargs)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 3329, in apply
+    applied = getattr(b, f)(**kwargs)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 544, in astype
+    **kwargs)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 600, in _astype
+    return self.copy()
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 737, in copy
+    return self.make_block_same_class(values)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 224, in make_block_same_class
+    fastpath=fastpath, **kwargs)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 2957, in make_block
+    return klass(values, ndim=ndim, fastpath=fastpath, placement=placement)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/core/internals.py", line 114, in __init__
+    self.mgr_locs = placement
+RecursionError: ('maximum recursion depth exceeded', 'occurred at index 30')

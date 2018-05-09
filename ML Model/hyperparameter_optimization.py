@@ -43,17 +43,9 @@ print('Creating feature matrix...\n')
 
 X, y = f_factory.get_feature_matrix_and_label()
 
-
-'''Preprocess data'''
-
-scaler = MinMaxScaler(feature_range=(0, 1))
-X = scaler.fit_transform(X)  # Rescale between 0 and 1
-
-
 '''Do RandomSearchCV'''
 
 grid_search.do_grid_search_for_classifiers(X, y, int(args.clf_id), int(args.n_iter))
-
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

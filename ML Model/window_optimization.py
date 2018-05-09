@@ -14,18 +14,19 @@
 
 from __future__ import division, print_function  # s.t. division uses float result
 
-
+from sklearn import naive_bayes, svm
 from sklearn.preprocessing import MinMaxScaler
 
 import time
+import numpy as np
+from sklearn.utils import class_weight
 
+import ml_model
 import setup
 
 import features_factory as f_factory
-import grid_search
 import globals as gl
 import argparse
-
 
 # Add user-friendly command-line interface to enter windows and RandomSearchCV parameters etc.
 
@@ -49,21 +50,26 @@ print('Init dataframes...')
 start = time.time()
 setup.setup()
 
-
-print('Creating feature matrix...\n')
-
 X, y = f_factory.get_feature_matrix_and_label()
 
+class_w = class_weight.compute_class_weight('balanced', np.unique(y), y)
+class_weight_dict = dict(enumerate(class_w))
 
-'''Preprocess data'''
+clf = svm.SVC(class_weight=class_weight_dict)
+clf.fit(X, y)
+roc_auc, recall, specificity, precision, conf_mat = ml_model.get_performance(clf, "Naive Bayes", X, y)
 
-scaler = MinMaxScaler(feature_range=(0, 1))
-X = scaler.fit_transform(X)  # Rescale between 0 and 1
-
-
-'''Do RandomSearchCV'''
-grid_search.do_grid_search_for_classifiers(X, y, 0, 1)
-
+s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
+     '\troc_auc: %.3f, ' \
+    'recall: %.3f, ' \
+    'specificity: %.3f, ' \
+    'precision: %.3f \n\n' \
+    '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
+     % ("std. SVM", gl.hw, gl.cw, gl.gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
+print(gl.hw, gl.cw, gl.gradient_w)
+file = open(gl.working_directory_path + '/window_test_' + str(gl.hw) + '_' + str(gl.cw) + '_' +
+            str(gl.gradient_w) + '.txt', 'w+')
+file.write(s)
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

@@ -23,14 +23,24 @@ def setup():
     gl.names_logfiles = fbmc_names_hr_points
 
     if gl.testing:
-        gl.names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
+        # gl.names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
+        gl.names_logfiles = ['ISI_FBMC_hr_1.log']
 
     # Store computed dataframe in pickle file for faster processing
-    if gl.use_cache and os.path.isfile(gl.working_directory_path + '/Pickle/df_list.pickle'):
+    if gl.use_cache:
         print('Dataframe already cached. Used this file to improve performance')
-
-        gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/obstacle_df.pickle')
-        gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/df_list.pickle')
+        if gl.use_boxcox and gl.reduced_features:
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
+            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/df_list.pickle')
+        elif gl.use_boxcox and not gl.reduced_features:
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/obstacle_df.pickle')
+            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/df_list.pickle')
+        elif not gl.use_boxcox and gl.reduced_features:
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/obstacle_df.pickle')
+            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/df_list.pickle')
+        elif not gl.use_boxcox and not gl.reduced_features:
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/obstacle_df.pickle')
+            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/df_list.pickle')
     else:
         print('Dataframe not cached. Creating dataframe...')
         read_and_prepare_logs()
@@ -38,8 +48,19 @@ def setup():
         gl.obstacle_df_list = factory.get_obstacle_times_with_success()
 
         # Save to .pickle for caching
-        pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/obstacle_df.pickle')
-        pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/df_list.pickle')
+        if gl.use_boxcox and gl.reduced_features:
+            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
+            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/reduced_features_boxcox/df_list.pickle')
+        elif gl.use_boxcox and not gl.reduced_features:
+            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/all_features_boxcox/obstacle_df.pickle')
+            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/all_features_boxcox/df_list.pickle')
+        elif not gl.use_boxcox and gl.reduced_features:
+            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/reduced_features/obstacle_df.pickle')
+            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/reduced_features/df_list.pickle')
+        elif not gl.use_boxcox and not gl.reduced_features:
+            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/all_features/obstacle_df.pickle')
+            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/all_features/df_list.pickle')
+
         print('Dataframe created')
     # factory.print_keynumbers_logfiles()
 

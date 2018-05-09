@@ -34,8 +34,9 @@ def plot_correlation_matrix(X):
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0,
-                square=True, linewidths=.5, cbar_kws={"shrink": .5})
-    plt.savefig(gl.working_directory_path + '/Plots/Correlations/correlation_matrix.pdf')
+                square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
+    plt.tight_layout()
+    plt.savefig(gl.working_directory_path + '/Plots/correlation_matrix.pdf')
 
 
 def plot_feature_distributions(X):
@@ -90,7 +91,6 @@ def plot_heartrate_histogram():
     plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
 
 
-
 def print_mean_features_crash(X, y):
     """For each feature, print the average of it when there was a crash vs. there was no crash
 
@@ -119,7 +119,7 @@ def print_mean_features_crash(X, y):
         plt.close('all')
 
 
-def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
+def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, std_err=None):
     """Plots a barchart with the given arguments
     
     Arguments:
@@ -142,7 +142,8 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl):
     r = plt.bar(index, values, bar_width,
                 alpha=opacity,
                 color=green_color,
-                label=lbl)
+                label=lbl,
+                yerr = std_err)
 
     plt.xlabel(x_axis_name)
     plt.ylabel(y_axis_name)

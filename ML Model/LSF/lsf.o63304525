@@ -1,0 +1,68 @@
+Namespace(clf_id=0, cw=40, hw=40, hw_change=10, n_iter=200)
+Init dataframes...
+Dataframe not cached. Creating dataframe...
+Normalize hr...
+Compute crashes...
+Dataframe created
+Creating feature matrix...
+
+Creating mean_Heartrate feature...
+Creating std_Heartrate feature...
+Creating max_minus_min_Heartrate feature...
+Creating lin_regression_hr_slope feature...
+Creating Heartrate_gradient_changes feature...
+Creating %crashes feature...
+Creating mean_Points feature...
+Creating std_Points feature...
+Model fitting...
+7 0
+Traceback (most recent call last):
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/main_grid_search.py", line 93, in <module>
+    grid_search.do_grid_search_for_classifiers(X, y, int(args.clf_id), int(args.n_iter))
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/grid_search.py", line 95, in do_grid_search_for_classifiers
+    scores.append([roc_auc, recall, specificity, precision])
+  File "/cluster/home/morathba/Code/plunder-planet/ML Model/ml_model.py", line 45, in get_performance
+    recall = metrics.recall_score(y, y_pred)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py", line 401, in cross_val_predict
+    for train, test in cv_iter)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 758, in __call__
+    while self.dispatch_one_batch(iterator):
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 608, in dispatch_one_batch
+    self._dispatch(tasks)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 571, in _dispatch
+    job = self._backend.apply_async(batch, callback=cb)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/_parallel_backends.py", line 109, in apply_async
+    result = ImmediateResult(func)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/_parallel_backends.py", line 326, in __init__
+    self.results = batch()
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 131, in __call__
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 131, in <listcomp>
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py", line 474, in _fit_and_predict
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_search.py", line 1190, in fit
+    return self._fit(X, y, groups, sampled_params)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_search.py", line 564, in _fit
+    for parameters in parameter_iterable
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 758, in __call__
+    while self.dispatch_one_batch(iterator):
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 608, in dispatch_one_batch
+    self._dispatch(tasks)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 571, in _dispatch
+    job = self._backend.apply_async(batch, callback=cb)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/_parallel_backends.py", line 109, in apply_async
+    result = ImmediateResult(func)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/_parallel_backends.py", line 326, in __init__
+    self.results = batch()
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 131, in __call__
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/externals/joblib/parallel.py", line 131, in <listcomp>
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/model_selection/_validation.py", line 238, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/svm/base.py", line 189, in fit
+    fit(X, y, sample_weight, solver_type, kernel, random_seed=seed)
+  File "/cluster/apps/python/3.6.0/x86_64/lib64/python3.6/site-packages/sklearn/svm/base.py", line 256, in _dense_fit
+    max_iter=self.max_iter, random_seed=random_seed)
+KeyboardInterrupt

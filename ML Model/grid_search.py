@@ -68,6 +68,7 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
 
     clfs = [
         classifiers.CSVM(X, y),
+        classifiers.CLinearSVM(X, y),
         classifiers.CNearestNeighbors(X, y),
         classifiers.CQuadraticDiscriminantAnalysis(X, y),
         classifiers.CGradientBoostingClassifier(X, y),
@@ -103,7 +104,7 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
                               lbl='auc_score'
                               )
 
-    plt.savefig(gl.working_directory_path + '/Performance_scores/performance_per_clf_after_grid_search.pdf')
+    plt.savefig(gl.working_directory_path + '/Classifier\ Performance/performance_per_clf_after_grid_search.pdf')
     '''
 
     s = ''

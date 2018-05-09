@@ -1,0 +1,10 @@
+Scores for Descision Tree (Windows:  40, 40, 10): 
+
+	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
+
+	Optimal params: {'algorithm': 'SAMME.R', 'learning_rate': 0.1411994246540096, 'n_estimators': 10} 
+
+	Confusion matrix: 	 [4961    0] 
+				 [1074    0]
+
+

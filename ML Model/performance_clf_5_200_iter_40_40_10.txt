@@ -1,0 +1,10 @@
+Scores for Random Forest (Windows:  40, 40, 10): 
+
+	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
+
+	Optimal params: {'max_depth': 3, 'max_features': 8, 'min_samples_leaf': 5, 'min_samples_split': 0.23230687086726698} 
+
+	Confusion matrix: 	 [4961    0] 
+				 [1074    0]
+
+

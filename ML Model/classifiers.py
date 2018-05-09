@@ -39,6 +39,21 @@ class CSVM(Classifier):
         self.clf = SVC(class_weight=self.class_weight_dict)
 
 
+class CLinearSVM(Classifier):
+    def __init__(self, X, y):
+        Classifier.__init__(self, X, y)
+
+        self.name = 'Linear SVM'
+
+        self.param1 = sp_randint(1, 100)  # C
+        self.param1_name = 'C'
+        self.param2 = ['l1', 'l2']  # loss
+        self.param2_name = 'loss'
+        self.tuned_params = {'C': self.param1, 'gamma': self.param2}
+
+        self.clf = SVC(class_weight=self.class_weight_dict)
+
+
 class CNearestNeighbors(Classifier):
     def __init__(self, X, y):
         Classifier.__init__(self, X, y)
@@ -63,7 +78,7 @@ class CQuadraticDiscriminantAnalysis(Classifier):
 
         self.param1 = sp_randint(0, 1)  # reg_param
         self.param1_name = 'reg_param'
-        self.param2 = sp_randint(0, 1)  # tol
+        self.param2 = np.random.uniform(EPSILON, 1)  # tol
         self.param2_name = 'tol'
 
         self.tuned_params = {'reg_param': self.param1, 'tol': self.param2}
@@ -153,7 +168,7 @@ class CAdaBoost(Classifier):
     def __init__(self, X, y):
         Classifier.__init__(self, X, y)
 
-        self.name = 'Descision Tree'
+        self.name = 'Ada Boost'
 
         self.param1 = sp_randint(1, 200)  # n_estimators
         self.param1_name = 'n_estimators'

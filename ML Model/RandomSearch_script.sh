@@ -18,5 +18,5 @@
 
 for clf_idx in `seq 0 6`
 do
-    python "$PWD"/hyperparameter_optimization.py $clf_idx 200
+    bsub -W 240:00 python "$PWD"/hyperparameter_optimization.py $clf_idx 200
 done

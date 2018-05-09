@@ -32,10 +32,9 @@ import test_data
 import globals as gl
 import features_factory as f_factory
 import ml_model
-import grid_search
 
 import warnings
-import argparse
+import factory
 
 
 def warn(*args, **kwargs):
@@ -48,7 +47,8 @@ print('Number of arguments:', len(sys.argv), 'arguments.')
 
 
 print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl.use_cache) + ', \n\t test_data: ' +
-      str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox) + ', \n\t plots_enabled: ' + str(gl.plots_enabled))
+      str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox) + ', \n\t plots_enabled: ' + str(gl.plots_enabled)
+      + ', \n\t reduced_features: ' + str(gl.reduced_features))
 
 print('Init dataframes...')
 
@@ -63,17 +63,8 @@ else:
 # factory.print_keynumbers_logfiles()
 # plots.plot_hr_of_dataframes()
 
-print('Creating feature matrix...\n')
-
 
 X, y = f_factory.get_feature_matrix_and_label()
-
-
-'''Preprocess data'''
-# scaler = StandardScaler().fit(X)  # Because we likely have a Gaussian distribution
-# X = scaler.transform(X)
-scaler = MinMaxScaler(feature_range=(0, 1))
-X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
 if gl.plots_enabled:
     print('Plotting...')
@@ -90,6 +81,7 @@ print('Model fitting...')
 cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(cw))
 
+# Does feature selection with SVM l1 loss
 feature_selection = False
 if feature_selection:
     print('Feature selection with LinearSVC l1-loss: \n')
@@ -100,25 +92,35 @@ if feature_selection:
     print('Features not selected:: ' + str(features))
 
 
-names = ["Linear SVM", "RBF SVM", "Nearest Neighbor", "Naive Bayes", "QDA"]
+# Plots performance of the given classifiers in a barchart for comparison
+plot_classifier_scores = True
+if plot_classifier_scores:
+    names = ["Linear SVM", "RBF SVM", "Nearest Neighbor", "Naive Bayes", "QDA"]
 
-classifiers = [
+    classifiers = [
         svm.LinearSVC(class_weight=class_weight_dict),
         svm.SVC(class_weight=class_weight_dict),
         neighbors.KNeighborsClassifier(),
         naive_bayes.GaussianNB(),
         discriminant_analysis.QuadraticDiscriminantAnalysis()
-        ]
-
-plot_classifier_scores = False
-if plot_classifier_scores:
+    ]
     auc_scores = []
+    auc_std = []
     for name, clf in zip(names, classifiers):
         print(name+'...')
-        clf.fit(X, y)
-        auc_scores.append(ml_model.apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
-        # ml_model.plot_roc_curve(clf, X, y, name)
+        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
+        if name == 'Naive Bayes':
+            old_bx = gl.use_boxcox
+            gl.use_boxcox = True
+            X, _ = f_factory.get_feature_matrix_and_label()
+            gl.use_boxcox = old_bx
 
+        clf.fit(X, y)
+        auc_scores.append(ml_model.get_performance(clf, name, X, y)[0])
+
+        ml_model.plot_roc_curve(clf, X, y, name)
+
+    # Plots roc_auc for the different classifiers
     plt = plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
                               x_axis_name='',
                               y_axis_name='roc_auc',
@@ -126,18 +128,7 @@ if plot_classifier_scores:
                               values=auc_scores,
                               lbl=None,
                               )
-
-    plt.savefig(gl.working_directory_path + '/Plots/roc_auc_per_classifier.pdf')
-
-grid_s = True
-if grid_s:
-    # If idx and n_iter is passed, do RandomSearchCV on calssifier idx with n_iter iterations
-    if len(sys.argv) > 1:
-        grid_search.do_grid_search_for_classifiers(X, y, int(sys.argv[1]), int(sys.argv[2]))
-    else:
-        # Else, do RandomSearchCV with all classifiers and default n_iter=20
-        grid_search.do_grid_search_for_classifiers(X, y)
-
+    plt.savefig(gl.working_directory_path + '/Classifier Performance/roc_auc_per_classifier.pdf')
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

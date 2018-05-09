@@ -1,5 +1,0 @@
-Scores for Descision Tree: 
-	roc_auc: 0.500, recall: 0.000, specificity: 1.000, precision: 0.000 
-	Optimal params: {'algorithm': 'SAMME', 'learning_rate': 0.23649592573961098, 'n_estimators': 26} 
-
-

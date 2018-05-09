@@ -6,6 +6,8 @@ from scipy import stats
 import numpy as np
 import itertools
 
+from sklearn.preprocessing import MinMaxScaler
+
 import globals as gl
 import plots
 
@@ -16,19 +18,7 @@ import plots
 '''
 
 # NOTE: Have to be the same order as below... (matrix[...]=...)
-# feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-
-#                 '%crashes', 'last_obstacle_crash',
-
-#                 'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points', 'max_minus_min_points']
-
-# feature_names = ['mean_hr','max_over_min_hr',
-#                '%crashes', 'last_obstacle_crash']
-
-# Feature names after removing highly correlated features
-feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-                 '%crashes',
-                 'mean_points', 'std_points']
+feature_names = []
 
 
 def get_feature_matrix_and_label():
@@ -39,13 +29,36 @@ def get_feature_matrix_and_label():
         matrix: Feature matrix
         list:   labels
     """
+    global feature_names
+    if gl.reduced_features:
+        feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+                        '%crashes',
+                        'mean_points', 'std_points']
+    else:
+        feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
+                         'lin_regression_hr_slope', 'hr_gradient_changes',
 
+                         '%crashes', 'last_obstacle_crash',
+
+                         'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
+                         'max_minus_min_points']
     matrix = pd.DataFrame()
 
-    if gl.use_cache and (not gl.test_data) and os.path.isfile(gl.working_directory_path + '/Pickle/feature_matrix.pickle'):
-        matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
-        # print(matrix)
+    if gl.use_cache and (not gl.test_data):
+        print('Feature matrix already cached!')
+
+        if gl.use_boxcox and gl.reduced_features:
+            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
+        elif gl.use_boxcox and not gl.reduced_features:
+            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
+        elif not gl.use_boxcox and gl.reduced_features:
+            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
+        elif not gl.use_boxcox and not gl.reduced_features:
+            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
+
     else:
+        print('Creating feature matrix...\n')
+
         # TODO: Ugly....
         if 'mean_hr' in feature_names:
             matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
@@ -81,13 +94,20 @@ def get_feature_matrix_and_label():
         if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
-        matrix.to_pickle(gl.working_directory_path + '/Pickle/feature_matrix.pickle')
+        if gl.use_boxcox and gl.reduced_features:
+            matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
+        elif gl.use_boxcox and not gl.reduced_features:
+            matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
+        elif not gl.use_boxcox and gl.reduced_features:
+            matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
+        elif not gl.use_boxcox and not gl.reduced_features:
+            matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
 
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
     for df in gl.obstacle_df_list:
         labels.append(df[df['Time'] > max(gl.cw, gl.hw)]['crash'].copy())
-    labels = list(itertools.chain.from_iterable(labels))
+    y = list(itertools.chain.from_iterable(labels))
 
     # Boxcox transformation
     if gl.use_boxcox:
@@ -98,9 +118,12 @@ def get_feature_matrix_and_label():
                     matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                 else:
                     matrix[feature] = stats.boxcox(matrix[feature])[0]
+    X = matrix.as_matrix()
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
     plots.plot_correlation_matrix(matrix)
-    return matrix.as_matrix(), labels
+    return X, y
 
 
 def get_standard_feature(feature, data_name):
