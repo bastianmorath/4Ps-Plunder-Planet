@@ -1,5 +1,4 @@
-"""This file does some refactoring to the logfiles, mostly at the very beginning,
-saving the changes as new logfiles, such that we don't have to apply it again"""
+"""This module does some refactoring to the logfiles, mostly at the very beginning of the process"""
 
 
 import pandas as pd
@@ -7,13 +6,10 @@ from datetime import timedelta
 
 import globals as gl
 
-"""The following methods add additional columns to all dataframes in the gl.df_list"""
-
-
 
 def cut_frames():
     """Cuts dataframes to the same length, namely to the shortest of the dataframes in the list
-        Saves changes directly to gl.df_list
+        Saves changes directly to globals.df_list
 
     """
 
@@ -26,7 +22,7 @@ def cut_frames():
 
 def normalize_heartrate():
     """Normalizes heartrate of each dataframe/user by dividing by mean of first 60 seconds
-
+        Saves changes directly to globals.df_list
     """
 
     if gl.normalize_heartrate:
@@ -43,10 +39,9 @@ def normalize_heartrate():
         gl.df_list = normalized_df_list
 
 
-
 def add_timedelta_column():
     """For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
-
+        Saves changes directly to globals.df_list
     """
     for idx, dataframe in enumerate(gl.df_list):
         new = dataframe['Time'].apply(lambda x: timedelta(seconds=x))
@@ -55,7 +50,7 @@ def add_timedelta_column():
 
 def add_log_and_user_column():
     """Add log_number and user_id
-
+        Saves changes directly to globals.df_list
     """
 
     names = [gl.names_logfiles[i][0:2] for i in range(0, len(gl.df_list))] # E.g. AK, LK, MR
@@ -75,21 +70,24 @@ def add_log_and_user_column():
 
 
 def refactor_crashes():
-    """At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE inc case of a crash, which makes it more difficult
+    """At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE in case of a crash, which makes it more difficult
         to analyze the data.
-        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle inforamtion to the EVENT_CRASH log
+        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
         Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
 
         Input: Original files
 
-        Output: New logfiles, without headers or anything
+        Output: Refactored logfiles are stored in gl.df_list and additionally as new csv files
 
-        Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'. From now on, always those logs are used
+        IMPORTANT: Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'.
+
+        New dataframe either contains an EVENT_CRASH (obstacle with crash) or EVENT_OBSTACLE (obstacle without a crash)
 
     """
 
     # If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event
-    add_log_and_user_column()
+    # POSSIBLY_DANGEROUS: MAybe add it again..
+    # add_log_and_user_column()
 
     print('Refactoring crashes...')
 
@@ -120,9 +118,10 @@ def refactor_crashes():
 
                 count += 1
         new_df.reset_index(inplace=True, drop=True)
+        # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
+        #                'psyDifficulty', 'obstacle', 'userID', 'logID']
         column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
-                        'psyDifficulty', 'obstacle', 'userID', 'logID']
-
+                            'psyDifficulty', 'obstacle']
         new_df = new_df.reindex(column_names, axis=1)
         gl.df_list[df_idx] = new_df
         new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
@@ -130,6 +129,7 @@ def refactor_crashes():
 
 def remove_logs_without_heartrates_or_points():
     """Removes all logfiles that do not have any heartrate data or points (since we then can't calculate our features)
+        Saves changes directly to globals.df_list
 
     """
 

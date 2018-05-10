@@ -58,7 +58,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
     return clf
 
 
-def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
+def do_grid_search_for_classifiers(X, y, clf_name='all', num_iter=20):
     """Test different classifiers wihtout hyperparameter optimization, and prints its auc scores in a barplot
 
       Arguments:
@@ -82,9 +82,10 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
     scores = []
     optimal_params = []
     conf_mats = []
-    if idx >= 0:
-        clfs = [clfs[idx]]
-        names = [names[idx]]
+
+    if not clf_name == 'all':
+        clfs = [clf for clf in clfs if clf.name == clf_name]
+        names = [clf_name]
 
     for i, (Classifier, name) in enumerate(zip(clfs, names)):
         optimal_clf = Classifier.optimal_clf(X, y, num_iter)
@@ -117,7 +118,8 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
             '\tOptimal params: %s \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
              % (names[i], gl.hw, gl.cw, gl.gradient_w, sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2*i], conf_mat[2*i + 1])
-    file = open(gl.working_directory_path + '/performance_clf_' + str(idx) + '_' + str(num_iter) + '_iter_'
+
+    file = open(gl.working_directory_path + '/performance_clf_' + clf_name + '_' + str(num_iter) + '_iter_'
                 + str(gl.hw) + '_' + str(gl.cw) + '_' + str(gl.gradient_w) + '.txt', 'w+')
     file.write(s)
 

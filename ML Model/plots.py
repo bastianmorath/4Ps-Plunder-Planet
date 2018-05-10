@@ -1,18 +1,44 @@
-"""Plots the mean_hr and %crashes that were calculated for the last x seconds for each each second"""
+"""This module is responsible for plotting various things
+
+"""
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
+
 
 import seaborn as sns
-import factory
 import globals as gl
 import features_factory as f_factory
+
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
 red_color = '#A62A2A'
+
+
+def resample_dataframe(df, resolution):
+    """Resamples a dataframe with a sampling frquency of 'resolution'
+    -> Smoothes the plots
+
+    :param df: Dataframe to be resampled. Must contain numbers only
+    :param resolution: Resolution of the sampling to be done
+
+    :return: Resampled dataframe
+
+    """
+
+    df = df.set_index('timedelta', drop=True)  # set timedelta as new index
+    resampled = df.resample(str(resolution)+'S').mean()
+    resampled.reset_index(inplace=True)
+
+    # timedelta was resampled, so we need to do the same with the Time-column
+    resampled['Time'] = resampled['timedelta'].apply(lambda time: time.total_seconds())
+
+    return resampled
 
 
 def plot_correlation_matrix(X):
@@ -36,7 +62,8 @@ def plot_correlation_matrix(X):
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
     plt.tight_layout()
-    plt.savefig(gl.working_directory_path + '/Plots/correlation_matrix.pdf')
+
+    save_plot(plt, 'Features', 'correlation_matrix.pdf')
 
 
 def plot_feature_distributions(X):
@@ -53,7 +80,8 @@ def plot_feature_distributions(X):
         plt.title(feature)
 
         plt.tight_layout()
-        plt.savefig(gl.working_directory_path + '/Plots/Feature_distributions/feature_distribution_' + feature + '.pdf')
+        filename = feature + '.pdf'
+        save_plot(plt, 'Features/Feature_distributions', filename)
 
 
 def plot_hr_of_dataframes():
@@ -65,7 +93,7 @@ def plot_hr_of_dataframes():
     resolution = 5
     for idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all():
-            df_num_resampled = factory.resample_dataframe(df, resolution)
+            df_num_resampled = resample_dataframe(df, resolution)
             # Plot Heartrate
             _, ax1 = plt.subplots()
             ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color)
@@ -73,9 +101,8 @@ def plot_hr_of_dataframes():
             ax1.set_ylabel('Heartrate', color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 
-            plt.savefig(gl.working_directory_path + '/Plots/Heartrates/hr_'+
-                        gl.names_logfiles[idx] + '.pdf')
-            plt.close('all')
+            filename = 'hr_' + gl.names_logfiles[idx] + '.pdf'
+            save_plot(plt, 'Logfiles/Heartrate', filename)
 
 
 def plot_heartrate_histogram():
@@ -88,10 +115,11 @@ def plot_heartrate_histogram():
     df = df[df['Heartrate'] != -1]['Heartrate']
     plt.hist(df)
     plt.title('Histogram of HR: $\mu=' + str(np.mean(df)) + '$, $\sigma=' + str(np.std(df)) + '$')
-    plt.savefig(gl.working_directory_path + '/Plots/heartrate_distribution.pdf')
+
+    save_plot(plt, 'Logfiles', 'heartrate_distribution.pdf')
 
 
-def print_mean_features_crash(X, y):
+def plot_mean_value_of_feature_at_crash(X, y):
     """For each feature, print the average of it when there was a crash vs. there was no crash
 
     :param X: Feature matrix
@@ -119,19 +147,19 @@ def print_mean_features_crash(X, y):
         plt.close('all')
 
 
-def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, std_err=None):
-    """Plots a barchart with the given arguments
-    
-    Arguments:
-        title {String} -- Title of the plot
-        x_axis_name {String} -- name of the x_axis
-        y_axis_name {String} -- name of the y-axis
-        x_labels {[String]} -- labels of the x_indices
-        values {[type]} -- values to plot
-        label {String} -- Name of the values label
-    
-    Returns:
-        matplotlib.plt -- Generated plot
+def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, filename, std_err=None):
+    """Helper function to plot a barchart with the given arguments
+
+    :param title: Title of the plot
+    :param x_axis_name: name of the x_axis
+    :param y_axis_name: name of the y-axis
+    :param x_labels: labels of the x_indices
+    :param values: values to plot
+    :param lbl: Name of the values label
+    :param filename: filename to be stored
+    :param std_err: if given, then plot std error of each bar
+
+    :return: The plot
     """
 
     fix, ax = plt.subplots()
@@ -165,4 +193,25 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, std_er
 
     plt.tight_layout()
 
+    save_plot(plt, 'Performance', filename)
+
     return plt
+
+
+def save_plot(plt, folder, filename):
+    """Saves plots and take cares that they are in either of three folders
+
+    :param plt:  The plot to be saved
+    :param folder: Folder to be saved to
+    :param filename: The name (.pdf) under which the plot should be saved
+    """
+
+    directory = gl.working_directory_path + '/Plots/' + folder
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    savepath = directory + '/' + filename
+
+    plt.savefig(savepath)
+    plt.close('all')

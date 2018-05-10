@@ -3,6 +3,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.utils import class_weight
 from scipy.stats import randint as sp_randint
+from sklearn.naive_bayes import GaussianNB
 
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.ensemble import (AdaBoostClassifier,
@@ -11,7 +12,10 @@ from sklearn.ensemble import (AdaBoostClassifier,
 from sklearn.tree import DecisionTreeClassifier
 import grid_search
 import features_factory as f_factory
+
+
 EPSILON = 0.0001
+
 
 class Classifier(object):
     def __init__(self, X, y):
@@ -182,3 +186,14 @@ class CAdaBoost(Classifier):
                             }
 
         self.clf = AdaBoostClassifier()
+
+
+class CNaiveBayes(Classifier):
+    def __init__(self, X, y):
+        Classifier.__init__(self, X, y)
+
+        self.name = 'Naive Bayes'
+
+        self.tuned_params = {}
+
+        self.clf = GaussianNB()

@@ -24,6 +24,7 @@ from sklearn.calibration import CalibratedClassifierCV
 import features_factory as f_factory
 import globals as gl
 import plots
+import classifiers
 
 
 def get_performance(model, clf_name, X, y, verbose = False):
@@ -125,3 +126,65 @@ def plot_roc_curve(classifier, X, y, classifier_name):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     plt.savefig(gl.working_directory_path + '/Plots/Roc Curves/roc_curve_'+classifier_name+'.pdf')
+
+
+def print_confidentiality_scores(X_train, X_test, y_train, y_test):
+    """Prints all wrongly classifed datapoints and with which confidentiality the classifier classified them
+
+    :param X_train: Training data (Feature matrix)
+    :param X_test:  Test data (Feature matrix)
+    :param y_train: labels of training data
+    :param y_test:  labels of test data
+
+    """
+
+    from sklearn.neighbors import KNeighborsClassifier
+    model = KNeighborsClassifier()
+    model.fit(X_train, y_train)
+    probas = model.predict_proba(X_test)
+    y_predicted = model.predict(X_test)
+    for idx, [a, b] in enumerate(probas):
+        if y_test[idx] != y_predicted[idx]:
+            print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: '
+                  + str(max(a,b)*100) + '%')
+
+
+def plot_performance_of_classifiers(X, y):
+    # Plots performance of the given classifiers in a barchart for comparison without hyperparameter tuning
+    cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
+    class_weight_dict = dict(enumerate(cw))
+
+    clf_list = [
+        classifiers.CLinearSVM(X, y),
+        classifiers.CSVM(X, y),
+        classifiers.CNearestNeighbors(X, y),
+        classifiers.CNaiveBayes(X, y),
+        classifiers.CQuadraticDiscriminantAnalysis(X, y),
+    ]
+
+    auc_scores = []
+    auc_std = []
+    for classifier in clf_list:
+        print('Name: ' + classifier.name)
+        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
+        if classifier.name == 'Naive Bayes':
+            old_bx = gl.use_boxcox
+            gl.use_boxcox = True
+            X, _ = f_factory.get_feature_matrix_and_label()
+            gl.use_boxcox = old_bx
+
+            classifier.clf.fit(X, y)
+        auc_scores.append(get_performance(classifier.clf, classifier.name, X, y)[0])
+
+        plot_roc_curve(classifier.clf, X, y, classifier.name)
+
+    # Plots roc_auc for the different classifiers
+    plt = plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
+                              x_axis_name='',
+                              y_axis_name='roc_auc',
+                              x_labels=[clf.name for clf in clf_list],
+                              values=auc_scores,
+                              lbl=None,
+                              )
+    plt.savefig(gl.working_directory_path + '/Classifier Performance/roc_auc_per_classifier.pdf')
+

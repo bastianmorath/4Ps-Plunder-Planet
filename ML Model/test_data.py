@@ -1,27 +1,26 @@
+""" This module generates synthesized data to test the pipeline of the classifier.
+
+    Conf:
+        -if make_plots=True, the generated heartrate is plotted
+"""
+
+
 import pandas as pd
 import numpy as np
 from scipy.stats import truncnorm
 
-import setup
 import globals as gl
-import factory
 import refactoring_logfiles
+import matplotlib.pyplot as plt
+
+import setup
+
+make_plots = False
 
 num_dataframes = 3  # How many dataframes should be created?
 length_dataframe = 500  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
-
-test_data_case = 1
-
-
-def init_with_testdata():
-    # map the inputs to the function blocks
-    options = {0: init_with_testdata_events_const_hr_const, # Simplest: alternates between continuous, crash and not crash, setting hr = 30 or 30 if crash after
-               1: init_with_testdata_events_random_hr_const, # Random events, depending on crash or not sets hr= 10 or 100 in event before crash
-               2: init_with_testdata_events_random_hr_continuous
-               }
-    options[test_data_case]()
 
 
 def init_with_testdata_events_const_hr_const():
@@ -39,12 +38,13 @@ def init_with_testdata_events_const_hr_const():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
-        # plot_hr(dataframe, i)
+        if make_plots:
+            plot_hr(dataframe, i)
 
         gl.df_list.append(dataframe)
 
     refactoring_logfiles.normalize_heartrate()
-    gl.obstacle_df_list = factory.get_obstacle_times_with_success()
+    gl.obstacle_df_list = setup.get_obstacle_times_with_success()
 
 
 def init_with_testdata_events_random_hr_const():
@@ -86,11 +86,13 @@ def init_with_testdata_events_random_hr_const():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
-        # plot_hr(dataframe, i)
+        if make_plots:
+            plot_hr(dataframe, i)
+
         gl.df_list.append(dataframe)
 
     refactoring_logfiles.normalize_heartrate()
-    gl.obstacle_df_list = factory.get_obstacle_times_with_success()
+    gl.obstacle_df_list = setup.get_obstacle_times_with_success()
 
 
 def init_with_testdata_events_random_hr_continuous():
@@ -133,31 +135,32 @@ def init_with_testdata_events_random_hr_continuous():
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas})
-        # plot_hr(dataframe, i)
+        if make_plots:
+            plot_hr(dataframe, i)
+
         gl.df_list.append(dataframe)
 
     refactoring_logfiles.normalize_heartrate()
-    gl.obstacle_df_list = factory.get_obstacle_times_with_success()
+    gl.obstacle_df_list = setup.get_obstacle_times_with_success()
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     """Returns a value from a normal distribution, truncated to a boundary
 
-    :param mean:
-    :param sd:
-    :param low:
-    :param upp:
-
     :return: Random value from normal distribution specified by arguments
 
     """
 
-    return truncnorm(
-        (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+    return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
 
 def plot_hr(dataframe, i):
-    import matplotlib.pyplot as plt
+    """Plots the heartrate of the dataframe
+
+    :param dataframe: Dataframe from which the heartrate should be plotted
+    :param i: id to differentiate plots
+
+    """
     fig, ax1 = plt.subplots()
     fig.suptitle('heartrate')
 

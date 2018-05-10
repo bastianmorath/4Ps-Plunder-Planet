@@ -2,22 +2,22 @@
 
 import os
 
-
 cw = 30  # Over how many preceeding seconds should %crashes be calculated?
 hw = 30  # Over how many preceeding seconds should heartrate features such as min, max, mean be averaged?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
-testing = False  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
-use_cache = False  # If use_cache==True, use cached data (accelerates testing on same data)
+testing = True  # If Testing==True, only  a small sample of dataframes is used  to accelerate everything
+use_cache = True  # If use_cache==True, use cached data (accelerates testing on same data)
 test_data = False  # If test_data==True, the model uses synthesized data
 reduced_features = False  # Whether we should use allf eatures or remove highly correlated ones
+
 
 # Whether we should use normalized heartrate (divide by baseline). If test_data, then don't normalize
 # since dividing by minimum doesn't make sense
 normalize_heartrate = not test_data and True
 use_boxcox = False   # Use boxcox (transforms features into a normal distribution)
 
-plots_enabled = False  # Whether plots should be created
+# plots_enabled = False  # If true, then plot everything that the user specified
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
