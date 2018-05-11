@@ -22,7 +22,7 @@ use_boxcox = False   # Use boxcox (transforms features into a normal distributio
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
 
-abs_path_logfiles = project_path + '/Logs/text_logs_refactored_crashes'  # text_logs_refactored_crashes or text_logs_original
+abs_path_logfiles = project_path + '/Logs/text_logs_refactored_crashes'  # Logfiles to use
 names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile

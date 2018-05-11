@@ -1,29 +1,28 @@
+"""This module is responsible to generate all the features from the data/logfiles
+
+"""
+
 import pandas as pd
-import os
 import math
 
 from scipy import stats
 import numpy as np
 import itertools
-
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
 import globals as gl
 import plots
 
-'''Current features:
-    1. Mean_hr over last x seconds
-    2. % of crashes in the last x seconds
-    3. Max over min heartrate in last x seconds
-'''
+"""INITIALIZATION"""
+plot_corr_matrix = False
 
-# NOTE: Have to be the same order as below... (matrix[...]=...)
-feature_names = []
+
+feature_names = []  # Set below
 
 
 def get_feature_matrix_and_label():
-    """ Returns a matrix containing the features, and the labels
-        There is one feature-row for each obstacle
+    """ Computes the feeature matrix and the corresponding labels
 
     :return:
         matrix: Feature matrix
@@ -32,8 +31,8 @@ def get_feature_matrix_and_label():
     global feature_names
     if gl.reduced_features:
         feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-                        '%crashes',
-                        'mean_points', 'std_points']
+                         '%crashes',
+                         'mean_points', 'std_points']
     else:
         feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
                          'lin_regression_hr_slope', 'hr_gradient_changes',
@@ -42,6 +41,7 @@ def get_feature_matrix_and_label():
 
                          'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
                          'max_minus_min_points']
+
     matrix = pd.DataFrame()
 
     if gl.use_cache and (not gl.test_data):
@@ -107,6 +107,7 @@ def get_feature_matrix_and_label():
     labels = []
     for df in gl.obstacle_df_list:
         labels.append(df[df['Time'] > max(gl.cw, gl.hw)]['crash'].copy())
+
     y = list(itertools.chain.from_iterable(labels))
 
     # Boxcox transformation
@@ -122,12 +123,13 @@ def get_feature_matrix_and_label():
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
-    plots.plot_correlation_matrix(matrix)
+    if plot_corr_matrix:
+        plots.plot_correlation_matrix(matrix)
     return X, y
 
 
 def get_standard_feature(feature, data_name):
-    """This is a wrapper to compute common features such as min, max, mean for either POints or Heartrate
+    """This is a wrapper to compute common features such as min, max, mean for either Points or Heartrate
 
     :param feature: min, max, mean, std
     :param data_name: Either Heartrate or Points
@@ -138,7 +140,7 @@ def get_standard_feature(feature, data_name):
 
     print('Creating ' + feature + '_' + data_name + ' feature...')
 
-    hr_df_list = []  # list that contains a list of mean_hrs for each logfile/df
+    hr_df_list = []  # list that contains a dataframe with mean_hrs for each logfile
     for list_idx, df in enumerate(gl.df_list):
         if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in setup.py
             hr_df = get_column(list_idx, feature, data_name)
@@ -152,17 +154,19 @@ def get_percentage_crashes_feature():
 
     print('Creating %crashes feature...')
 
-    crashes_list = []  # list that contains a list of %crashes for each logfile/df
+    crashes_list = []  # list that contains one dataframe with %crashes for each point in time for each logfile
     for list_idx, df in enumerate(gl.df_list):
         crashes = get_percentage_crashes_column(list_idx)
-        # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(crashes)
+
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['%crashes'])
 
 
 def get_last_obstacle_crash_feature():
     print('Creating last_obstacle_crash feature...')
-    crashes_list = []  # list that contains a list of whether crash or not for each logfile/df
+    # list that contains one dataframe with whether last obstacle was a crash or not
+    # for each point in time for each logfile
+    crashes_list = []
     for list_idx, df in enumerate(gl.df_list):
         df_obstacles = get_last_obstacle_crash_column(list_idx)
         # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
@@ -173,7 +177,7 @@ def get_last_obstacle_crash_feature():
 
 def get_lin_regression_hr_slope_feature():
     print('Creating lin_regression_hr_slope feature...')
-    slopes = []  # list that contains a list of the slope
+    slopes = []  # list that contains (for each logfile) a dataframe with the slope of the heartrate
     for list_idx, df in enumerate(gl.df_list):
         slope = get_hr_slope_column(list_idx)
         slopes.append(slope)
@@ -183,11 +187,11 @@ def get_lin_regression_hr_slope_feature():
 
 def get_number_of_gradient_changes(data_name):
     print('Creating %s_gradient_changes feature...' % data_name)
-    changes_list = []  # list that contains a list of the slope
+    changes_list = []  # list that contains (for each logfile) a dataframe with the number of slope changes
     for list_idx, df in enumerate(gl.df_list):
         changes = get_gradient_changes_column(list_idx, data_name)
         changes_list.append(changes)
-    if data_name == 'Points' :
+    if data_name == 'Points':
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['points_gradient_changes'])
     else:
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['hr_gradient_changes'])
@@ -197,7 +201,7 @@ def get_number_of_gradient_changes(data_name):
 
 
 def df_from_to(_from, _to, df):
-    """Returns the dataframe where time is between _from and _to
+    """Returns the part of the dataframe where time is between _from and _to
 
     :param _from: Start of dataframe ['Time']
     :param _to: End of dataframe ['Time']
@@ -210,15 +214,9 @@ def df_from_to(_from, _to, df):
     return df[mask]
 
 
-''' 
-    
-    data_name = Points or Heartrate
-'''
-
-
 def get_column(idx, applier, data_name):
     """This is a wrapper which returns a dataframe column that indicates at each timestamp the
-    heartrate or points over the last 'window' seconds, after applying 'applyer' (e.g. )
+    heartrate or points over the last 'window' seconds, after applying 'applyer' (e.g. mean, max, min)
 
     :param idx: Index of dataframe in gl.df_list
     :param applier: mean, min, max, std
@@ -286,10 +284,6 @@ def get_percentage_crashes_column(idx):
     return gl.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
 
-'''Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
-'''
-
-
 def get_last_obstacle_crash_column(idx):
     """Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
 
@@ -297,7 +291,7 @@ def get_last_obstacle_crash_column(idx):
 
       :return: last_obstacle_crash feature column
 
-      """
+    """
 
     df = gl.df_list[idx]
 
@@ -308,13 +302,6 @@ def get_last_obstacle_crash_column(idx):
         return 1 if last.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
 
     return gl.obstacle_df_list[idx].apply(compute_crashes, axis=1)
-
-
-'''Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression 
-        line over the heartrate in the last hw seconds
-'''
-
-# TODO: maybe also add intercept, r_value, p_value, std_err as features?
 
 
 def get_hr_slope_column(idx):
@@ -335,21 +322,15 @@ def get_hr_slope_column(idx):
 
         slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
-        '''# Plot slopes
+        # Plot slopes
         fit = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
         fit_fn = np.poly1d(fit)
         plt.plot(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], '', last_x_seconds_df['Time'], fit_fn(last_x_seconds_df['Time']))
+        plots.save_plot(plt, 'Features', 'lin_regression_slopes.pdf')
 
-        plt.savefig(gl.working_directory_path + '/Plots/lin_regression.pdf')
-        '''
         return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
     return gl.obstacle_df_list[idx].apply(compute_slope, axis=1)
-
-
-'''Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate) 
-have changed from increasing to decreasing and the other way around
-'''
 
 
 def get_gradient_changes_column(idx, data_name):

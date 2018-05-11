@@ -47,7 +47,7 @@ def print_keynumbers_logfiles():
     print('#files with heartrate: ' + str(len([a for a in gl.df_list if not (a['Heartrate'] == -1).all()])))
     print('#datapoints: ' + str(sum([len(a.index) for a in gl.df_list])))
     print('#obstacles: ' + str(sum([len(df.index) for df in gl.obstacle_df_list])))
-    print('#crashes: ' + str(sum([len(df[df['crash'] == 1]) for df in gl.obstacle_df_list ])))
+    print('#crashes: ' + str(sum([len(df[df['crash'] == 1]) for df in gl.obstacle_df_list])))
 
 
 def get_obstacle_times_with_success():
@@ -102,13 +102,16 @@ def setup():
     if gl.use_cache:
         print('Dataframe already cached. Used this file to improve performance')
         if gl.use_boxcox and gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path +
+                                                 '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
             gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/df_list.pickle')
         elif gl.use_boxcox and not gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/obstacle_df.pickle')
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path +
+                                                 '/Pickle/all_features_boxcox/obstacle_df.pickle')
             gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/df_list.pickle')
         elif not gl.use_boxcox and gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/obstacle_df.pickle')
+            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path +
+                                                 '/Pickle/reduced_features/obstacle_df.pickle')
             gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/df_list.pickle')
         elif not gl.use_boxcox and not gl.reduced_features:
             gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/obstacle_df.pickle')
@@ -121,10 +124,12 @@ def setup():
 
         # Save to .pickle for caching
         if gl.use_boxcox and gl.reduced_features:
-            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
+            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path +
+                         '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
             pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/reduced_features_boxcox/df_list.pickle')
         elif gl.use_boxcox and not gl.reduced_features:
-            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/all_features_boxcox/obstacle_df.pickle')
+            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path +
+                         '/Pickle/all_features_boxcox/obstacle_df.pickle')
             pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/all_features_boxcox/df_list.pickle')
         elif not gl.use_boxcox and gl.reduced_features:
             pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/reduced_features/obstacle_df.pickle')

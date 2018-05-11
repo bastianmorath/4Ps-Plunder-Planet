@@ -9,13 +9,12 @@
 from __future__ import division, print_function  # s.t. division uses float result
 
 from sklearn import svm
-
 import numpy as np
 from sklearn.utils import class_weight
 
 import ml_model
-
 import globals as gl
+
 
 def write_window_scores_to_file(X, y, hw, cw, gradient_w):
     gl.hw = hw
@@ -30,13 +29,13 @@ def write_window_scores_to_file(X, y, hw, cw, gradient_w):
     roc_auc, recall, specificity, precision, conf_mat = ml_model.get_performance(clf, "Naive Bayes", X, y)
 
     s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
-         '\troc_auc: %.3f, ' \
+        '\troc_auc: %.3f, ' \
         'recall: %.3f, ' \
         'specificity: %.3f, ' \
         'precision: %.3f \n\n' \
         '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
-         % ("std. SVM", gl.hw, gl.cw, gl.gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
-    print(gl.hw, gl.cw, gl.gradient_w)
+        % ("std. SVM", gl.hw, gl.cw, gl.gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
+
     file = open(gl.working_directory_path + '/window_test_' + str(gl.hw) + '_' + str(gl.cw) + '_' +
                 str(gl.gradient_w) + '.txt', 'w+')
     file.write(s)

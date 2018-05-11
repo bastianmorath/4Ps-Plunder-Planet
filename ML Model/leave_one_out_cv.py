@@ -1,18 +1,14 @@
 
 from __future__ import division  # s.t. division uses float result
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
+# matplotlib.use('Agg')
+# import matplotlib.pyplot as plt
 import pandas as pd
 
 from sklearn import metrics
 
-from sklearn.metrics import (auc, classification_report, confusion_matrix,
-                             roc_curve)
-from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV, LeaveOneGroupOut,
-                                     cross_val_predict, train_test_split, cross_val_score)
-
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import (LeaveOneGroupOut, cross_val_predict)
 
 
 from sklearn.utils import class_weight
@@ -25,7 +21,6 @@ from sklearn import discriminant_analysis
 
 import time
 import numpy as np
-import sys
 
 import setup
 import plots
@@ -35,8 +30,8 @@ import features_factory as f_factory
 
 
 def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=False):
-    """
-        Take one entire user (i.e. two logfiles most of the time) as test-data, the rest as training-data. Result can be used
+
+    """Take one entire user (i.e. two logfiles most of the time) as test-data, the rest as training-data. Result can be used
         as an indication which users are hard to predict
 
     :param model: the model that should be applied
@@ -44,7 +39,8 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
     :param X: the feature matrix
     :param y: True labels
     :param per_logfile: Whether we should leave out one logfile or one user in cross validation
-    :return: auc and auc_std
+    :return: auc_mean and auc_std
+
     """
 
     y = np.asarray(y)  # Used for .split() function
@@ -72,6 +68,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
         specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
         precision = metrics.precision_score(y_test, y_pred)
         auc = metrics.roc_auc_score(y_test, y_pred)
+
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
         left_out_group_indices = sorted(set(range(0, len(df_obstacles_concatenated))) - set(train_index))
@@ -147,16 +144,11 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
 
     autolabel(r)
 
-
-    # ax.set_ylim([0, np.max(aucs) + 3*std])
-
-    # plt.plot([mean] * len(aucs), 'r--')
-
     plt.tight_layout()
     if per_logfile:
-        plt.savefig(gl.working_directory_path + '/Plots/performance_per_logfile_' + clf_name+'.pdf')
+        plots.save_plot(plt, 'Performance', 'performance_per_logfile_' + clf_name+'.pdf')
     else:
-        plt.savefig(gl.working_directory_path + '/Plots/performance_per_user_' + clf_name+'.pdf')
+        plots.save_plot(plt, 'Performance', 'performance_per_user_' + clf_name+'.pdf')
 
     # Print mean score
     auc_mean = np.mean([a[0] for a in scores_and_ids])
@@ -199,8 +191,6 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
 
     return auc_mean, auc_std
 
-print('Number of arguments:', len(sys.argv), 'arguments.')
-
 
 print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl.use_cache) + ', \n\t test_data: ' +
       str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox) + ', \n\t plots_enabled: ' + str(gl.plots_enabled)
@@ -214,9 +204,7 @@ setup.setup()
 
 print('Creating feature matrix...\n')
 
-
 X, y = f_factory.get_feature_matrix_and_label()
-
 
 cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
 class_weight_dict = dict(enumerate(cw))
@@ -234,7 +222,7 @@ classifiers = [
 plot_classifier_scores = True
 if plot_classifier_scores:
     auc_scores = []
-    auc_std = []
+    auc_stds = []
     for name, clf in zip(names, classifiers):
         print(name+'...')
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
@@ -245,7 +233,7 @@ if plot_classifier_scores:
             gl.use_boxcox = old_bx
         clf.fit(X, y)
         auc_scores.append(apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
-        auc_std.append(apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[1])
+        auc_stds.append(apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[1])
 
         # ml_model.plot_roc_curve(clf, X, y, name)
 
@@ -255,9 +243,10 @@ if plot_classifier_scores:
                               x_labels=names,
                               values=auc_scores,
                               lbl=None,
-                              std_err=auc_std,
+                              std_err=auc_stds,
                               )
-    plt.savefig(gl.working_directory_path + '/Plots/Roc Curves/roc_auc_per_classifier_leave_one_out.pdf')
+
+    plots.save_plot(plt, 'Performance/', 'roc_auc_per_classifier_leave_one_out.pdf')
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

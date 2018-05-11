@@ -1,13 +1,13 @@
-"""
-This module is responsible for doing GridSearchCV/RandomSearchCV over the hyperparameters of the different classifiers
+"""This module is responsible for doing GridSearchCV/RandomSearchCV over
+the hyperparameters of the different classifiers
+
 """
 
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import (classification_report, confusion_matrix,
-                             roc_curve)
-from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV, cross_val_predict)
+from sklearn.metrics import (classification_report, confusion_matrix)
+from sklearn.model_selection import (RandomizedSearchCV, cross_val_predict)
 
 import matplotlib.pyplot as plt
 
@@ -16,6 +16,7 @@ import seaborn as sns
 import ml_model
 import globals as gl
 import classifiers
+import plots
 
 
 def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
@@ -96,19 +97,17 @@ def do_grid_search_for_classifiers(X, y, clf_name='all', num_iter=20):
         scores.append([roc_auc, recall, specificity, precision])
         conf_mats.append(conf_mat)
 
-    '''
-    plt = plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
+    plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
                               x_axis_name='Classifier',
                               y_axis_name='Performance',
                               x_labels=names,
                               values=[a[0] for a in scores],
-                              lbl='auc_score'
-                              )
-
-    plt.savefig(gl.working_directory_path + '/Classifier\ Performance/performance_per_clf_after_grid_search.pdf')
-    '''
+                              lbl='auc_score',
+                              filename='performance_per_clf_after_grid_search.pdf'
+                        )
 
     s = ''
+
     for i, sc in enumerate(scores):
         s += 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
              '\troc_auc: %.3f, ' \
@@ -134,7 +133,7 @@ def plot_heat_map_of_grid_search(cv_results, Classifier):
     sns.heatmap(scores, annot=True,
                 xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
     plt.title('Grid Search roc_auc Score')
-    plt.savefig(gl.working_directory_path + '/Plots/GridSearch_heatmaps/' + Classifier.name + '.pdf')
+    plots.save_plot(plt, 'Gridsearch/', Classifier.name + '.pdf')
 
 
 

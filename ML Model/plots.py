@@ -143,8 +143,9 @@ def plot_mean_value_of_feature_at_crash(X, y):
         plt.bar(1,  mean_with_obstacles, width=0.5, yerr=std_with_obstacles, label='Crash')
         plt.legend()
         plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
-        plt.savefig(gl.working_directory_path + '/Plots/Crash_Correlation/bar_feature_' + str(f_factory.feature_names[i]) + '_crash.pdf')
-        plt.close('all')
+
+        filename = str(f_factory.feature_names[i]) + '_crash.pdf'
+        save_plot(plt, 'Features/Crash Correlation', filename)
 
 
 def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, filename, std_err=None):

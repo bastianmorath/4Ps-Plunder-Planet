@@ -1,20 +1,10 @@
 """This module is the main file when one wants to ...
 
-
 """
 
 from __future__ import division, print_function  # s.t. division uses float result
 
-from sklearn.feature_selection import SelectFromModel
-from sklearn.utils import class_weight
-
-from sklearn import naive_bayes
-from sklearn import svm
-from sklearn import neighbors
-from sklearn import discriminant_analysis
-
 import time
-import numpy as np
 import argparse
 
 import setup
@@ -22,10 +12,8 @@ import plots
 import test_data
 import globals as gl
 import features_factory as f_factory
-import ml_model
 import window_optimization
 import hyperparameter_optimization
-import classifiers
 
 
 """INITIALIZATION"""
@@ -75,11 +63,11 @@ if plot_mean_value_of_feature_at_crash:
 
 
 if args.test_windows:
-    window_optimization.write_window_scores_to_file(X, y, args.test_windows[0], args.test_windows[1], args.test_windows[2])
+    window_optimization.write_window_scores_to_file(X, y, args.test_windows[0],
+                                                    args.test_windows[1], args.test_windows[2])
 
 if args.grid_search:
     hyperparameter_optimization.do_grid_search_for_classifiers(X, y, args.grid_search[0], args.grid_search[1])
-
 
 
 end = time.time()

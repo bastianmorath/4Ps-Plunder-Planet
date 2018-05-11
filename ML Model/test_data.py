@@ -14,6 +14,7 @@ import refactoring_logfiles
 import matplotlib.pyplot as plt
 
 import setup
+import plots
 
 make_plots = False
 
@@ -169,4 +170,4 @@ def plot_hr(dataframe, i):
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate')
 
-    plt.savefig(gl.working_directory_path + '/Plots/Heartrate_Testdata/heartrate_testdata_' + str(i) + '.pdf')
+    plots.save_plot(plt, 'Logfiles/test_data/', 'heartrate_testdata_' + str(i) + '.pdf')

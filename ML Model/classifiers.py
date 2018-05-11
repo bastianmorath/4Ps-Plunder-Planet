@@ -1,3 +1,9 @@
+"""This module contains different classifier classes. They are all subclasses of the Classifier-class and
+contain hyperparameters to do grid search over and the classifier obejct itself
+
+"""
+
+
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -11,26 +17,26 @@ from sklearn.ensemble import (AdaBoostClassifier,
                               RandomForestClassifier)
 from sklearn.tree import DecisionTreeClassifier
 import grid_search
+
 import features_factory as f_factory
 
 
 EPSILON = 0.0001
 
 
-class Classifier(object):
+class CClassifier(object):
     def __init__(self, X, y):
         cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
         self.class_weight_dict = dict(enumerate(cw))
         self.X = X
         self.y = y
+        self.clf = None
+        self.tuned_params = None
 
-    def optimal_clf(self, X, y, num_iter):
-        return grid_search.get_optimal_clf(self.clf, X, y, self.tuned_params, num_iter)
 
-
-class CSVM(Classifier):
+class CSVM(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'SVM'
 
@@ -43,9 +49,9 @@ class CSVM(Classifier):
         self.clf = SVC(class_weight=self.class_weight_dict)
 
 
-class CLinearSVM(Classifier):
+class CLinearSVM(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Linear SVM'
 
@@ -58,9 +64,9 @@ class CLinearSVM(Classifier):
         self.clf = SVC(class_weight=self.class_weight_dict)
 
 
-class CNearestNeighbors(Classifier):
+class CNearestNeighbors(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Nearest Neighbor'
 
@@ -74,9 +80,9 @@ class CNearestNeighbors(Classifier):
         self.clf = KNeighborsClassifier()
 
 
-class CQuadraticDiscriminantAnalysis(Classifier):
+class CQuadraticDiscriminantAnalysis(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'QDA'
 
@@ -90,9 +96,9 @@ class CQuadraticDiscriminantAnalysis(Classifier):
         self.clf = QuadraticDiscriminantAnalysis()
 
 
-class CGradientBoostingClassifier(Classifier):
+class CGradientBoostingClassifier(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Gradient Boosting'
 
@@ -108,7 +114,7 @@ class CGradientBoostingClassifier(Classifier):
         self.param5_name = 'min_samples_split'
         self.param6 = sp_randint(1, 5)  # min_samples_leaf
         self.param6_name = 'min_samples_leaf'
-        self.param7 = sp_randint(len(f_factory.feature_names) -5, len(f_factory.feature_names))  # max_features
+        self.param7 = sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names))  # max_features
         self.param7_name = 'max_features'
         self.param8 = np.random.uniform(EPSILON, 1)  # subsample
         self.param8_name = 'subsample'
@@ -120,9 +126,9 @@ class CGradientBoostingClassifier(Classifier):
         self.clf = GradientBoostingClassifier()
 
 
-class CDecisionTreeClassifier(Classifier):
+class CDecisionTreeClassifier(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Decision Tree'
 
@@ -136,20 +142,20 @@ class CDecisionTreeClassifier(Classifier):
         self.param4_name = 'min_samples_split'
         self.param5 = sp_randint(1, 5)  # min_samples_leaf
         self.param5_name = 'min_samples_leaf'
-        self.param6 = len(f_factory.feature_names) -5, len(f_factory.feature_names)  # max_features
+        self.param6 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
         self.param6_name = 'max_features'
 
         self.tuned_params = {'criterion': self.param1, 'splitter': self.param2,
                              'max_depth': self.param3, 'min_samples_split': self.param4,
                              'min_samples_leaf': self.param5, 'max_features': self.param6,
-                            }
+                             }
 
         self.clf = DecisionTreeClassifier()
 
 
-class CRandomForest(Classifier):
+class CRandomForest(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Random Forest'
 
@@ -168,9 +174,9 @@ class CRandomForest(Classifier):
         self.clf = RandomForestClassifier()
 
 
-class CAdaBoost(Classifier):
+class CAdaBoost(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Ada Boost'
 
@@ -183,14 +189,14 @@ class CAdaBoost(Classifier):
 
         self.tuned_params = {'n_estimators': self.param1, 'learning_rate': self.param2,
                              'algorithm': self.param3,
-                            }
+                             }
 
         self.clf = AdaBoostClassifier()
 
 
-class CNaiveBayes(Classifier):
+class CNaiveBayes(CClassifier):
     def __init__(self, X, y):
-        Classifier.__init__(self, X, y)
+        CClassifier.__init__(self, X, y)
 
         self.name = 'Naive Bayes'
 

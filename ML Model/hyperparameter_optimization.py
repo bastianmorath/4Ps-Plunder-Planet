@@ -1,9 +1,6 @@
-
 """This module takes a classifier name and n_iter and does RandomSearchCV to find the ebst hyperparameters of the
 
 classifier with this name. It writes the results (best hyperparameters and performance) back to a file
-
-
 """
 
 from __future__ import division, print_function  # s.t. division uses float result
@@ -22,13 +19,7 @@ import seaborn as sns
 import ml_model
 import globals as gl
 import classifiers
-
-
-def random_search(X, y, clf_name, n_iter):
-
-    print('Doing Random Search Cross Validation...')
-
-    grid_search.do_grid_search_for_classifiers(X, y, clf_name, n_iter)
+import plots
 
 
 def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
@@ -40,6 +31,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
     :return: classifier with optimal tuned hyperparameters
 
     """
+
     if verbose:
         print('# Tuning hyper-parameters for roc_auc \n')
 
@@ -72,7 +64,7 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
 
 
 def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
-    """Test different classifiers wihtout hyperparameter optimization, and prints its auc scores in a barplot
+    """Test different classifiers without hyperparameter optimization, and prints its auc scores in a barplot
 
       Arguments:
           X {matrix} -- Feature matrix
@@ -100,7 +92,7 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
         names = [names[idx]]
 
     for i, (Classifier, name) in enumerate(zip(clfs, names)):
-        optimal_clf = Classifier.optimal_clf(X, y, num_iter)
+        optimal_clf = get_optimal_clf(Classifier.clf, X, y, Classifier.tuned_params, num_iter)
         # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
         optimal_params.append(optimal_clf.best_params_)
 
@@ -108,19 +100,17 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
         scores.append([roc_auc, recall, specificity, precision])
         conf_mats.append(conf_mat)
 
-    '''
-    plt = plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
+    plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
                               x_axis_name='Classifier',
                               y_axis_name='Performance',
                               x_labels=names,
                               values=[a[0] for a in scores],
-                              lbl='auc_score'
+                              lbl='auc_score',
+                              filename='performance_per_clf_after_grid_search.pdf',
                               )
 
-    plt.savefig(gl.working_directory_path + '/Classifier\ Performance/performance_per_clf_after_grid_search.pdf')
-    '''
-
     s = ''
+
     for i, sc in enumerate(scores):
         s += 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
              '\troc_auc: %.3f, ' \
@@ -129,7 +119,9 @@ def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
             'precision: %.3f \n\n' \
             '\tOptimal params: %s \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
-             % (names[i], gl.hw, gl.cw, gl.gradient_w, sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2*i], conf_mat[2*i + 1])
+             % (names[i], gl.hw, gl.cw, gl.gradient_w,
+                sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2*i], conf_mat[2*i + 1])
+
     file = open(gl.working_directory_path + '/performance_clf_' + str(idx) + '_' + str(num_iter) + '_iter_'
                 + str(gl.hw) + '_' + str(gl.cw) + '_' + str(gl.gradient_w) + '.txt', 'w+')
     file.write(s)
@@ -145,4 +137,6 @@ def plot_heat_map_of_grid_search(cv_results, Classifier):
     sns.heatmap(scores, annot=True,
                 xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
     plt.title('Grid Search roc_auc Score')
-    plt.savefig(gl.working_directory_path + '/Plots/GridSearch_heatmaps/' + Classifier.name + '.pdf')
+
+    plots.save_plot(plt, 'Gridsearch/', 'heatmap_' + Classifier.name + '.pdf')
+
