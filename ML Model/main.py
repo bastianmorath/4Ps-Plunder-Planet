@@ -14,7 +14,7 @@ import globals as gl
 import features_factory as f_factory
 import window_optimization
 import hyperparameter_optimization
-
+import ml_model
 
 """INITIALIZATION"""
 plot_heartrate_of_each_logfile = False
@@ -67,8 +67,14 @@ if args.test_windows:
                                                     args.test_windows[1], args.test_windows[2])
 
 if args.grid_search:
-    hyperparameter_optimization.do_grid_search_for_classifiers(X, y, args.grid_search[0], args.grid_search[1])
+    if args.grid_search[0] == 'all':
+        names, scores, optimal_params, conf_mats = \
+            hyperparameter_optimization.get_performance_of_all_clf_with_optimized_hyperparameters(X, y, 20)
 
+        ml_model.plot_barchart_scores(names, scores)
+        ml_model.write_scores_to_file(names, scores, optimal_params, conf_mats)
+    else:
+        args = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(X, y, args.grid_search[0], 20)
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

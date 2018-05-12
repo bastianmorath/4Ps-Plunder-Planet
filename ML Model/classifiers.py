@@ -16,12 +16,34 @@ from sklearn.ensemble import (AdaBoostClassifier,
                               GradientBoostingClassifier,
                               RandomForestClassifier)
 from sklearn.tree import DecisionTreeClassifier
-import grid_search
 
 import features_factory as f_factory
 
 
 EPSILON = 0.0001
+
+
+def get_clf_with_name(clf_name):
+    """Returns the classifier with the given name
+
+    :param clf_name: name of the classifier
+
+    :return: classifier
+    """
+
+    clfs = [
+        CSVM,
+        CLinearSVM,
+        CNearestNeighbors,
+        CQuadraticDiscriminantAnalysis,
+        CGradientBoostingClassifier,
+        CDecisionTreeClassifier,
+        CRandomForest,
+        CAdaBoost,
+        CNaiveBayes
+    ]
+
+    return [clf for clf in clfs if clf.name == clf_name][0]
 
 
 class CClassifier(object):

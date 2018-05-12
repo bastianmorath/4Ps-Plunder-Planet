@@ -1,4 +1,4 @@
-"""This module mainly serves as a factory for all machine learning modules
+"""This module mainly serves as a factory with various methods used by the machine learning modules
 
 """
 from __future__ import division  # s.t. division uses float result
@@ -33,6 +33,7 @@ def get_performance(model, clf_name, X, y, verbose = False):
       :param clf_name: Name of the classifier (used to print scores)
       :param X: the feature matrix
       :param y: True labels
+      :param verbose: Whether a detailed score should be printed out
 
       :return: roc_auc, recall, specificity, precicion and confusion_matrix
 
@@ -71,6 +72,7 @@ def feature_selection(X, y, verbose=False):
 
     :param X:  Feature matrix
     :param y: labels
+    :param verbose: Whether a detailed report should be printed out
 
     :return new feature matrix with selected features
 
@@ -167,7 +169,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
                   + str(max(a,b)*100) + '%')
 
 
-def plot_performance_of_classifiers(X, y):
+def plot_performance_of_classifiers_wihtout_hyperparameter_tuning(X, y):
     # Plots performance of the given classifiers in a barchart for comparison without hyperparameter tuning
 
     clf_list = [
@@ -195,13 +197,37 @@ def plot_performance_of_classifiers(X, y):
         plot_roc_curve(classifier.clf, X, y, classifier.name)
 
     # Plots roc_auc for the different classifiers
-    plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
+    plots.plot_barchart(title='performance_per_clf_without_grid_search',
                               x_axis_name='',
                               y_axis_name='roc_auc',
                               x_labels=[clf.name for clf in clf_list],
                               values=auc_scores,
-                              filename='roc_auc_per_classifier.pdf',
-                              lbl=None,
-                              )
+                              filename='performance_per_clf_without_grid_search.pdf'
+                        )
 
 
+def plot_barchart_scores(names, scores):
+    plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
+                        x_axis_name='Classifier',
+                        y_axis_name='Performance',
+                        x_labels=names,
+                        values=[a[0] for a in scores],
+                        lbl='auc_score',
+                        filename='performance_per_clf_after_grid_search.pdf'
+                        )
+
+
+def write_scores_to_file(names, scores, optimal_params, conf_mat):
+    s = ''
+    for i, sc in enumerate(scores):
+        s += 'Scores for %s: \n\n' \
+             '\troc_auc: %.3f, ' \
+             'recall: %.3f, ' \
+             'specificity: %.3f, ' \
+             'precision: %.3f \n\n' \
+             '\tOptimal params: %s \n\n' \
+             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
+             % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2 * i], conf_mat[2 * i + 1])
+
+    file = open(gl.working_directory_path + '/classifier_performances_randomsearch_cv.txt', 'w+')
+    file.write(s)

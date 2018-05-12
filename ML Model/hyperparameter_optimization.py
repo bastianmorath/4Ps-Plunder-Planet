@@ -1,11 +1,10 @@
-"""This module takes a classifier name and n_iter and does RandomSearchCV to find the ebst hyperparameters of the
+"""This module takes a classifier name and n_iter and does RandomSearchCV to find the best hyperparameters of the
 
-classifier with this name. It writes the results (best hyperparameters and performance) back to a file
+classifier with this name.
 """
 
 from __future__ import division, print_function  # s.t. division uses float result
 
-import grid_search
 import numpy as np
 import pandas as pd
 
@@ -17,25 +16,61 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import ml_model
-import globals as gl
 import classifiers
 import plots
 
 
-def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
-    """This method optimizes hyperparameters of svm with cross-validation, which is done using RandomSearchCV on a
-        training set
-        The performance of the selected hyper-parameters and trained model is then measured on a dedicated test
-        set that was not used during the model selection step.
+def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20):
+    """Does Hyperparameter optimization for all classifiersand returns for the classifier names,
+     roc_auc, precision, specificity, recall and the conf_matrix a list each
 
-    :return: classifier with optimal tuned hyperparameters
+    :param X: Feature matrix
+    :param y: labels
+    :param num_iter: number of iterations RandomSearchCv should do
+
+    :return: lists for names, scores, optimal_params and conf_mats
 
     """
+
+    names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree',
+             'Random Forest', 'Ada Boost', 'Naive Bayes']
+
+    scores = []
+    optimal_params = []
+    conf_mats = []
+
+    for name in names:
+        optimal_clf = get_clf_with_optimized_hyperparameters(X, y, name, num_iter)
+        # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
+        optimal_params.append(optimal_clf.best_params_)
+
+        roc_auc, recall, specificity, precision, conf_mat = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
+        scores.append([roc_auc, recall, specificity, precision])
+        conf_mats.append(conf_mat)
+
+    return names, scores, optimal_params, conf_mats
+
+
+def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=False):
+    """This method optimizes hyperparameters with cross-validation, which is done using RandomSearchCV and
+    returns this optimized classifier
+
+    :param X: Feature matrix
+    :param y: labels
+    :param clf_name:  Name of the classifier as given in classifiers.py
+    :param num_iter: Number of iterations the RandomSearchCV should perform
+    :param verbose: Whether a detailed report should be printed
+
+    :return: roc_auc, recall, specificity, precision, conf_mat
+
+    """
+
+    c_classifier = classifiers.get_clf_with_name(clf_name).__init__(X, y)
 
     if verbose:
         print('# Tuning hyper-parameters for roc_auc \n')
 
-    clf = RandomizedSearchCV(classifier, tuned_params, cv=10,
+    clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=10,
                              scoring='roc_auc', n_iter=num_iter)
 
     clf.fit(X, y)
@@ -63,71 +98,14 @@ def get_optimal_clf(classifier, X, y, tuned_params, num_iter, verbose=False):
     return clf
 
 
-def do_grid_search_for_classifiers(X, y, idx=-1, num_iter=20):
-    """Test different classifiers without hyperparameter optimization, and prints its auc scores in a barplot
-
-      Arguments:
-          X {matrix} -- Feature matrix
-          y {list/ndarray} -- labels
-      """
-
-    clfs = [
-        classifiers.CSVM(X, y),
-        classifiers.CLinearSVM(X, y),
-        classifiers.CNearestNeighbors(X, y),
-        classifiers.CQuadraticDiscriminantAnalysis(X, y),
-        classifiers.CGradientBoostingClassifier(X, y),
-        classifiers.CDecisionTreeClassifier(X, y),
-        classifiers.CRandomForest(X, y),
-        classifiers.CAdaBoost(X, y)
-    ]
-
-    names = [clf.name for clf in clfs]
-
-    scores = []
-    optimal_params = []
-    conf_mats = []
-    if idx >= 0:
-        clfs = [clfs[idx]]
-        names = [names[idx]]
-
-    for i, (Classifier, name) in enumerate(zip(clfs, names)):
-        optimal_clf = get_optimal_clf(Classifier.clf, X, y, Classifier.tuned_params, num_iter)
-        # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
-        optimal_params.append(optimal_clf.best_params_)
-
-        roc_auc, recall, specificity, precision, conf_mat = ml_model.get_performance(optimal_clf, name, X, y, verbose=False)
-        scores.append([roc_auc, recall, specificity, precision])
-        conf_mats.append(conf_mat)
-
-    plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
-                              x_axis_name='Classifier',
-                              y_axis_name='Performance',
-                              x_labels=names,
-                              values=[a[0] for a in scores],
-                              lbl='auc_score',
-                              filename='performance_per_clf_after_grid_search.pdf',
-                              )
-
-    s = ''
-
-    for i, sc in enumerate(scores):
-        s += 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
-             '\troc_auc: %.3f, ' \
-            'recall: %.3f, ' \
-            'specificity: %.3f, ' \
-            'precision: %.3f \n\n' \
-            '\tOptimal params: %s \n\n' \
-            '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
-             % (names[i], gl.hw, gl.cw, gl.gradient_w,
-                sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2*i], conf_mat[2*i + 1])
-
-    file = open(gl.working_directory_path + '/performance_clf_' + str(idx) + '_' + str(num_iter) + '_iter_'
-                + str(gl.hw) + '_' + str(gl.cw) + '_' + str(gl.gradient_w) + '.txt', 'w+')
-    file.write(s)
-
-
 def plot_heat_map_of_grid_search(cv_results, Classifier):
+    """Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
+
+    :param cv_results: cv_results of RandomSearchCV
+    :param Classifier: the classfier
+    :return:
+    """
+
     params = ([list(set(v.compressed())) for k, v in cv_results.items() if k.startswith('param_')])
     print(params)
     plt.figure()
@@ -137,6 +115,4 @@ def plot_heat_map_of_grid_search(cv_results, Classifier):
     sns.heatmap(scores, annot=True,
                 xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
     plt.title('Grid Search roc_auc Score')
-
-    plots.save_plot(plt, 'Gridsearch/', 'heatmap_' + Classifier.name + '.pdf')
-
+    plots.save_plot(plt, 'Gridsearch/', Classifier.name + '.pdf')
