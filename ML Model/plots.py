@@ -148,13 +148,13 @@ def plot_mean_value_of_feature_at_crash(X, y):
         save_plot(plt, 'Features/Crash Correlation', filename)
 
 
-def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, filename, std_err=None):
+def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None):
     """Helper function to plot a barchart with the given arguments
 
     :param title: Title of the plot
-    :param x_axis_name: name of the x_axis
-    :param y_axis_name: name of the y-axis
-    :param x_labels: labels of the x_indices
+    :param xlabel: name of the x_axis
+    :param ylabel: name of the y-axis
+    :param x_tick_labels: labels of the x_indices
     :param values: values to plot
     :param lbl: Name of the values label
     :param filename: filename to be stored
@@ -166,18 +166,18 @@ def plot_barchart(title, x_axis_name, y_axis_name, x_labels, values, lbl, filena
     fix, ax = plt.subplots()
     bar_width = 0.3
     opacity = 0.4
-    index = np.arange(len(x_labels))
+    index = np.arange(len(x_tick_labels))
     
     r = plt.bar(index, values, bar_width,
                 alpha=opacity,
                 color=green_color,
                 label=lbl,
-                yerr = std_err)
+                yerr=std_err)
 
-    plt.xlabel(x_axis_name)
-    plt.ylabel(y_axis_name)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.title(title)
-    plt.xticks(index, x_labels, rotation='vertical')
+    plt.xticks(index, x_tick_labels, rotation='vertical')
     plt.legend()
 
     def autolabel(rects):

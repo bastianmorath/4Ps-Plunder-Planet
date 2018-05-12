@@ -1,59 +1,101 @@
 
 from __future__ import division  # s.t. division uses float result
-import matplotlib
-# matplotlib.use('Agg')
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 from sklearn import metrics
-
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import (LeaveOneGroupOut, cross_val_predict)
 
 
-from sklearn.utils import class_weight
-
-from sklearn import naive_bayes
-from sklearn import svm
-from sklearn import neighbors
-from sklearn import discriminant_analysis
-
-
-import time
-import numpy as np
-
-import setup
 import plots
-
 import globals as gl
 import features_factory as f_factory
+import classifiers
+import model_factory
 
 
-def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=False):
+def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True):
+    """Plots a barchart with the mean roc_auc score for each classfier in two scenarios:
+        1. Do normal crossvalidation to get roc_auc (There can thus be part of a users
+            logfile in the training set AND in the testset. This could influence the performance on the testset as
+            the model has already seen part of the users data/behavior in the training set)
+        2. For the training_data, use all but one user, and then predict score on the last user that was NOT
+            used in the training phase!
 
-    """Take one entire user (i.e. two logfiles most of the time) as test-data, the rest as training-data. Result can be used
-        as an indication which users are hard to predict
+
+    :param X: Feature matrix
+    :param y: labels
+    :param plot_auc_score_per_user: Whether or not we should create a plot for each user left out with the auc_score of
+                                    each classifier when using LeaveOneOut cross validation
+
+    """
+    names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Naive Bayes']
+
+    clfs = [classifiers.CSVM(X, y),
+            classifiers.CLinearSVM(X, y),
+            classifiers.CNearestNeighbors(X, y),
+            classifiers.CQuadraticDiscriminantAnalysis(X, y),
+            classifiers.CGradientBoostingClassifier(X, y),
+            classifiers.CNaiveBayes(X, y)
+            ]
+
+    # Get scores for scenario 1 (normal crossvalidation)
+    auc_scores_scenario_1 = []
+    auc_stds_scenario_1 = []
+
+    for name, classifier in zip(names, clfs):
+        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
+        if name == 'Naive Bayes':
+            old_bx = gl.use_boxcox
+            gl.use_boxcox = True
+            X, _ = f_factory.get_feature_matrix_and_label()
+            gl.use_boxcox = old_bx
+        classifier.clf.fit(X, y)
+        auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X, y))
+        auc_stds_scenario_1.append(apply_cv_per_user_model(classifier.clf, name, X, y))
+
+    # Get scores for scenario 2 (Leave one user out in training phase)
+    auc_scores_scenario_2 = []
+    auc_stds_scenario_2 = []
+    for name, classifier in zip(names, clfs):
+        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
+        if name == 'Naive Bayes':
+            old_bx = gl.use_boxcox
+            gl.use_boxcox = True
+            X, _ = f_factory.get_feature_matrix_and_label()
+            gl.use_boxcox = old_bx
+        classifier.clf.fit(X, y)
+        auc_mean, auc_std = apply_cv_per_user_model(classifier.clf, name, X, y, plot_auc_score_per_user)
+        auc_scores_scenario_2.append(auc_mean)
+        auc_stds_scenario_2.append(auc_std)
+
+    _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_stds_scenario_1,
+                                             auc_scores_scenario_2, auc_stds_scenario_2)
+
+
+def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False, verbose=False):
+
+    """Takes one entire user (i.e. two logfiles most of the time) out of training phase and does prediction
+    on left out user. Result can be used as an indication which users are hard to predict
 
     :param model: the model that should be applied
     :param clf_name: String name of the classifier
     :param X: the feature matrix
     :param y: True labels
-    :param per_logfile: Whether we should leave out one logfile or one user in cross validation
+
     :return: auc_mean and auc_std
 
     """
 
     y = np.asarray(y)  # Used for .split() function
 
-    # Each file should be a separate group, s.t. we can always leaveout one logfile (NOT one user)
-    if per_logfile:
-        groups_ids = (pd.concat(gl.obstacle_df_list)['userID'].map(str) + pd.concat(gl.obstacle_df_list)['logID'].map(str)).tolist()
-    # Each user should be a separate group, s.t. we can always leaveout one user (NOT one logfile)
-    else:
-        groups_ids = pd.concat(gl.obstacle_df_list)['userID'].map(str).tolist()
+    # Each user should be a separate group, s.t. we can always leaveout one user
+    groups_ids = pd.concat(gl.obstacle_df_list)['userID'].map(str).tolist()
 
     logo = LeaveOneGroupOut()
-    scores_and_ids = []
+    scores_and_ids = []  # tuples of (auc, recall, specificity, precision, user_id)
     df_obstacles_concatenated = pd.concat(gl.obstacle_df_list, ignore_index=True)
     for train_index, test_index in logo.split(X, y, groups_ids):
 
@@ -72,101 +114,54 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
         left_out_group_indices = sorted(set(range(0, len(df_obstacles_concatenated))) - set(train_index))
-        group = df_obstacles_concatenated.loc[[left_out_group_indices[0]]][['userID', 'logID']]
+        group = df_obstacles_concatenated.loc[[left_out_group_indices[0]]]['userID']
 
-        if per_logfile:
-            user_id, log_id = group['userID'].item(), group['logID'].item()
-            scores_and_ids.append((auc, recall, specificity, precision, user_id, log_id))
-        else:
-            user_id = group['userID'].item()
-            scores_and_ids.append((auc, recall, specificity, precision, user_id, -1))
+        user_id = group['userID'].item()
+        scores_and_ids.append((auc, recall, specificity, precision, user_id))
 
+    # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
     names = []
-
-    # Print scores for each individual logfile/user left out in cross_validation
     for _, (auc, rec, spec, prec, user_id, log_id) in enumerate(scores_and_ids):
         for df_idx, df in enumerate(gl.df_list):
-            # Get the logname out of userID and log_id (1 or 2)
-            if per_logfile and df.iloc[0]['userID'] == user_id and df.iloc[0]['logID'] == log_id:
-                name = gl.names_logfiles[df_idx][:2] + '_' + gl.names_logfiles[df_idx][-5]
-                names.append(name)
-                if verbose:
-                    print(name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f,'
-                                 'Precision = %.3f' % (auc, rec, spec, prec))
             # Get the username out of userID
-            elif (not per_logfile) and df.iloc[0]['userID'] == user_id:
+            if df.iloc[0]['userID'] == user_id:
                 name = gl.names_logfiles[df_idx][:2]
                 names.append(name)
-                if verbose:
-                    print(name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, '
-                                 'Precision = %.3f' % (auc, rec, spec, prec))
-
-    names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
-
-    index = np.arange(len(names))
-    aucs = [a[0] for a in scores_and_ids]
-    recalls = [a[1] for a in scores_and_ids]
-    specificities = [a[2] for a in scores_and_ids]
-    precisions = [a[3] for a in scores_and_ids]
-
-
-    _, ax = plt.subplots()
-    bar_width = 0.3
-    opacity = 0.4
-    r = plt.bar(index, aucs, bar_width,
-                    alpha=opacity,
-                    color=plots.blue_color,
-                    label='Auc')
-
-    mean = np.mean(aucs)
-    std = np.std(aucs)
-
-    if per_logfile:
-        plt.xlabel('Logfile')
-        plt.title(r'Auc scores by logfile with %s ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, mean, std))
-    else:
-        plt.xlabel('User')
-        plt.title(r'Auc scores by user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, mean, std))
-
-    plt.ylabel('Auc score')
-    plt.xticks(index, names, rotation='vertical')
-    plt.legend()
-
-    def autolabel(rects):
-        """
-        Attach a text label above each bar displaying its height
-        """
-        for i, rect in enumerate(rects):
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width() / 2., 1.02 * height,
-                    '%0.3f' % aucs[i],
-                    ha='center', va='bottom', size=5)
-
-    autolabel(r)
-
-    plt.tight_layout()
-    if per_logfile:
-        plots.save_plot(plt, 'Performance', 'performance_per_logfile_' + clf_name+'.pdf')
-    else:
-        plots.save_plot(plt, 'Performance', 'performance_per_user_' + clf_name+'.pdf')
-
-    # Print mean score
-    auc_mean = np.mean([a[0] for a in scores_and_ids])
-    recall_mean = np.mean([a[1] for a in scores_and_ids])
-    specificity_mean = np.mean([a[2] for a in scores_and_ids])
-    precision_mean = np.mean([a[3] for a in scores_and_ids])
-
-    auc_std = np.std([a[0] for a in scores_and_ids])
-    recall_std = np.std([a[1] for a in scores_and_ids])
-    specificity_std = np.std([a[2] for a in scores_and_ids])
-    precision_std = np.std([a[3] for a in scores_and_ids])
-
-    auc_max = np.max([a[0] for a in scores_and_ids])
-    recall_max = np.max([a[1] for a in scores_and_ids])
-    specificity_max = np.max([a[2] for a in scores_and_ids])
-    precision_max = np.max([a[3] for a in scores_and_ids])
 
     if verbose:
+        # Print scores for each individual user left out in cross_validation
+        print('roc_auc score for each user that was left out in training set and predicted on in test_set')
+        for i, (auc, rec, spec, prec, user_id, log_id) in enumerate(scores_and_ids):
+            name = names[i]
+            print(name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, '
+                         'Precision = %.3f' % (auc, rec, spec, prec))
+
+    names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
+    aucs = [a[0] for a in scores_and_ids]
+
+    auc_mean = np.mean(aucs)
+    auc_std = np.std(aucs)
+    if plot_auc_score_per_user:
+        title = r'Auc scores per user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, auc_mean, auc_std)
+        filename = 'LeaveOneOut/performance_per_user_' + clf_name + '.pdf'
+        plots.plot_barchart(title, 'Users', 'Auc score', names, aucs, 'auc_score', filename)
+
+    if verbose:
+        # Print mean score
+        auc_mean = np.mean([a[0] for a in scores_and_ids])
+        recall_mean = np.mean([a[1] for a in scores_and_ids])
+        specificity_mean = np.mean([a[2] for a in scores_and_ids])
+        precision_mean = np.mean([a[3] for a in scores_and_ids])
+
+        auc_std = np.std([a[0] for a in scores_and_ids])
+        recall_std = np.std([a[1] for a in scores_and_ids])
+        specificity_std = np.std([a[2] for a in scores_and_ids])
+        precision_std = np.std([a[3] for a in scores_and_ids])
+
+        auc_max = np.max([a[0] for a in scores_and_ids])
+        recall_max = np.max([a[1] for a in scores_and_ids])
+        specificity_max = np.max([a[2] for a in scores_and_ids])
+        precision_max = np.max([a[3] for a in scores_and_ids])
         print('Performance score when doing LeaveOneGroupOut with logfiles: ')
 
         print('\n Performance: '
@@ -192,63 +187,43 @@ def apply_cv_per_user_model(model, clf_name, X, y, per_logfile=False, verbose=Fa
     return auc_mean, auc_std
 
 
-print('Params: \n\t testing: ' + str(gl.testing) + ', \n\t use_cache: ' + str(gl.use_cache) + ', \n\t test_data: ' +
-      str(gl.test_data) + ', \n\t use_boxcox: ' + str(gl.use_boxcox) + ', \n\t plots_enabled: ' + str(gl.plots_enabled)
-      + ', \n\t reduced_features: ' + str(gl.reduced_features))
+def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_stds_scenario_1,
+                                             auc_scores_scenario_2, auc_stds_scenario_2):
+    fix, ax = plt.subplots()
+    bar_width = 0.3
+    opacity = 0.4
+    index = np.arange(len(auc_scores_scenario_1))
 
-print('Init dataframes...')
+    r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
+                 alpha=opacity,
+                 color=plots.green_color,
+                 label='roc_auc normal CV',
+                 yerr=auc_stds_scenario_1)
 
-start = time.time()
+    r2 = plt.bar(index, auc_scores_scenario_2, bar_width,
+                 alpha=opacity,
+                 color=plots.red_color,
+                 label='roc_auc LeaveOneGroupOut CV',
+                 yerr=auc_stds_scenario_2)
 
-setup.setup()
+    plt.ylabel('roc_auc')
+    plt.title('clf_performance_with_user_left_out_vs_normal')
+    plt.xticks(index, names, rotation='vertical')
+    plt.legend()
 
-print('Creating feature matrix...\n')
+    def autolabel(rects):
+        """
+           Attach a text label above each bar displaying its height
+           """
+        for rect in rects:
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+                    '%d' % int(height),
+                    ha='center', va='bottom', size=5)
 
-X, y = f_factory.get_feature_matrix_and_label()
+    autolabel(r1)
+    autolabel(r2)
 
-cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
-class_weight_dict = dict(enumerate(cw))
+    plt.tight_layout()
 
-names = ["Linear SVM", "RBF SVM", "Nearest Neighbor", "Naive Bayes", "QDA"]
-
-classifiers = [
-        svm.LinearSVC(class_weight=class_weight_dict),
-        svm.SVC(class_weight=class_weight_dict),
-        neighbors.KNeighborsClassifier(),
-        naive_bayes.GaussianNB(),
-        discriminant_analysis.QuadraticDiscriminantAnalysis()
-        ]
-
-plot_classifier_scores = True
-if plot_classifier_scores:
-    auc_scores = []
-    auc_stds = []
-    for name, clf in zip(names, classifiers):
-        print(name+'...')
-        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
-        if name == 'Naive Bayes':
-            old_bx = gl.use_boxcox
-            gl.use_boxcox = True
-            X, _ = f_factory.get_feature_matrix_and_label()
-            gl.use_boxcox = old_bx
-        clf.fit(X, y)
-        auc_scores.append(apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[0])
-        auc_stds.append(apply_cv_per_user_model(clf, name, X, y, per_logfile=False)[1])
-
-        # ml_model.plot_roc_curve(clf, X, y, name)
-
-    plt = plots.plot_barchart(title='roc_auc w/out hyperparameter tuning',
-                              x_axis_name='',
-                              y_axis_name='roc_auc',
-                              x_labels=names,
-                              values=auc_scores,
-                              lbl=None,
-                              std_err=auc_stds,
-                              )
-
-    plots.save_plot(plt, 'Performance/', 'roc_auc_per_classifier_leave_one_out.pdf')
-
-end = time.time()
-print('Time elapsed: ' + str(end - start))
-
-
+    plots.save_plot(plt, 'Performance', 'clf_performance_with_user_left_out_vs_normal.pdf')

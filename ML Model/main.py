@@ -14,7 +14,8 @@ import globals as gl
 import features_factory as f_factory
 import window_optimization
 import hyperparameter_optimization
-import ml_model
+import model_factory
+import leave_one_out_cv
 
 """INITIALIZATION"""
 plot_heartrate_of_each_logfile = False
@@ -31,6 +32,8 @@ parser.add_argument('--test_windows', type=int, nargs='3', default=[30, 30, 10],
 parser.add_argument('--grid_search', type=[str, int], nargs='2', default=['all', 20],
                     help='Provide the classifier name and the n_iter for RandomSearchCV.'
                          'clf_id=\'all\' if you want to test all classifiers')
+parser.add_argument('--leave_one_out', help='Plot performance when leaving out a logfile vs leaving out a whole user in'
+                                            'crossvalidation')
 args = parser.parse_args()
 
 
@@ -71,10 +74,13 @@ if args.grid_search:
         names, scores, optimal_params, conf_mats = \
             hyperparameter_optimization.get_performance_of_all_clf_with_optimized_hyperparameters(X, y, 20)
 
-        ml_model.plot_barchart_scores(names, scores)
-        ml_model.write_scores_to_file(names, scores, optimal_params, conf_mats)
+        model_factory.plot_barchart_scores(names, scores)
+        model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
     else:
         args = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(X, y, args.grid_search[0], 20)
+
+if args.leave_one_out:
+    leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(X, y, True)
 
 end = time.time()
 print('Time elapsed: ' + str(end - start))

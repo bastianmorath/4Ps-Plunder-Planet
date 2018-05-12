@@ -12,7 +12,7 @@ from sklearn import svm
 import numpy as np
 from sklearn.utils import class_weight
 
-import ml_model
+import model_factory
 import globals as gl
 
 
@@ -26,7 +26,7 @@ def write_window_scores_to_file(X, y, hw, cw, gradient_w):
 
     clf = svm.SVC(class_weight=class_weight_dict)
     clf.fit(X, y)
-    roc_auc, recall, specificity, precision, conf_mat = ml_model.get_performance(clf, "Naive Bayes", X, y)
+    roc_auc, recall, specificity, precision, conf_mat = model_factory.get_performance(clf, "Naive Bayes", X, y)
 
     s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
         '\troc_auc: %.3f, ' \
