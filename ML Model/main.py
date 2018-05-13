@@ -18,24 +18,23 @@ import model_factory
 import leave_one_out_cv
 
 """INITIALIZATION"""
-plot_heartrate_of_each_logfile = False
-plot_feature_distributions = False
-plot_heartrate_histogram = False
-plot_mean_value_of_feature_at_crash = False
+plot_heartrate_of_each_logfile = True
+plot_feature_distributions = True
+plot_heartrate_histogram = True
+plot_mean_value_of_feature_at_crash = True
 
 # Add user-friendly command-line interface to enter windows and RandomSearchCV parameters etc.
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--feature_selection', help='Do feature selection with cross_correlation matrix')
-parser.add_argument('--test_windows', type=int, nargs='3', default=[30, 30, 10],
+parser.add_argument('-feature_selection', help='Do feature selection with cross_correlation matrix')
+parser.add_argument('-test_windows', type=int, nargs=3, default=[30, 30, 10],
                     help='Provide the windowsizes of the heartrate, crashwindow and the gradient_change window [s]')
-parser.add_argument('--grid_search', type=[str, int], nargs='2', default=['all', 20],
-                    help='Provide the classifier name and the n_iter for RandomSearchCV.'
+parser.add_argument('-grid_search', type=str, default='all',
+                    help='Provide the classifier name for RandomSearchCV.'
                          'clf_id=\'all\' if you want to test all classifiers')
-parser.add_argument('--leave_one_out', help='Plot performance when leaving out a logfile vs leaving out a whole user in'
+parser.add_argument('-leave_one_out', help='Plot performance when leaving out a logfile vs leaving out a whole user in'
                                             'crossvalidation')
 args = parser.parse_args()
-
 
 print('Init dataframes...')
 
@@ -54,6 +53,7 @@ else:
         plots.plot_hr_of_dataframes()
 
 X, y = f_factory.get_feature_matrix_and_label()
+
 
 if plot_feature_distributions:
     plots.plot_feature_distributions(X)

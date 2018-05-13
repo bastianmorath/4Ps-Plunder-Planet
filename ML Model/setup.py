@@ -31,6 +31,92 @@ import globals as gl
 print_key_numbers = False
 
 
+
+
+def setup():
+    all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
+
+    kinect_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
+    kinect_names_hr = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
+
+    fbmc_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
+    fbmc_names_hr_points = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if
+                            re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
+
+    gl.names_logfiles = fbmc_names_hr_points
+
+    if gl.testing:
+        # gl.names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
+        gl.names_logfiles = ['ISI_FBMC_hr_1.log']
+        read_and_prepare_logs()
+        gl.obstacle_df_list = get_obstacle_times_with_success()
+
+    elif gl.use_cache:  # If already computed,  df_list and obstacle stored in pickle file for faster processing
+        gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/obstacle_df.pickle')
+        gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/df_list.pickle')
+
+        print('Dataframe already computed and stored in pickle files. Used pickle files to reduce computational time')
+
+    else:
+        print('Dataframe not cached. Creating dataframe...')
+        read_and_prepare_logs()
+
+        gl.obstacle_df_list = get_obstacle_times_with_success()
+
+        # Save to .pickle for caching
+
+        pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/obstacle_df.pickle')
+        pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/df_list.pickle')
+
+        print('Dataframe created')
+
+    if print_key_numbers:
+        print_keynumbers_logfiles()
+
+
+'''Reads the logfiles and parses them into Pandas dataframes. 
+    Also adds additional log&timedelta column, cuts them to the same length and normalizes heartrate
+'''
+
+
+def read_and_prepare_logs():
+
+    logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
+
+    # This read_csv is used when using the original logfiles
+    # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
+    #                 'psyStress', 'psyDifficulty', 'obstacle']
+    # gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
+
+    # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
+    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
+                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
+    gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
+
+    refactoring.add_timedelta_column()  # Is added after refactoring, since timedelta format gets lost otherwise
+    # POSSIBLY_DANGEROUS
+    refactoring.remove_logs_without_heartrates_or_points()  # Now done by using corresponding logs directly
+
+    refactoring.normalize_heartrate()
+
+    refactoring.add_log_and_user_column()
+
+
+def refactor_crashes():
+    """
+        In the original logfiles, there are always two event happening in case of an obstacle:
+        an EVENT_CRASH (Which doesn't have any information about its obstacle) and an EVENT_OBSTACLE, which makes it
+        more difficult to use the logs later.
+        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
+        Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
+
+    :return: New dataframe that either contains an EVENT_CRASH (obstacle with crash) or
+                EVENT_OBSTACLE (obstacle without a crash)
+
+    """
+    refactoring.refactor_crashes()
+
+
 def print_keynumbers_logfiles():
     """ Prints important numbers of the logfiles:
         - number of logs, events, features (=obstacles)
@@ -80,109 +166,3 @@ def get_obstacle_times_with_success():
                                                  'logID': logIDs}))
 
     return obstacle_time_crash
-
-
-def setup():
-    all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
-
-    kinect_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
-    kinect_names_hr = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
-
-    fbmc_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
-    fbmc_names_hr_points = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if
-                            re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
-
-    gl.names_logfiles = fbmc_names_hr_points
-
-    if gl.testing:
-        # gl.names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
-        gl.names_logfiles = ['ISI_FBMC_hr_1.log']
-
-    # Store computed dataframe in pickle file for faster processing
-    if gl.use_cache:
-        print('Dataframe already cached. Used this file to improve performance')
-        if gl.use_boxcox and gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path +
-                                                 '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
-            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/df_list.pickle')
-        elif gl.use_boxcox and not gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path +
-                                                 '/Pickle/all_features_boxcox/obstacle_df.pickle')
-            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/df_list.pickle')
-        elif not gl.use_boxcox and gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path +
-                                                 '/Pickle/reduced_features/obstacle_df.pickle')
-            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/df_list.pickle')
-        elif not gl.use_boxcox and not gl.reduced_features:
-            gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/obstacle_df.pickle')
-            gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/df_list.pickle')
-    else:
-        print('Dataframe not cached. Creating dataframe...')
-        read_and_prepare_logs()
-
-        gl.obstacle_df_list = get_obstacle_times_with_success()
-
-        # Save to .pickle for caching
-        if gl.use_boxcox and gl.reduced_features:
-            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path +
-                         '/Pickle/reduced_features_boxcox/obstacle_df.pickle')
-            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/reduced_features_boxcox/df_list.pickle')
-        elif gl.use_boxcox and not gl.reduced_features:
-            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path +
-                         '/Pickle/all_features_boxcox/obstacle_df.pickle')
-            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/all_features_boxcox/df_list.pickle')
-        elif not gl.use_boxcox and gl.reduced_features:
-            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/reduced_features/obstacle_df.pickle')
-            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/reduced_features/df_list.pickle')
-        elif not gl.use_boxcox and not gl.reduced_features:
-            pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/all_features/obstacle_df.pickle')
-            pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/all_features/df_list.pickle')
-
-        print('Dataframe created')
-    if print_key_numbers:
-        print_keynumbers_logfiles()
-
-
-'''Reads the logfiles and parses them into Pandas dataframes. 
-    Also adds additional log&timedelta column, cuts them to the same length and normalizes heartrate
-'''
-
-
-def read_and_prepare_logs():
-
-    logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
-
-    # This read_csv is used when using the original logfiles
-    # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
-    #                 'psyStress', 'psyDifficulty', 'obstacle']
-    # gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
-
-    # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
-    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
-                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
-    gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
-
-    refactoring.add_timedelta_column()  # Is added after refactoring, since timedelta format gets lost otherwise
-    # POSSIBLY_DANGEROUS
-    refactoring.remove_logs_without_heartrates_or_points()  # Now done by using corresponding logs directly
-
-    refactoring.normalize_heartrate()
-
-    refactoring.add_log_and_user_column()
-
-
-def refactor_crashes():
-    """
-        In the original logfiles, there are always two event happening in case of an obstacle:
-        an EVENT_CRASH (Which doesn't have any information about its obstacle) and an EVENT_OBSTACLE, which makes it
-        more difficult to use the logs later.
-        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
-        Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
-
-    :return: New dataframe that either contains an EVENT_CRASH (obstacle with crash) or
-                EVENT_OBSTACLE (obstacle without a crash)
-
-    """
-    refactoring.refactor_crashes()
-
-

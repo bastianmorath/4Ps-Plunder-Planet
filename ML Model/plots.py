@@ -59,7 +59,7 @@ def plot_correlation_matrix(X):
     # Generate a custom diverging colormap
     cmap = sns.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, center=0,
+    sns.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
     plt.tight_layout()
 

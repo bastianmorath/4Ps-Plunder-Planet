@@ -32,7 +32,7 @@ def get_feature_matrix_and_label():
     if gl.reduced_features:
         feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
                          '%crashes',
-                         'mean_points', 'std_points']
+                         'points_gradient_changes', 'mean_points', 'std_points']
     else:
         feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
                          'lin_regression_hr_slope', 'hr_gradient_changes',
@@ -44,7 +44,7 @@ def get_feature_matrix_and_label():
 
     matrix = pd.DataFrame()
 
-    if gl.use_cache and (not gl.test_data):
+    if gl.use_cache and (not gl.test_data) and (not gl.testing):
         print('Feature matrix already cached!')
 
         if gl.use_boxcox and gl.reduced_features:
@@ -94,14 +94,15 @@ def get_feature_matrix_and_label():
         if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
-        if gl.use_boxcox and gl.reduced_features:
-            matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
-        elif gl.use_boxcox and not gl.reduced_features:
-            matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
-        elif not gl.use_boxcox and gl.reduced_features:
-            matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
-        elif not gl.use_boxcox and not gl.reduced_features:
-            matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
+        if (not gl.testing) and (not gl.test_data):
+            if gl.use_boxcox and gl.reduced_features:
+                matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
+            elif gl.use_boxcox and not gl.reduced_features:
+                matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
+            elif not gl.use_boxcox and gl.reduced_features:
+                matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
+            elif not gl.use_boxcox and not gl.reduced_features:
+                matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
 
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
@@ -122,9 +123,11 @@ def get_feature_matrix_and_label():
     X = matrix.as_matrix()
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
-
+    print(matrix)
     if plot_corr_matrix:
         plots.plot_correlation_matrix(matrix)
+
+    print('\nFeature matrix and labels created!')
     return X, y
 
 
@@ -191,6 +194,7 @@ def get_number_of_gradient_changes(data_name):
     for list_idx, df in enumerate(gl.df_list):
         changes = get_gradient_changes_column(list_idx, data_name)
         changes_list.append(changes)
+
     if data_name == 'Points':
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['points_gradient_changes'])
     else:
@@ -322,11 +326,13 @@ def get_hr_slope_column(idx):
 
         slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
+        '''
         # Plot slopes
         fit = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
         fit_fn = np.poly1d(fit)
         plt.plot(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], '', last_x_seconds_df['Time'], fit_fn(last_x_seconds_df['Time']))
         plots.save_plot(plt, 'Features', 'lin_regression_slopes.pdf')
+        '''
 
         return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
