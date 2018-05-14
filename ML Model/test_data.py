@@ -13,7 +13,7 @@ import globals as gl
 import refactoring_logfiles
 import matplotlib.pyplot as plt
 
-import setup
+import setup_dataframes
 import plots
 
 make_plots = False
@@ -38,19 +38,20 @@ def init_with_testdata_events_const_hr_const():
         timedeltas = [pd.to_timedelta(t, unit='S') for t in times]
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
-                                       'timedelta': timedeltas})
+                                       'timedelta': timedeltas, 'userID': [i]*length_dataframe,
+                                       'logID': [0]*length_dataframe})
         if make_plots:
             plot_hr(dataframe, i)
 
         gl.df_list.append(dataframe)
 
     refactoring_logfiles.normalize_heartrate()
-    gl.obstacle_df_list = setup.get_obstacle_times_with_success()
+    gl.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
 
 def init_with_testdata_events_random_hr_const():
-    """Inits with very simple synthesized data to check model performence
-        Random events, but heartrate either 1 or 10 depending on crash (with noise)
+    """Inits with very simple synthesized data to check model performance
+        Random events, but heartrate is either 1 or 10 depending on crash (with noise)
 
     """
 
@@ -86,14 +87,15 @@ def init_with_testdata_events_random_hr_const():
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
-                                       'timedelta': timedeltas})
+                                       'timedelta': timedeltas, 'userID': [i]*length_dataframe,
+                                       'logID': [0]*length_dataframe})
         if make_plots:
             plot_hr(dataframe, i)
 
         gl.df_list.append(dataframe)
 
     refactoring_logfiles.normalize_heartrate()
-    gl.obstacle_df_list = setup.get_obstacle_times_with_success()
+    gl.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
 
 def init_with_testdata_events_random_hr_continuous():
@@ -135,14 +137,15 @@ def init_with_testdata_events_random_hr_continuous():
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
-                                       'timedelta': timedeltas})
+                                       'timedelta': timedeltas, 'userID': [i]*length_dataframe,
+                                       'logID': [0]*length_dataframe})
         if make_plots:
             plot_hr(dataframe, i)
 
         gl.df_list.append(dataframe)
 
     refactoring_logfiles.normalize_heartrate()
-    gl.obstacle_df_list = setup.get_obstacle_times_with_success()
+    gl.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
 
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):

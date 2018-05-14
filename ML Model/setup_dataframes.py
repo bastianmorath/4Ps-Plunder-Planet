@@ -1,4 +1,4 @@
-"""This module reads the logfiles and transofrms them into dataframes.
+"""This module reads the logfiles and transforms them into dataframes.
 
 - One can choose whether one wants only the fbmc, only the kinect, or all files.
 

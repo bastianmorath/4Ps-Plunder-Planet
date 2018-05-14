@@ -114,9 +114,10 @@ def plot_heartrate_histogram():
     df = pd.concat(gl.df_list, ignore_index=True)
     df = df[df['Heartrate'] != -1]['Heartrate']
     plt.hist(df)
-    plt.title('Histogram of HR: $\mu=' + str(np.mean(df)) + '$, $\sigma=' + str(np.std(df)) + '$')
+    plt.title('Histogram of HR: $\mu=%.3f$, $\sigma=%.3f$'
+              % (np.mean(df), np.std(df)))
 
-    save_plot(plt, 'Logfiles', 'heartrate_distribution.pdf')
+    save_plot(plt, 'Logfiles', 'heartrate_distribution_all_logfiles.pdf')
 
 
 def plot_mean_value_of_feature_at_crash(X, y):
@@ -177,6 +178,8 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
+    ax.set_ylim([0, 0.8])
+
     plt.xticks(index, x_tick_labels, rotation='vertical')
     plt.legend()
 
@@ -206,13 +209,16 @@ def save_plot(plt, folder, filename):
     :param folder: Folder to be saved to
     :param filename: The name (.pdf) under which the plot should be saved
     """
+    path = gl.working_directory_path + '/Plots/' + folder + '/' + filename
 
-    directory = gl.working_directory_path + '/Plots/' + folder
-
+    # In some cases, I provide sth like abc/test.pdf as filename. I need to split the
+    # directory abc and add it to the folder
+    directory = path.rsplit('/', 1)[0]  # Fives me everyting up to last slash
+    name = path.rsplit('/', 1)[1]
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    savepath = directory + '/' + filename
+    savepath = directory + '/' + name
 
     plt.savefig(savepath)
     plt.close('all')

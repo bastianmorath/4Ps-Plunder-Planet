@@ -21,7 +21,7 @@ plot_corr_matrix = False
 feature_names = []  # Set below
 
 
-def get_feature_matrix_and_label():
+def get_feature_matrix_and_label(verbose=True):
     """ Computes the feeature matrix and the corresponding labels
 
     :return:
@@ -45,7 +45,8 @@ def get_feature_matrix_and_label():
     matrix = pd.DataFrame()
 
     if gl.use_cache and (not gl.test_data) and (not gl.testing):
-        print('Feature matrix already cached!')
+        if verbose:
+            print('Feature matrix already cached!')
 
         if gl.use_boxcox and gl.reduced_features:
             matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
@@ -57,7 +58,9 @@ def get_feature_matrix_and_label():
             matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
 
     else:
-        print('Creating feature matrix...\n')
+
+        if verbose:
+            print('Creating feature matrix...\n')
 
         # TODO: Ugly....
         if 'mean_hr' in feature_names:
@@ -123,11 +126,12 @@ def get_feature_matrix_and_label():
     X = matrix.as_matrix()
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
-    print(matrix)
+
     if plot_corr_matrix:
         plots.plot_correlation_matrix(matrix)
 
-    print('\nFeature matrix and labels created!')
+    if verbose:
+        print('\nFeature matrix and labels created!')
     return X, y
 
 
@@ -145,7 +149,7 @@ def get_standard_feature(feature, data_name):
 
     hr_df_list = []  # list that contains a dataframe with mean_hrs for each logfile
     for list_idx, df in enumerate(gl.df_list):
-        if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in setup.py
+        if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in prepare_dataframes.py
             hr_df = get_column(list_idx, feature, data_name)
             hr_df_list.append(hr_df)
 
