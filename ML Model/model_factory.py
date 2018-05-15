@@ -24,7 +24,7 @@ import classifiers
 import setup_dataframes
 
 
-def get_performance(model, clf_name, X, y, hw=30, cw=30, gradient_w=10, verbose=True, write_to_file=False):
+def get_performance(model, clf_name, X, y, verbose=True, write_to_file=False):
     """Computes performance of the model by doing cross validation with 10 folds, using
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
         as a string
@@ -43,10 +43,6 @@ def get_performance(model, clf_name, X, y, hw=30, cw=30, gradient_w=10, verbose=
     if verbose:
         print('Calculating performance of %s...' % clf_name)
 
-    f_factory.hw = hw
-    f_factory.cw = cw
-    f_factory.gradient_w = gradient_w
-
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
     # Compute performance scores
@@ -63,15 +59,15 @@ def get_performance(model, clf_name, X, y, hw=30, cw=30, gradient_w=10, verbose=
         'recall: %.3f, ' \
         'specificity: %.3f, ' \
         'precision: %.3f \n\n' \
-        '\tConfusion matrix: \t %s \n\t\t\t\t\t %s\n\n\n' \
-        % (clf_name, hw, cw, gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
+        '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
+        % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
 
     if verbose:
         print(s)
 
     if write_to_file:
         # Write result to a file
-        filename = 'performance_' + clf_name + '_windows_' + str(hw) + '_' + str(cw) + '_' + str(gradient_w) + '.txt'
+        filename = 'performance_' + clf_name + '_windows_' + str(f_factory.hw) + '_' + str(f_factory.cw) + '_' + str(f_factory.gradient_w) + '.txt'
         write_to_file(s, 'Performance/', filename, 'w+')
 
     return roc_auc, recall, specificity, precision, conf_mat, s
@@ -196,7 +192,7 @@ def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
         print('Name: ' + classifier.name)
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if classifier.name == 'Naive Bayes':
-            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix='all',
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix='all',
                                                                 use_boxcox=True)
 
             classifier.clf.fit(X_nb, y_nb)

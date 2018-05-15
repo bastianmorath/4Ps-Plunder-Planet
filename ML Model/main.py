@@ -33,14 +33,14 @@ def main(args):
         synthesized_data.init_with_testdata_events_random_hr_const()
         # test_data.init_with_testdata_events_const_hr_const()
         # test_data.init_with_testdata_events_random_hr_continuous()
-        X, y = f_factory.get_feature_matrix_and_label(verbose=True, cached_feature_matrix=None,
+        X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                       save_as_pickle_file=False)
     else:
         setup_dataframes.setup(use_fewer_data=False)  # Specify if we want fewer data (for debugging purposes...)
-        feature_selection = 'selected' if args.feature_selection else 'all'
 
-        X, y = f_factory.get_feature_matrix_and_label(verbose=True, cached_feature_matrix=feature_selection,
-                                                      save_as_pickle_file=True)
+        X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
+                                                      save_as_pickle_file=True,
+                                                      feature_selection=args.feature_selection, use_boxcox=True)
 
     if plot_correlation_matrix:
         f_factory.plot_corr_matrix = True  # DONE

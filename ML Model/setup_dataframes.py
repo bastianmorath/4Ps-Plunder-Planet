@@ -22,7 +22,6 @@ import pandas as pd
 
 import refactoring_logfiles as refactoring
 
-import features_factory as f_factory
 
 
 use_fewer_data = False  # Can be used for debugging (fewer data is used)
@@ -146,6 +145,9 @@ def get_obstacle_times_with_success():
                 crashed (of each obstacle)
 
     """
+
+    import features_factory as f_factory  # To avoid circular dependency
+
     obstacle_time_crash = []
 
     for dataframe in df_list:

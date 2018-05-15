@@ -48,7 +48,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
             feature_selection = 'selected' if reduced_features else 'all'
-            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix=feature_selection,
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=feature_selection,
                                                                 save_as_pickle_file=False, use_boxcox=True)
 
             classifier.clf.fit(X_nb, y_nb)
@@ -66,7 +66,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
             feature_selection = 'selected' if reduced_features else 'all'
-            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix=feature_selection,
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=feature_selection,
                                                                 save_as_pickle_file=False, use_boxcox=True)
             classifier.clf.fit(X_nb, y_nb)
 
