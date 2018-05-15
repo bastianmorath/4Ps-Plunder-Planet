@@ -18,6 +18,7 @@ import leave_one_out_cv
 
 
 """INITIALIZATION"""
+plot_all = True
 plot_heartrate_of_each_logfile = False
 plot_feature_distributions = False
 plot_heartrate_histogram = False
@@ -35,7 +36,7 @@ def main(args):
         X, y = f_factory.get_feature_matrix_and_label(verbose=True, cached_feature_matrix=None,
                                                       save_as_pickle_file=False)
     else:
-        setup_dataframes.setup(use_fewer_data=False)
+        setup_dataframes.setup(use_fewer_data=False)  # Specify if we want fewer data (for debugging purposes...)
         feature_selection = 'selected' if args.feature_selection else 'all'
 
         X, y = f_factory.get_feature_matrix_and_label(verbose=True, cached_feature_matrix=feature_selection,
@@ -72,24 +73,22 @@ def main(args):
 
 
 def plot(X, y):
-    plotting = False
-    if plot_heartrate_of_each_logfile:
+    if plot_heartrate_of_each_logfile or plot_feature_distributions or plot_heartrate_histogram or plot_mean_value_of_feature_at_crash:
         print('Plotting...')
+
+    if plot_heartrate_of_each_logfile or plot_all:
         plots.plot_hr_of_dataframes()  # DONE
 
-    if plot_feature_distributions:
-        if not plotting:
-            print('Plotting...')
+    if plot_feature_distributions or plot_all:
+
         plots.plot_feature_distributions(X)  # DONE
 
-    if plot_heartrate_histogram:
-        if not plotting:
-            print('Plotting...')
+    if plot_heartrate_histogram or plot_all:
+
         plots.plot_heartrate_histogram()  # DONE
 
-    if plot_mean_value_of_feature_at_crash:
-        if not plotting:
-            print('Plotting...')
+    if plot_mean_value_of_feature_at_crash or plot_all:
+
         plots.plot_mean_value_of_feature_at_crash(X, y)  # DONE
 
 

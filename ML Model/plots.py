@@ -62,7 +62,7 @@ def plot_correlation_matrix(X):
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
     plt.tight_layout()
 
-    save_plot(plt, 'Features', 'correlation_matrix.pdf')
+    save_plot(plt, 'Features/', 'correlation_matrix.pdf')
 
 
 def plot_feature_distributions(X):
@@ -212,7 +212,7 @@ def save_plot(plt, folder, filename):
 
     # In some cases, I provide sth like abc/test.pdf as filename. I need to split the
     # directory abc and add it to the folder
-    directory = path.rsplit('/', 1)[0]  # Fives me everything up to last slash
+    directory = path.rsplit('/', 1)[0]  # Gives me everything up to last slash
     name = path.rsplit('/', 1)[1]
     if not os.path.exists(directory):
         os.makedirs(directory)

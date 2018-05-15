@@ -240,7 +240,7 @@ def write_scores_to_file(names, scores, optimal_params, conf_mat):
              'specificity: %.3f, ' \
              'precision: %.3f \n\n' \
              '\tOptimal params: %s \n\n' \
-             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
+             '\tConfusion matrix: \t %s \n\t\t\t %s\n\n\n' \
              % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2 * i], conf_mat[2 * i + 1])
 
     write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')

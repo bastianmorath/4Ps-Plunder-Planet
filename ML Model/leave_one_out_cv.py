@@ -80,9 +80,6 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
-    print(len(auc_scores_scenario_1))
-    print(len(auc_scores_scenario_2))
-    print(len(auc_stds_scenario_2))
 
     _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2)
@@ -166,7 +163,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
     bar_width = 0.3
     opacity = 0.4
     index = np.arange(len(auc_scores_scenario_1))
-    print(auc_scores_scenario_1)
+
     r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
                  alpha=opacity,
                  color=plots.green_color,

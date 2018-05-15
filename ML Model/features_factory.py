@@ -4,6 +4,7 @@
 
 import pandas as pd
 import math
+import os
 
 from scipy import stats
 import numpy as np
@@ -26,13 +27,61 @@ cw = 30  # Over how many preceeding seconds should %crashes be calculated?
 hw = 30  # Over how many preceeding seconds should heartrate features such as min, max, mean be averaged?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
+path_reduced_features = sd.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle'
+path_all_features = sd.working_directory_path + '/Pickle/all_features/feature_matrix.pickle'
+path_reduced_features_boxcox = sd.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle'
+path_all_features_boxcox = sd.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle'
 
-def get_feature_matrix_and_label(verbose=True, cached_feature_matrix='all', save_as_pickle_file=True, use_boxcox=False):
 
-    """ Computes the feeature matrix and the corresponding labels
+def check_if_reading_from_cache_is_okey(use_feature_matrix, use_boxcox):
+    """ If the user wants to use an already saved feature amtrix ('all' or 'reduced'), then check if those
+    pickle files really exist. If not, new files have to be created
+
+
+    :param use_feature_matrix: Use already cached matrix; 'all' (use all features), 'selected'
+                                (do feature selection first), None (don't use cache)
+    :param use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
+
+    :return: Whether reading from cache is okey and  path where to read from/write to new pickel file (if necessary)
+
+    """
+    err_string = 'ERROR: Pickle file of Feature matrix not yet created. Creating new one...'
+    path = ''
+
+    if not sd.use_fewer_data:
+        return False, path
+
+    if use_feature_matrix == 'all':
+        if use_boxcox:
+            path = path_all_features_boxcox
+
+        else:
+            path = path_all_features
+
+    elif use_feature_matrix == 'selected':
+        if use_boxcox:
+            path = path_reduced_features_boxcox
+        else:
+            path = path_reduced_features
+
+    else:  # None, i.e. don't use cache
+        return False, path
+
+    if not path.exists():
+        print(err_string)
+        os.makedirs(path.rsplit('/', 1)[0])
+        return False, path
+    else:
+        return True, path
+
+
+def get_feature_matrix_and_label(verbose=True, use_feature_matrix='all', save_as_pickle_file=True, use_boxcox=False):
+
+    """ Computes the feature matrix and the corresponding labels
 
     :argument verbose:
-    :argument cached_feature_matrix: 'all' (use all features), 'selected' (do feature selection first), None (don't use cache)
+    :argument use_feature_matrix: Use already cached matrix; 'all' (use all features), 'selected'
+                                    (do feature selection first), None (don't use cache)
     :argument save_as_pickle_file: if use_cached_feature_matrix=False, then store newly computed
                                     matrix in a pickle file
     :argument use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
@@ -41,11 +90,11 @@ def get_feature_matrix_and_label(verbose=True, cached_feature_matrix='all', save
 
     """
 
-    globals()['use_reduced_features'] = cached_feature_matrix == 'selected'
+    globals()['use_reduced_features'] = use_feature_matrix == 'selected'
 
     globals()['_verbose'] = verbose
 
-    if cached_feature_matrix=='reduced':
+    if use_feature_matrix == 'reduced':
         globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
                                       '%crashes',
                                       'points_gradient_changes', 'mean_points', 'std_points']
@@ -60,21 +109,13 @@ def get_feature_matrix_and_label(verbose=True, cached_feature_matrix='all', save
 
     matrix = pd.DataFrame()
 
-    if (cached_feature_matrix == 'all' or cached_feature_matrix == 'selected') and (not sd.use_fewer_data):
+    reading_from_cache_okey, path = check_if_reading_from_cache_is_okey(use_feature_matrix, use_boxcox)
+
+    if reading_from_cache_okey:
         if _verbose:
             print('Feature matrix already cached!')
-
-        if use_boxcox and cached_feature_matrix == 'reduced':
-            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
-        elif use_boxcox and not cached_feature_matrix == 'reduced':
-            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
-        elif not use_boxcox and cached_feature_matrix == 'reduced':
-            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
-        elif not use_boxcox and not cached_feature_matrix == 'reduced':
-            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
-
+            matrix = pd.read_pickle(path)
     else:
-
         if _verbose:
             print('Creating feature matrix...\n')
 
@@ -113,15 +154,18 @@ def get_feature_matrix_and_label(verbose=True, cached_feature_matrix='all', save
         if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
-        if save_as_pickle_file and (not sd.testing) and (not sd.testing):
-            if use_boxcox and cached_feature_matrix == 'reduced':
-                matrix.to_pickle(sd.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
-            elif use_boxcox and not cached_feature_matrix == 'reduced':
-                matrix.to_pickle(sd.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
-            elif not use_boxcox and cached_feature_matrix == 'reduced':
-                matrix.to_pickle(sd.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
-            elif not use_boxcox and not cached_feature_matrix == 'reduced':
-                matrix.to_pickle(sd.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
+        # Boxcox transformation
+        if use_boxcox:
+            # Values must be positive. If not, shift it
+            for feature in feature_names:
+                if not feature == 'last_obstacle_crash':  # Doesn't makes sense to do boxcox here
+                    if matrix[feature].min() <= 0:
+                        matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
+                    else:
+                        matrix[feature] = stats.boxcox(matrix[feature])[0]
+
+        if save_as_pickle_file and (not sd.use_fewer_data):
+            matrix.to_pickle(path)
 
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
@@ -130,15 +174,7 @@ def get_feature_matrix_and_label(verbose=True, cached_feature_matrix='all', save
 
     y = list(itertools.chain.from_iterable(labels))
 
-    # Boxcox transformation
-    if use_boxcox:
-        # Values must be positive. If not, shift it
-        for feature in feature_names:
-            if not feature == 'last_obstacle_crash':  # Doesn't makes sense to do boxcox here
-                if matrix[feature].min() <= 0:
-                    matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
-                else:
-                    matrix[feature] = stats.boxcox(matrix[feature])[0]
+
     X = matrix.as_matrix()
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1

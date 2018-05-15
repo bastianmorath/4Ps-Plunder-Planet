@@ -15,11 +15,11 @@ import features_factory as f_factory
 
 
 def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):
-    print('Calculating performance with standard svm for windows %i, %i, %i...' % (hw, cw, gradient_w))
+    print('\tCalculating performance with standard svm for windows %i, %i, %i...' % (hw, cw, gradient_w))
 
     clf = svm.SVC(class_weight='balanced')
 
-    X, y = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix='all',
+    X, y = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix=None,
                                                   save_as_pickle_file=False)
 
     _, _, _, _, _, s = model_factory.get_performance(clf, "SVM (w/ rfb kernel)", X, y,
