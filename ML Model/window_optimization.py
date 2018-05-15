@@ -9,33 +9,29 @@
 from __future__ import division, print_function  # s.t. division uses float result
 
 from sklearn import svm
-import numpy as np
-from sklearn.utils import class_weight
 
 import model_factory
-import globals as gl
+import features_factory as f_factory
 
 
-def write_window_scores_to_file(X, y, hw, cw, gradient_w):
-    gl.hw = hw
-    gl.cw = cw
-    gl.gradient_w = gradient_w
+def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):
+    print('Calculating performance with standard svm for windows %i, %i, %i...' % (hw, cw, gradient_w))
 
-    class_w = class_weight.compute_class_weight('balanced', np.unique(y), y)
-    class_weight_dict = dict(enumerate(class_w))
+    clf = svm.SVC(class_weight='balanced')
 
-    clf = svm.SVC(class_weight=class_weight_dict)
-    clf.fit(X, y)
-    roc_auc, recall, specificity, precision, conf_mat = model_factory.get_performance(clf, "Naive Bayes", X, y)
+    X, y = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix='all',
+                                                  save_as_pickle_file=False)
 
-    s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
-        '\troc_auc: %.3f, ' \
-        'recall: %.3f, ' \
-        'specificity: %.3f, ' \
-        'precision: %.3f \n\n' \
-        '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n'  \
-        % ("std. SVM", gl.hw, gl.cw, gl.gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
+    _, _, _, _, _, s = model_factory.get_performance(clf, "SVM (w/ rfb kernel)", X, y,
+                                                     hw, cw, gradient_w, False, False)
 
-    file = open(gl.working_directory_path + '/window_test_' + str(gl.hw) + '_' + str(gl.cw) + '_' +
-                str(gl.gradient_w) + '.txt', 'w+')
-    file.write(s)
+    if verbose:
+        print(s)
+
+    if write_to_file:
+        # Write result to a file
+        filename = 'window_test_' + str(hw) + '_' + str(cw) + '_' + str(gradient_w) + '.txt'
+        model_factory.write_to_file(s, 'Performance/Windows/', filename, 'w+')
+
+
+

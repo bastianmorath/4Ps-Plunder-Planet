@@ -48,8 +48,7 @@ def get_clf_with_name(clf_name):
 
 class CClassifier(object):
     def __init__(self, X, y):
-        cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
-        self.class_weight_dict = dict(enumerate(cw))
+
         self.X = X
         self.y = y
         self.clf = None
@@ -68,7 +67,7 @@ class CSVM(CClassifier):
         self.param2_name = 'gamma'
         self.tuned_params = {'C': self.param1, 'gamma': self.param2}
 
-        self.clf = SVC(class_weight=self.class_weight_dict)
+        self.clf = SVC(class_weight='balanced')
 
 
 class CLinearSVM(CClassifier):
@@ -83,7 +82,7 @@ class CLinearSVM(CClassifier):
         self.param2_name = 'loss'
         self.tuned_params = {'C': self.param1, 'gamma': self.param2}
 
-        self.clf = SVC(class_weight=self.class_weight_dict)
+        self.clf = SVC(class_weight='balanced')
 
 
 class CNearestNeighbors(CClassifier):

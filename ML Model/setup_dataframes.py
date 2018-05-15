@@ -22,53 +22,53 @@ import pandas as pd
 
 import refactoring_logfiles as refactoring
 
-import globals as gl
+import features_factory as f_factory
 
-# TODO: Do all those setup (e.g. add timeldelta, userid, etc. at the very beginning, then save it as new..
-# logfiles/pickle and only ever use those
 
+use_fewer_data = False  # Can be used for debugging (fewer data is used)
+
+working_directory_path = os.path.abspath(os.path.dirname(__file__))
+project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
+
+abs_path_logfiles = project_path + '/Logs/text_logs_refactored_crashes'  # Logfiles to use
+names_logfiles = []  # Name of the logfiles
+
+df_list = []  # List with all dataframes; 1 dataframe per logfile
+
+# list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+# First max(cw, hw) seconds removed
+obstacle_df_list = []
 
 print_key_numbers = False
 
 
+def setup(use_fewer_data=False):
+    """
 
+    :param use_fewer_data:
 
-def setup():
-    all_names = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.log', f)]
+    """
 
-    kinect_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
-    kinect_names_hr = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
+    all_names = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.log', f)]
 
-    fbmc_names_all = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
-    fbmc_names_hr_points = [f for f in sorted(os.listdir(gl.abs_path_logfiles)) if
+    kinect_names_all = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
+    kinect_names_hr = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
+
+    fbmc_names_all = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
+    fbmc_names_hr_points = [f for f in sorted(os.listdir(abs_path_logfiles)) if
                             re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
 
-    gl.names_logfiles = fbmc_names_hr_points
+    globals()['names_logfiles'] = fbmc_names_hr_points
+    globals()['use_fewer_data'] = use_fewer_data
 
-    if gl.testing:
-        # gl.names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
-        gl.names_logfiles = ['ISI_FBMC_hr_1.log']
-        read_and_prepare_logs()
-        gl.obstacle_df_list = get_obstacle_times_with_success()
+    if use_fewer_data:
+        # names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
+        globals()['names_logfiles'] = ['ISI_FBMC_hr_1.log']
 
-    elif gl.use_cache:  # If already computed,  df_list and obstacle stored in pickle file for faster processing
-        gl.obstacle_df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/obstacle_df.pickle')
-        gl.df_list = pd.read_pickle(gl.working_directory_path + '/Pickle/df_list.pickle')
+    print('Creating dataframes...')
+    read_and_prepare_logs()
 
-        print('Dataframe already computed and stored in pickle files. Used pickle files to reduce computational time')
-
-    else:
-        print('Dataframe not cached. Creating dataframe...')
-        read_and_prepare_logs()
-
-        gl.obstacle_df_list = get_obstacle_times_with_success()
-
-        # Save to .pickle for caching
-
-        pd.to_pickle(gl.obstacle_df_list, gl.working_directory_path + '/Pickle/obstacle_df.pickle')
-        pd.to_pickle(gl.df_list, gl.working_directory_path + '/Pickle/df_list.pickle')
-
-        print('Dataframe created')
+    globals()['obstacle_df_list'] = get_obstacle_times_with_success()
 
     if print_key_numbers:
         print_keynumbers_logfiles()
@@ -81,17 +81,18 @@ def setup():
 
 def read_and_prepare_logs():
 
-    logs = [gl.abs_path_logfiles + "/" + s for s in gl.names_logfiles]
+    logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
 
     # This read_csv is used when using the original logfiles
     # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
     #                 'psyStress', 'psyDifficulty', 'obstacle']
-    # gl.df_list = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False, names=column_names) for log in logs)
+    #  globals()['df_list'] = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False,
+    #                                  names=column_names) for log in logs)
 
     # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
                     'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
-    gl.df_list = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
+    globals()['df_list'] = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
 
     refactoring.add_timedelta_column()  # Is added after refactoring, since timedelta format gets lost otherwise
     # POSSIBLY_DANGEROUS
@@ -124,16 +125,16 @@ def print_keynumbers_logfiles():
     """
 
     df_lengths = []
-    for d in gl.df_list:
+    for d in df_list:
         df_lengths.append(d['Time'].max())
     print('average:' + str(np.mean(df_lengths)) + ', std: ' + str(np.std(df_lengths)) +
           ', max: ' + str(np.max(df_lengths)) + ', min: ' + str(np.min(df_lengths)))
 
-    print('#files: ' + str(len(gl.df_list)))
-    print('#files with heartrate: ' + str(len([a for a in gl.df_list if not (a['Heartrate'] == -1).all()])))
-    print('#datapoints: ' + str(sum([len(a.index) for a in gl.df_list])))
-    print('#obstacles: ' + str(sum([len(df.index) for df in gl.obstacle_df_list])))
-    print('#crashes: ' + str(sum([len(df[df['crash'] == 1]) for df in gl.obstacle_df_list])))
+    print('#files: ' + str(len(df_list)))
+    print('#files with heartrate: ' + str(len([a for a in df_list if not (a['Heartrate'] == -1).all()])))
+    print('#datapoints: ' + str(sum([len(a.index) for a in df_list])))
+    print('#obstacles: ' + str(sum([len(df.index) for df in obstacle_df_list])))
+    print('#crashes: ' + str(sum([len(df[df['crash'] == 1]) for df in obstacle_df_list])))
 
 
 def get_obstacle_times_with_success():
@@ -142,16 +143,15 @@ def get_obstacle_times_with_success():
     userID/logID is used such that we can later (after creating feature matrix), still differentiate logfiles
 
     :return: List which contains a dataframe df per log. Each df contains the time, userID, logID and whether the user
-                crashed of each obstacle
+                crashed (of each obstacle)
 
     """
-
     obstacle_time_crash = []
 
-    for dataframe in gl.df_list:
+    for dataframe in df_list:
         obstacle_times_current_df = []
         for idx, row in dataframe.iterrows():
-            if row['Time'] > max(gl.cw, gl.hw):
+            if row['Time'] > max(f_factory.cw, f_factory.hw):
                 if row['Logtype'] == 'EVENT_OBSTACLE':
                     obstacle_times_current_df.append((row['Time'], 0, row['userID'], row['logID']))
                 if row['Logtype'] == 'EVENT_CRASH':

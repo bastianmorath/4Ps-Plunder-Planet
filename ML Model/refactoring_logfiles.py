@@ -4,7 +4,7 @@
 import pandas as pd
 from datetime import timedelta
 
-import globals as gl
+import setup_dataframes as sd
 
 
 def cut_frames():
@@ -14,10 +14,10 @@ def cut_frames():
     """
 
     cutted_df_list = []
-    min_time = min(dataframe['Time'].max() for dataframe in gl.df_list)
-    for dataframe in gl.df_list:
+    min_time = min(dataframe['Time'].max() for dataframe in sd.df_list)
+    for dataframe in sd.df_list:
         cutted_df_list.append(dataframe[dataframe['Time'] < min_time])
-    gl.df_list = cutted_df_list
+        sd.df_list = cutted_df_list
 
 
 def normalize_heartrate():
@@ -25,27 +25,25 @@ def normalize_heartrate():
         Saves changes directly to globals.df_list
     """
 
-    if gl.normalize_heartrate:
-        print('Normalize hr...')
-        normalized_df_list = []
-        for dataframe in gl.df_list:
-            if not (dataframe['Heartrate'] == -1).all():
-                baseline = dataframe[dataframe['Time'] < 20]['Heartrate'].min()
-                dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
-                normalized_df_list.append(dataframe)
-            else:
-                normalized_df_list.append(dataframe)
+    normalized_df_list = []
+    for dataframe in sd.df_list:
+        if not (dataframe['Heartrate'] == -1).all():
+            baseline = dataframe[dataframe['Time'] < 20]['Heartrate'].min()
+            dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
+            normalized_df_list.append(dataframe)
+        else:
+            normalized_df_list.append(dataframe)
 
-        gl.df_list = normalized_df_list
+    sd.df_list = normalized_df_list
 
 
 def add_timedelta_column():
     """For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
         Saves changes directly to globals.df_list
     """
-    for idx, dataframe in enumerate(gl.df_list):
+    for idx, dataframe in enumerate(sd.df_list):
         new = dataframe['Time'].apply(lambda x: timedelta(seconds=x))
-        gl.df_list[idx] = gl.df_list[idx].assign(timedelta=new)
+        sd.df_list[idx] = sd.df_list[idx].assign(timedelta=new)
 
 
 def add_log_and_user_column():
@@ -53,19 +51,19 @@ def add_log_and_user_column():
         Saves changes directly to globals.df_list
     """
 
-    names = [gl.names_logfiles[i][0:2] for i in range(0, len(gl.df_list))] # E.g. AK, LK, MR
+    names = [sd.names_logfiles[i][0:2] for i in range(0, len(sd.df_list))] # E.g. AK, LK, MR
 
     last_name = names[0]
     user_id = 0
 
-    for idx, dataframe in enumerate(gl.df_list):
+    for idx, dataframe in enumerate(sd.df_list):
         if not names[idx] == last_name:
             user_id += 1
 
-        log_id = gl.names_logfiles[idx][-5]
+        log_id = sd.names_logfiles[idx][-5]
         df = dataframe.assign(userID=user_id)
         df = df.assign(logID=log_id)
-        gl.df_list[idx] = df
+        sd.df_list[idx] = df
         last_name = names[idx]
 
 
@@ -99,7 +97,7 @@ def refactor_crashes():
                 return index + cnt, df.loc[index + cnt]
             cnt += 1
 
-    for df_idx, dataframe in enumerate(gl.df_list):
+    for df_idx, dataframe in enumerate(sd.df_list):
 
         new_df = pd.DataFrame()
         count = 0
@@ -123,8 +121,8 @@ def refactor_crashes():
         column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
                             'psyDifficulty', 'obstacle']
         new_df = new_df.reindex(column_names, axis=1)
-        gl.df_list[df_idx] = new_df
-        new_df.to_csv(gl.abs_path_logfiles + "/" + gl.names_logfiles[df_idx], header=False, index=False, sep=';')
+        sd.df_list[df_idx] = new_df
+        new_df.to_csv(sd.abs_path_logfiles + "/" + sd.names_logfiles[df_idx], header=False, index=False, sep=';')
 
 
 def remove_logs_without_heartrates_or_points():
@@ -133,5 +131,5 @@ def remove_logs_without_heartrates_or_points():
 
     """
 
-    gl.df_list = [df for df in gl.df_list if not (df['Heartrate'] == -1).all()]
-    gl.df_list = [df for df in gl.df_list if not (df['Points'] == 0).all()]
+    sd.df_list = [df for df in sd.df_list if not (df['Heartrate'] == -1).all()]
+    sd.df_list = [df for df in sd.df_list if not (df['Points'] == 0).all()]

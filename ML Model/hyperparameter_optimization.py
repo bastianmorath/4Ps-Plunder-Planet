@@ -21,7 +21,7 @@ import plots
 
 
 def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20):
-    """Does Hyperparameter optimization for all classifiersand returns for the classifier names,
+    """Does Hyperparameter optimization for all classifiers and returns for the classifier names,
      roc_auc, precision, specificity, recall and the conf_matrix a list each
 
     :param X: Feature matrix
@@ -44,7 +44,9 @@ def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20)
         # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
         optimal_params.append(optimal_clf.best_params_)
 
-        roc_auc, recall, specificity, precision, conf_mat = model_factory.get_performance(optimal_clf, name, X, y, verbose=False)
+        roc_auc, recall, specificity, precision, conf_mat = \
+            model_factory.get_performance(optimal_clf, name, X, y, verbose=False)
+
         scores.append([roc_auc, recall, specificity, precision])
         conf_mats.append(conf_mat)
 

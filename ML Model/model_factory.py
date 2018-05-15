@@ -2,12 +2,12 @@
 
 """
 from __future__ import division  # s.t. division uses float result
-import matplotlib
 
 # matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
@@ -15,53 +15,66 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, confusion_matrix, roc_curve)
 from sklearn.model_selection import (cross_val_predict, train_test_split)
 
-from sklearn.utils import class_weight
 from sklearn.calibration import CalibratedClassifierCV
 
 import features_factory as f_factory
-import globals as gl
+import setup_dataframes as sd
 import plots
 import classifiers
+import setup_dataframes
 
 
-def get_performance(model, clf_name, X, y, verbose = False):
+def get_performance(model, clf_name, X, y, hw=30, cw=30, gradient_w=10, verbose=True, write_to_file=False):
+    """Computes performance of the model by doing cross validation with 10 folds, using
+        cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
+        as a string
+
+    :param model: the classifier that should be applied
+    :param clf_name: Name of the classifier (used to print scores)
+    :param hw: size of heartrate_window (default=30)
+    :param cw: size of crash_window (default=30)
+    :param gradient_w: size of gradient_window (default=10)
+    :param use_cache: Use the cached featurematrix if existent
+    :param verbose: Whether a detailed score should be printed out
+    :param write_to_file: Write summary of performance in a file
+
+    :return: roc_auc, recall, specificity, precicion, confusion_matrix and summary of those as a string
     """
-        Computes performance of the model by doing cross validation with 10 folds, using
-        cross_val_predict, and returns roc_auc, recall, specificity, precision and confusion matrix
+    if verbose:
+        print('Calculating performance of %s...' % clf_name)
 
-      :param model: the classifier that should be applied
-      :param clf_name: Name of the classifier (used to print scores)
-      :param X: the feature matrix
-      :param y: True labels
-      :param verbose: Whether a detailed score should be printed out
+    f_factory.hw = hw
+    f_factory.cw = cw
+    f_factory.gradient_w = gradient_w
 
-      :return: roc_auc, recall, specificity, precicion and confusion_matrix
+    sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
-      """
-
+    # Compute performance scores
     y_pred = cross_val_predict(model, X, y, cv=5)
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    auc = metrics.roc_auc_score(y, y_pred)
-    
-    predicted_accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
-    null_accuracy = round(max(np.mean(y), 1 - np.mean(y)) * 100, 2)
+    roc_auc = metrics.roc_auc_score(y, y_pred)
+
+    s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
+        '\troc_auc: %.3f, ' \
+        'recall: %.3f, ' \
+        'specificity: %.3f, ' \
+        'precision: %.3f \n\n' \
+        '\tConfusion matrix: \t %s \n\t\t\t\t\t %s\n\n\n' \
+        % (clf_name, hw, cw, gradient_w, roc_auc, recall, specificity, precision, conf_mat[0], conf_mat[1])
 
     if verbose:
-        print('CS scores for ' + clf_name)
-        print('\n\t Recall = %0.3f = Probability of, given a crash, a crash is correctly predicted; '
-              '\n\t Specificity = %0.3f = Probability of, given no crash, no crash is correctly predicted;'
-              '\n\t Precision = %.3f = Probability that, given a crash is predicted, a crash really happened; \n'
-              % (recall, specificity, precision))
+        print(s)
 
-        print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
-        print('\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: '
-              + str(null_accuracy) + '%)')
+    if write_to_file:
+        # Write result to a file
+        filename = 'performance_' + clf_name + '_windows_' + str(hw) + '_' + str(cw) + '_' + str(gradient_w) + '.txt'
+        write_to_file(s, 'Performance/', filename, 'w+')
 
-    return auc, recall, specificity, precision, conf_mat
+    return roc_auc, recall, specificity, precision, conf_mat, s
 
 
 def feature_selection(X, y, verbose=False):
@@ -78,9 +91,7 @@ def feature_selection(X, y, verbose=False):
 
     """
 
-    cw = class_weight.compute_class_weight('balanced', np.unique(y), y)
-    class_weight_dict = dict(enumerate(cw))
-    clf = ExtraTreesClassifier(n_estimators=250, class_weight=class_weight_dict)
+    clf = ExtraTreesClassifier(n_estimators=250, class_weight='balanced')
 
     forest = clf.fit(X, y)
 
@@ -138,14 +149,14 @@ def plot_roc_curve(classifier, X, y, classifier_name):
     plt.title('Receiver Operating Characteristic')
     plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
     plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1],'r--')
+    plt.plot([0, 1], [0, 1], 'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
     filename = 'roc_curve_'+classifier_name+'.pdf'
-    plots.save_plot(plt, 'Performance/Roc Curves', filename)
+    plots.save_plot(plt, 'Performance/Roc Curves/', filename)
 
 
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):
@@ -169,7 +180,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
                   + str(max(a,b)*100) + '%')
 
 
-def plot_performance_of_classifiers_wihtout_hyperparameter_tuning(X, y):
+def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
     # Plots performance of the given classifiers in a barchart for comparison without hyperparameter tuning
 
     clf_list = [
@@ -181,36 +192,39 @@ def plot_performance_of_classifiers_wihtout_hyperparameter_tuning(X, y):
     ]
 
     auc_scores = []
-    auc_std = []
     for classifier in clf_list:
         print('Name: ' + classifier.name)
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if classifier.name == 'Naive Bayes':
-            old_bx = gl.use_boxcox
-            gl.use_boxcox = True
-            X, _ = f_factory.get_feature_matrix_and_label()
-            gl.use_boxcox = old_bx
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix='all',
+                                                                use_boxcox=True)
 
+            classifier.clf.fit(X_nb, y_nb)
+            auc_scores.append(get_performance(classifier.clf, classifier.name, X_nb, y_nb)[0])
+
+            plot_roc_curve(classifier.clf, X_nb, y_nb, classifier.name)
+        else:
             classifier.clf.fit(X, y)
-        auc_scores.append(get_performance(classifier.clf, classifier.name, X, y)[0])
+            auc_scores.append(get_performance(classifier.clf, classifier.name, X, y)[0])
 
-        plot_roc_curve(classifier.clf, X, y, classifier.name)
+            plot_roc_curve(classifier.clf, X, y, classifier.name)
 
     # Plots roc_auc for the different classifiers
     plots.plot_barchart(title='performance_per_clf_without_grid_search',
-                              x_axis_name='',
-                              y_axis_name='roc_auc',
-                              x_labels=[clf.name for clf in clf_list],
-                              values=auc_scores,
-                              filename='performance_per_clf_without_grid_search.pdf'
+                        xlabel='',
+                        ylabel='roc_auc',
+                        x_tick_labels=[clf.name for clf in clf_list],
+                        values=auc_scores,
+                        lbl='roc_auc',
+                        filename='performance_per_clf_without_grid_search.pdf'
                         )
 
 
 def plot_barchart_scores(names, scores):
     plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
-                        x_axis_name='Classifier',
-                        y_axis_name='Performance',
-                        x_labels=names,
+                        xlabel='Classifier',
+                        ylabel='Performance',
+                        x_tick_labels=names,
                         values=[a[0] for a in scores],
                         lbl='auc_score',
                         filename='performance_per_clf_after_grid_search.pdf'
@@ -229,5 +243,25 @@ def write_scores_to_file(names, scores, optimal_params, conf_mat):
              '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
              % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2 * i], conf_mat[2 * i + 1])
 
-    file = open(gl.working_directory_path + '/classifier_performances_randomsearch_cv.txt', 'w+')
-    file.write(s)
+    write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
+
+
+def write_to_file(string, folder, filename, mode, verbose=True):
+    """Writes a string to a file while checking that the path already exists and creating it if not
+
+        :param string:  Strin to be written to the file
+        :param folder: Folder to be saved to
+        :param filename: The name (.pdf) under which the plot should be saved\
+        :param mode: w+, a+, etc..
+
+    """
+    path = sd.working_directory_path + '/Evaluation/' + folder + '/'
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    savepath = path + '/' + filename
+    if verbose:
+        print('Scores written to file...')
+    file = open(savepath, mode)
+    file.write(string)

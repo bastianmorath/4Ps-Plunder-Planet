@@ -10,13 +10,13 @@ from sklearn.model_selection import (LeaveOneGroupOut, cross_val_predict)
 
 
 import plots
-import globals as gl
+import setup_dataframes as sd
 import features_factory as f_factory
 import classifiers
 import model_factory
 
 
-def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True):
+def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=False):
     """Plots a barchart with the mean roc_auc score for each classfier in two scenarios:
         1. Do normal crossvalidation to get roc_auc (There can thus be part of a users
             logfile in the training set AND in the testset. This could influence the performance on the testset as
@@ -29,6 +29,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     :param y: labels
     :param plot_auc_score_per_user: Whether or not we should create a plot for each user left out with the auc_score of
                                     each classifier when using LeaveOneOut cross validation
+    :param reduced_features: Whether we should use all features or do feature selection first
 
     """
     names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Naive Bayes']
@@ -42,32 +43,46 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
     # Get scores for scenario 1 (normal crossvalidation)
     auc_scores_scenario_1 = []
-    print('\nScenario 1 (normal crossvalidation)...')
+    print('\n\tScenario 1 (normal crossvalidation)...')
     for name, classifier in zip(names, clfs):
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
-            old_bx = gl.use_boxcox
-            gl.use_boxcox = True
-            X, _ = f_factory.get_feature_matrix_and_label(verbose=False)
-            gl.use_boxcox = old_bx
-        classifier.clf.fit(X, y)
-        auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X, y)[0])
+            feature_selection = 'selected' if reduced_features else 'all'
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix=feature_selection,
+                                                                save_as_pickle_file=False, use_boxcox=True)
+
+            classifier.clf.fit(X_nb, y_nb)
+            auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X_nb, y_nb, verbose=False)[0])
+
+        else:
+            classifier.clf.fit(X, y)
+            auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X, y, verbose=False)[0])
 
     # Get scores for scenario 2 (Leave one user out in training phase)
-    print('Scenario 2  (Leave one user out in training phase)...')
+    print('\tScenario 2  (Leave one user out in training phase)...')
     auc_scores_scenario_2 = []
     auc_stds_scenario_2 = []
     for name, classifier in zip(names, clfs):
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
-            old_bx = gl.use_boxcox
-            gl.use_boxcox = True
-            X, _ = f_factory.get_feature_matrix_and_label(verbose=False)
-            gl.use_boxcox = old_bx
-        classifier.clf.fit(X, y)
-        auc_mean, auc_std = apply_cv_per_user_model(classifier.clf, name, X, y, plot_auc_score_per_user, verbose=True)
+            feature_selection = 'selected' if reduced_features else 'all'
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, cached_feature_matrix=feature_selection,
+                                                                save_as_pickle_file=False, use_boxcox=True)
+            classifier.clf.fit(X_nb, y_nb)
+
+            auc_mean, auc_std = apply_cv_per_user_model(classifier.clf, name,
+                                                        X_nb, y_nb, plot_auc_score_per_user, verbose=True)
+        else:
+            classifier.clf.fit(X, y)
+
+            auc_mean, auc_std = apply_cv_per_user_model(classifier.clf, name,
+                                                        X, y, plot_auc_score_per_user, verbose=True)
+
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
+    print(len(auc_scores_scenario_1))
+    print(len(auc_scores_scenario_2))
+    print(len(auc_stds_scenario_2))
 
     _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2)
@@ -87,15 +102,15 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
 
     """
 
-    print('\nCalculating roc_auc when doing normal CV vs LeaveOneOutCV for %s...' % clf_name)
+    print('\t\tCalculating roc_auc when doing LeaveOneOutCV for %s...' % clf_name)
     y = np.asarray(y)  # Used for .split() function
 
     # Each user should be a separate group, s.t. we can always leaveout one user
-    groups_ids = pd.concat(gl.obstacle_df_list)['userID'].map(str).tolist()
+    groups_ids = pd.concat(sd.obstacle_df_list)['userID'].map(str).tolist()
 
     logo = LeaveOneGroupOut()
     scores_and_ids = []  # tuples of (auc, recall, specificity, precision, user_id)
-    df_obstacles_concatenated = pd.concat(gl.obstacle_df_list, ignore_index=True)
+    df_obstacles_concatenated = pd.concat(sd.obstacle_df_list, ignore_index=True)
     for train_index, test_index in logo.split(X, y, groups_ids):
 
         X_train, X_test = X[train_index], X[test_index]
@@ -121,10 +136,10 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
     # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
     names = []
     for _, (auc, rec, spec, prec, user_id) in enumerate(scores_and_ids):
-        for df_idx, df in enumerate(gl.df_list):
+        for df_idx, df in enumerate(sd.df_list):
             # Get the username out of userID
             if df.iloc[0]['userID'] == user_id:
-                name = gl.names_logfiles[df_idx][:2]
+                name = sd.names_logfiles[df_idx][:2]
                 names.append(name)
 
     names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
@@ -157,7 +172,6 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
                  color=plots.green_color,
                  label='roc_auc normal CV'
                  )
-
     r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
                  alpha=opacity,
                  color=plots.red_color,
@@ -168,7 +182,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
     plt.title('clf_performance_with_user_left_out_vs_normal')
     plt.xticks(index + bar_width/2, names, rotation='vertical')
     ax.set_ylim([0, 0.8])
-    plt.legend()
+    plt.legend(prop={'size': 6})
 
     def autolabel(rects):
         """
@@ -185,11 +199,11 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
 
     plt.tight_layout()
 
-    plots.save_plot(plt, 'Performance', 'clf_performance_with_user_left_out_vs_normal.pdf')
+    plots.save_plot(plt, 'Performance/', 'clf_performance_with_user_left_out_vs_normal.pdf')
 
 
 def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
-    """ Writes a detailed report to a file, i.e. for each classifier it wirtes down
+    """ Appends a detailed report to a file, i.e. for each classifier it appends
     the performance for each fold (i.e. in each round of CV, there was one user left out for test-set. Write down
     auc, recall, specificity and precision with std for each such user.) Also write down overall conf_matrix
     and mean-auc
@@ -245,8 +259,8 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
         s += '\n' + name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, Precision = %.3f' % (auc, rec, spec, prec)
 
     # Write log to file
-    
+
     # TODO: Only append if in the same "session", otherwise delete everything and create a new one
-    file = open(gl.working_directory_path + '/Plots/Performance/LeaveOneOut/classifier_performances_randomsearch_cv.txt',
-                'a+')
-    file.write(s)
+
+    model_factory.write_to_file(s, 'Performance/LeaveOneOut',
+                                'clf_performance_with_user_left_out_vs_normal_detailed.txt', 'a+', verbose=False)

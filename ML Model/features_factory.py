@@ -8,58 +8,74 @@ import math
 from scipy import stats
 import numpy as np
 import itertools
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
-import globals as gl
+import setup_dataframes as sd
 import plots
 
 """INITIALIZATION"""
 plot_corr_matrix = False
 
-
 feature_names = []  # Set below
+use_reduced_features = True
+
+_verbose = True
 
 
-def get_feature_matrix_and_label(verbose=True):
+cw = 30  # Over how many preceeding seconds should %crashes be calculated?
+hw = 30  # Over how many preceeding seconds should heartrate features such as min, max, mean be averaged?
+gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
+
+
+def get_feature_matrix_and_label(verbose=True, cached_feature_matrix='all', save_as_pickle_file=True, use_boxcox=False):
+
     """ Computes the feeature matrix and the corresponding labels
 
-    :return:
-        matrix: Feature matrix
-        list:   labels
+    :argument verbose:
+    :argument cached_feature_matrix: 'all' (use all features), 'selected' (do feature selection first), None (don't use cache)
+    :argument save_as_pickle_file: if use_cached_feature_matrix=False, then store newly computed
+                                    matrix in a pickle file
+    :argument use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
+
+    :return: Feature matrix and labels
+
     """
-    global feature_names
-    if gl.reduced_features:
-        feature_names = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-                         '%crashes',
-                         'points_gradient_changes', 'mean_points', 'std_points']
+
+    globals()['use_reduced_features'] = cached_feature_matrix == 'selected'
+
+    globals()['_verbose'] = verbose
+
+    if cached_feature_matrix=='reduced':
+        globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
+                                      '%crashes',
+                                      'points_gradient_changes', 'mean_points', 'std_points']
     else:
-        feature_names = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
-                         'lin_regression_hr_slope', 'hr_gradient_changes',
+        globals()['feature_names'] = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
+                                      'lin_regression_hr_slope', 'hr_gradient_changes',
 
-                         '%crashes', 'last_obstacle_crash',
+                                      '%crashes', 'last_obstacle_crash',
 
-                         'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
-                         'max_minus_min_points']
+                                      'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
+                                      'max_minus_min_points']
 
     matrix = pd.DataFrame()
 
-    if gl.use_cache and (not gl.test_data) and (not gl.testing):
-        if verbose:
+    if (cached_feature_matrix == 'all' or cached_feature_matrix == 'selected') and (not sd.use_fewer_data):
+        if _verbose:
             print('Feature matrix already cached!')
 
-        if gl.use_boxcox and gl.reduced_features:
-            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
-        elif gl.use_boxcox and not gl.reduced_features:
-            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
-        elif not gl.use_boxcox and gl.reduced_features:
-            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
-        elif not gl.use_boxcox and not gl.reduced_features:
-            matrix = pd.read_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
+        if use_boxcox and cached_feature_matrix == 'reduced':
+            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
+        elif use_boxcox and not cached_feature_matrix == 'reduced':
+            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
+        elif not use_boxcox and cached_feature_matrix == 'reduced':
+            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
+        elif not use_boxcox and not cached_feature_matrix == 'reduced':
+            matrix = pd.read_pickle(sd.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
 
     else:
 
-        if verbose:
+        if _verbose:
             print('Creating feature matrix...\n')
 
         # TODO: Ugly....
@@ -97,25 +113,25 @@ def get_feature_matrix_and_label(verbose=True):
         if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
-        if (not gl.testing) and (not gl.test_data):
-            if gl.use_boxcox and gl.reduced_features:
-                matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
-            elif gl.use_boxcox and not gl.reduced_features:
-                matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
-            elif not gl.use_boxcox and gl.reduced_features:
-                matrix.to_pickle(gl.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
-            elif not gl.use_boxcox and not gl.reduced_features:
-                matrix.to_pickle(gl.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
+        if save_as_pickle_file and (not sd.testing) and (not sd.testing):
+            if use_boxcox and cached_feature_matrix == 'reduced':
+                matrix.to_pickle(sd.working_directory_path + '/Pickle/reduced_features_boxcox/feature_matrix.pickle')
+            elif use_boxcox and not cached_feature_matrix == 'reduced':
+                matrix.to_pickle(sd.working_directory_path + '/Pickle/all_features_boxcox/feature_matrix.pickle')
+            elif not use_boxcox and cached_feature_matrix == 'reduced':
+                matrix.to_pickle(sd.working_directory_path + '/Pickle/reduced_features/feature_matrix.pickle')
+            elif not use_boxcox and not cached_feature_matrix == 'reduced':
+                matrix.to_pickle(sd.working_directory_path + '/Pickle/all_features/feature_matrix.pickle')
 
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
-    for df in gl.obstacle_df_list:
-        labels.append(df[df['Time'] > max(gl.cw, gl.hw)]['crash'].copy())
+    for df in sd.obstacle_df_list:
+        labels.append(df[df['Time'] > max(cw, hw)]['crash'].copy())
 
     y = list(itertools.chain.from_iterable(labels))
 
     # Boxcox transformation
-    if gl.use_boxcox:
+    if use_boxcox:
         # Values must be positive. If not, shift it
         for feature in feature_names:
             if not feature == 'last_obstacle_crash':  # Doesn't makes sense to do boxcox here
@@ -129,9 +145,11 @@ def get_feature_matrix_and_label(verbose=True):
 
     if plot_corr_matrix:
         plots.plot_correlation_matrix(matrix)
+        globals()['plot_corr_matrix'] = False
 
     if verbose:
         print('\nFeature matrix and labels created!')
+
     return X, y
 
 
@@ -144,12 +162,12 @@ def get_standard_feature(feature, data_name):
     :return: Dataframe column containing the feature
 
     """
-
-    print('Creating ' + feature + '_' + data_name + ' feature...')
+    if _verbose:
+        print('Creating ' + feature + '_' + data_name + ' feature...')
 
     hr_df_list = []  # list that contains a dataframe with mean_hrs for each logfile
-    for list_idx, df in enumerate(gl.df_list):
-        if not (df['Heartrate'] == -1).all(): # NOTE: Can be omitted if logfiles without heartrate data is removed in prepare_dataframes.py
+    for list_idx, df in enumerate(sd.df_list):
+        if not (df['Heartrate'] == -1).all():  # NOTE: Can be omitted if logfiles without heartrate data is removed in prepare_dataframes.py
             hr_df = get_column(list_idx, feature, data_name)
             hr_df_list.append(hr_df)
 
@@ -159,10 +177,11 @@ def get_standard_feature(feature, data_name):
 def get_percentage_crashes_feature():
     # TODO: Normalize crashes depending on size/assembly of the obstacle
 
-    print('Creating %crashes feature...')
+    if _verbose:
+        print('Creating %crashes feature...')
 
     crashes_list = []  # list that contains one dataframe with %crashes for each point in time for each logfile
-    for list_idx, df in enumerate(gl.df_list):
+    for list_idx, df in enumerate(sd.df_list):
         crashes = get_percentage_crashes_column(list_idx)
         crashes_list.append(crashes)
 
@@ -170,22 +189,24 @@ def get_percentage_crashes_feature():
 
 
 def get_last_obstacle_crash_feature():
-    print('Creating last_obstacle_crash feature...')
+    if _verbose:
+        print('Creating last_obstacle_crash feature...')
     # list that contains one dataframe with whether last obstacle was a crash or not
     # for each point in time for each logfile
     crashes_list = []
-    for list_idx, df in enumerate(gl.df_list):
+    for list_idx, df in enumerate(sd.df_list):
         df_obstacles = get_last_obstacle_crash_column(list_idx)
-        # df = df[df['Time'] > max(gl.cw, gl.hw)]  # remove first window-seconds bc. not accurate data
+        # df = df[df['Time'] > max(cw, hw)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(df_obstacles)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['last_obstacle_crash'])
 
 
 def get_lin_regression_hr_slope_feature():
-    print('Creating lin_regression_hr_slope feature...')
+    if _verbose:
+        print('Creating lin_regression_hr_slope feature...')
     slopes = []  # list that contains (for each logfile) a dataframe with the slope of the heartrate
-    for list_idx, df in enumerate(gl.df_list):
+    for list_idx, df in enumerate(sd.df_list):
         slope = get_hr_slope_column(list_idx)
         slopes.append(slope)
 
@@ -193,9 +214,10 @@ def get_lin_regression_hr_slope_feature():
 
 
 def get_number_of_gradient_changes(data_name):
-    print('Creating %s_gradient_changes feature...' % data_name)
+    if _verbose:
+        print('Creating %s_gradient_changes feature...' % data_name)
     changes_list = []  # list that contains (for each logfile) a dataframe with the number of slope changes
-    for list_idx, df in enumerate(gl.df_list):
+    for list_idx, df in enumerate(sd.df_list):
         changes = get_gradient_changes_column(list_idx, data_name)
         changes_list.append(changes)
 
@@ -234,11 +256,11 @@ def get_column(idx, applier, data_name):
 
     """
 
-    df = gl.df_list[idx]
+    df = sd.df_list[idx]
 
-    window = gl.hw
+    window = hw
     if data_name == 'Points':
-        window = gl.cw
+        window = cw
 
     def compute(row):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - window), row['Time'], df)
@@ -252,12 +274,12 @@ def get_column(idx, applier, data_name):
         elif applier == 'std':
             res = last_x_seconds_df[data_name].std()
         elif applier == 'max_minus_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.gradient_w), row['Time'], df)
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
             max_v = last_x_seconds_df[data_name].max()
             min_v = last_x_seconds_df[data_name].min()
             res = max_v - min_v
         elif applier == 'max_over_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.gradient_w), row['Time'], df)
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
             max_v = last_x_seconds_df[data_name].max()
             min_v = last_x_seconds_df[data_name].min()
             res = max_v / min_v
@@ -267,7 +289,7 @@ def get_column(idx, applier, data_name):
         # first mean will be nan, so replace it with second row instead
         return res if not math.isnan(res) else compute(df.iloc[1])
 
-    return gl.obstacle_df_list[idx].apply(compute, axis=1)
+    return sd.obstacle_df_list[idx].apply(compute, axis=1)
 
 
 def get_percentage_crashes_column(idx):
@@ -280,16 +302,16 @@ def get_percentage_crashes_column(idx):
 
     """
 
-    df = gl.df_list[idx]
+    df = sd.df_list[idx]
 
     def compute_crashes(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.cw), row['Time'], df)
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
         num_obstacles = len(last_x_seconds_df[(last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE')
                                               | (last_x_seconds_df['Logtype'] == 'EVENT_CRASH')].index)
         num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
         return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
 
-    return gl.obstacle_df_list[idx].apply(compute_crashes, axis=1)
+    return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
 
 def get_last_obstacle_crash_column(idx):
@@ -301,7 +323,7 @@ def get_last_obstacle_crash_column(idx):
 
     """
 
-    df = gl.df_list[idx]
+    df = sd.df_list[idx]
 
     def compute_crashes(row):
         last = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
@@ -309,7 +331,7 @@ def get_last_obstacle_crash_column(idx):
             return 0
         return 1 if last.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
 
-    return gl.obstacle_df_list[idx].apply(compute_crashes, axis=1)
+    return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
 
 def get_hr_slope_column(idx):
@@ -322,25 +344,17 @@ def get_hr_slope_column(idx):
 
           """
 
-    df = gl.df_list[idx]
+    df = sd.df_list[idx]
 
     def compute_slope(row):
 
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.gradient_w), row['Time'], df)
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
 
         slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
-        '''
-        # Plot slopes
-        fit = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
-        fit_fn = np.poly1d(fit)
-        plt.plot(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], '', last_x_seconds_df['Time'], fit_fn(last_x_seconds_df['Time']))
-        plots.save_plot(plt, 'Features', 'lin_regression_slopes.pdf')
-        '''
-
         return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
-    return gl.obstacle_df_list[idx].apply(compute_slope, axis=1)
+    return sd.obstacle_df_list[idx].apply(compute_slope, axis=1)
 
 
 def get_gradient_changes_column(idx, data_name):
@@ -354,11 +368,11 @@ def get_gradient_changes_column(idx, data_name):
 
     """
 
-    df = gl.df_list[idx]
+    df = sd.df_list[idx]
 
     def compute_gradient_changes(row):
 
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gl.cw), row['Time'], df)
+        last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
         data = last_x_seconds_df[data_name].tolist()
         gradx = np.gradient(data)
         asign = np.sign(gradx)
@@ -368,6 +382,5 @@ def get_gradient_changes_column(idx, data_name):
             num_sign_changes = 1
         return num_sign_changes if not math.isnan(num_sign_changes) else compute_gradient_changes(df.iloc[1])
 
-    return gl.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
-
+    return sd.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
 

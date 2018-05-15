@@ -1,8 +1,0 @@
-Scores for std. SVM (Windows:  30, 30, 10): 
-
-	roc_auc: 0.512, recall: 0.789, specificity: 0.235, precision: 0.229 
-
-	Confusion matrix: 	 [ 58 189] 
-				 [15 56]
-
-

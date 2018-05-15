@@ -9,9 +9,8 @@ import numpy as np
 import pandas as pd
 import os
 
-
 import seaborn as sns
-import globals as gl
+import setup_dataframes as sd
 import features_factory as f_factory
 
 
@@ -81,7 +80,7 @@ def plot_feature_distributions(X):
 
         plt.tight_layout()
         filename = feature + '.pdf'
-        save_plot(plt, 'Features/Feature_distributions', filename)
+        save_plot(plt, 'Features/Feature_distributions/', filename)
 
 
 def plot_hr_of_dataframes():
@@ -91,7 +90,7 @@ def plot_hr_of_dataframes():
     :return:
     """
     resolution = 5
-    for idx, df in enumerate(gl.df_list):
+    for idx, df in enumerate(sd.df_list):
         if not (df['Heartrate'] == -1).all():
             df_num_resampled = resample_dataframe(df, resolution)
             # Plot Heartrate
@@ -101,8 +100,8 @@ def plot_hr_of_dataframes():
             ax1.set_ylabel('Heartrate', color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 
-            filename = 'hr_' + gl.names_logfiles[idx] + '.pdf'
-            save_plot(plt, 'Logfiles/Heartrate', filename)
+            filename = 'hr_' + sd.names_logfiles[idx] + '.pdf'
+            save_plot(plt, 'Logfiles/Heartrate/', filename)
 
 
 def plot_heartrate_histogram():
@@ -111,13 +110,13 @@ def plot_heartrate_histogram():
     """
 
     _, _ = plt.subplots()
-    df = pd.concat(gl.df_list, ignore_index=True)
+    df = pd.concat(sd.df_list, ignore_index=True)
     df = df[df['Heartrate'] != -1]['Heartrate']
     plt.hist(df)
     plt.title('Histogram of HR: $\mu=%.3f$, $\sigma=%.3f$'
               % (np.mean(df), np.std(df)))
 
-    save_plot(plt, 'Logfiles', 'heartrate_distribution_all_logfiles.pdf')
+    save_plot(plt, 'Logfiles/', 'heartrate_distribution_all_logfiles.pdf')
 
 
 def plot_mean_value_of_feature_at_crash(X, y):
@@ -146,7 +145,7 @@ def plot_mean_value_of_feature_at_crash(X, y):
         plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
 
         filename = str(f_factory.feature_names[i]) + '_crash.pdf'
-        save_plot(plt, 'Features/Crash Correlation', filename)
+        save_plot(plt, 'Features/Crash Correlation/', filename)
 
 
 def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None):
@@ -197,7 +196,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
 
     plt.tight_layout()
 
-    save_plot(plt, 'Performance', filename)
+    save_plot(plt, 'Performance/', filename)
 
     return plt
 
@@ -209,11 +208,11 @@ def save_plot(plt, folder, filename):
     :param folder: Folder to be saved to
     :param filename: The name (.pdf) under which the plot should be saved
     """
-    path = gl.working_directory_path + '/Plots/' + folder + '/' + filename
+    path = sd.working_directory_path + '/Evaluation/' + folder + filename
 
     # In some cases, I provide sth like abc/test.pdf as filename. I need to split the
     # directory abc and add it to the folder
-    directory = path.rsplit('/', 1)[0]  # Fives me everyting up to last slash
+    directory = path.rsplit('/', 1)[0]  # Fives me everything up to last slash
     name = path.rsplit('/', 1)[1]
     if not os.path.exists(directory):
         os.makedirs(directory)
