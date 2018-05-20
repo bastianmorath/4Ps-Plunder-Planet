@@ -23,9 +23,10 @@ use_reduced_features = False
 
 _verbose = True
 
+# TODO: Explicitly write down which features use which window
 
 cw = 30  # Over how many preceeding seconds should %crashes be calculated?
-hw = 5  # Over how many preceeding seconds should heartrate features such as min, max, mean be averaged?
+hw = 5  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
@@ -181,7 +182,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
     labels = []
     for df in sd.obstacle_df_list:
-        labels.append(df[df['Time'] > max(cw, hw)]['crash'].copy())
+        labels.append(df[df['Time'] > max(cw, hw, gradient_w)]['crash'].copy())
     y = list(itertools.chain.from_iterable(labels))
 
     X = matrix.as_matrix()
@@ -210,11 +211,10 @@ def get_standard_feature(feature, data_name):
     if _verbose:
         print('Creating ' + feature + '_' + data_name + ' feature...')
 
-    hr_df_list = []  # list that contains a dataframe with mean_hrs for each logfile
+    hr_df_list = []  # list that contains a dataframe with feature for each logfile
     for list_idx, df in enumerate(sd.df_list):
-        if not (df['Heartrate'] == -1).all():  # NOTE: Can be omitted if logfiles without heartrate data is removed in prepare_dataframes.py
-            hr_df = get_column(list_idx, feature, data_name)
-            hr_df_list.append(hr_df)
+        hr_df = get_column(list_idx, feature, data_name)
+        hr_df_list.append(hr_df)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=[feature])
 
@@ -241,7 +241,7 @@ def get_last_obstacle_crash_feature():
     crashes_list = []
     for list_idx, df in enumerate(sd.df_list):
         df_obstacles = get_last_obstacle_crash_column(list_idx)
-        # df = df[df['Time'] > max(cw, hw)]  # remove first window-seconds bc. not accurate data
+        # df = df[df['Time'] > max(cw, hw, gradient_w)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(df_obstacles)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['last_obstacle_crash'])
@@ -304,8 +304,6 @@ def get_column(idx, applier, data_name):
     df = sd.df_list[idx]
 
     window = hw
-    if data_name == 'Points':
-        window = cw
 
     def compute(row):
         last_x_seconds_df = df_from_to(max(0, row['Time'] - window), row['Time'], df)

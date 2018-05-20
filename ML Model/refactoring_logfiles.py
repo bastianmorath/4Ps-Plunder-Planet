@@ -1,10 +1,42 @@
 """This module does some refactoring to the logfiles, mostly at the very beginning of the process"""
-
-
+import os
+import re
+from pathlib import Path
 import pandas as pd
 from datetime import timedelta
 
 import setup_dataframes as sd
+
+names_logfiles = []
+dataframes = []
+
+
+def sanity_check():
+    """The original FK0410 have a 'm' or 'w' after its logfilename. remove it to have consistency among naming of the
+    files and don't run in trouble later.
+
+    In original text_logs, there are two users with MK initials (but different user_id).Rename it to MR
+
+    In original text_logs, there is a username with non-capital kinect
+
+    """
+    path_logfiles_original = sd.project_path + '/Logs/text_logs_original/'
+
+    names_logfiles = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
+                             if re.search(r'.log', f)])
+    for idx, name in enumerate(names_logfiles):
+        path = path_logfiles_original + name
+        if 'FK0410' in name:
+            new_name = name.replace('w', '')
+            new_name = new_name.replace('m', '')
+            new_name = new_name.replace('1_2', '2_1')
+            os.rename(path, path_logfiles_original + new_name)
+        if 'MK0902' in name:
+            new_name = name.replace('MK', 'MR')
+            os.rename(path, path_logfiles_original + new_name)
+        if 'kinect' in name:
+            new_name = name.replace('kinect', 'Kinect')
+            os.rename(path, path_logfiles_original + new_name)
 
 
 def cut_frames():
@@ -13,34 +45,21 @@ def cut_frames():
 
     """
 
+    global dataframes
+
     cutted_df_list = []
-    min_time = min(dataframe['Time'].max() for dataframe in sd.df_list)
-    for dataframe in sd.df_list:
+    min_time = min(dataframe['Time'].max() for dataframe in dataframes)
+    for dataframe in dataframes:
         cutted_df_list.append(dataframe[dataframe['Time'] < min_time])
-        sd.df_list = cutted_df_list
 
-
-def normalize_heartrate():
-    """Normalizes heartrate of each dataframe/user by dividing by mean of first 60 seconds
-        Saves changes directly to globals.df_list
-    """
-
-    normalized_df_list = []
-    for dataframe in sd.df_list:
-        if not (dataframe['Heartrate'] == -1).all():
-            baseline = dataframe[dataframe['Time'] < 20]['Heartrate'].min()
-            dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
-            normalized_df_list.append(dataframe)
-        else:
-            normalized_df_list.append(dataframe)
-
-    sd.df_list = normalized_df_list
+    dataframes = cutted_df_list
 
 
 def add_timedelta_column():
     """For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
         Saves changes directly to globals.df_list
     """
+
     for idx, dataframe in enumerate(sd.df_list):
         new = dataframe['Time'].apply(lambda x: timedelta(seconds=x))
         sd.df_list[idx] = sd.df_list[idx].assign(timedelta=new)
@@ -50,44 +69,65 @@ def add_log_and_user_column():
     """Add log_number and user_id
         Saves changes directly to globals.df_list
     """
+    global dataframes, names_logfiles
 
-    names = [sd.names_logfiles[i][0:2] for i in range(0, len(sd.df_list))] # E.g. AK, LK, MR
-
-    last_name = names[0]
+    last_name_abbr = names_logfiles[0][:2]
+    user_abbreviations = [f[:2] for f in names_logfiles]
     user_id = 0
 
-    for idx, dataframe in enumerate(sd.df_list):
-        if not names[idx] == last_name:
+    for idx, dataframe in enumerate(dataframes):
+        name = names_logfiles[idx]
+        if not name[:2] == last_name_abbr:
             user_id += 1
-
-        log_id = sd.names_logfiles[idx][-5]
+        if not ('_' in name):  # No logfile number or sth.
+            if not name[:2] in user_abbreviations[:idx]:
+                log_id = '1'
+            else:
+                log_id = '2'
+        else:
+            log_id = name[-7]
         df = dataframe.assign(userID=user_id)
         df = df.assign(logID=log_id)
-        sd.df_list[idx] = df
-        last_name = names[idx]
+        dataframes[idx] = df
+        last_name_abbr = name[:2]
 
 
 def refactor_crashes():
-    """At the moment, there is always a EVENT_CRASH and a EVENT_OBSTACLE in case of a crash, which makes it more difficult
-        to analyze the data.
-        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
-        Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
+    """In the original logfiles, there is always an EVENT_CRASH and an EVENT_OBSTACLE in case of a crash, which makes it
+    hard to analyze and use the data.
+    Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
+    Additionally, I add a column with the userID and whether it's the first or second logfile of the user
 
-        Input: Original files
+    Input: Original logfiles
 
-        Output: Refactored logfiles are stored in gl.df_list and additionally as new csv files
-
-        IMPORTANT: Done ONE TIME only and saved in new folder 'text_logs_refactored_crashes'.
-
-        New dataframe either contains an EVENT_CRASH (obstacle with crash) or EVENT_OBSTACLE (obstacle without a crash)
+    Output: Refactored logfiles saved as new csv files in /text_logs_refactored
 
     """
 
+    global names_logfiles, dataframes
+
     # If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event
-    # POSSIBLY_DANGEROUS: MAybe add it again..
-    # add_log_and_user_column()
 
     print('Refactoring crashes...')
+
+    sanity_check()
+
+    names_logfiles = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
+                             if re.search(r'.log', f)])
+
+    paths_logfiles = [sd.project_path + '/Logs/text_logs_original/' + name for name in names_logfiles]
+
+    # This read_csv is used when using the original logfiles
+    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
+                    'psyStress', 'psyDifficulty', 'obstacle']
+
+    dataframes = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False,
+                                names=column_names) for log in paths_logfiles)
+
+    if not Path(sd.abs_path_logfiles).exists():
+        os.mkdir(sd.abs_path_logfiles)
+
+    add_log_and_user_column()
 
     def get_next_obstacle_row(index, df):
         cnt = 1
@@ -97,8 +137,8 @@ def refactor_crashes():
                 return index + cnt, df.loc[index + cnt]
             cnt += 1
 
-    for df_idx, dataframe in enumerate(sd.df_list):
-
+    for df_idx, dataframe in enumerate(dataframes[15]):
+        old_name = names_logfiles[15]
         new_df = pd.DataFrame()
         count = 0
         obst_indices = []
@@ -111,25 +151,38 @@ def refactor_crashes():
                         obst_idx, obstacle_row = get_next_obstacle_row(idx, dataframe)
                         obst_indices.append(obst_idx)
                         row['obstacle'] = obstacle_row['obstacle']
-                        # dataframe.drop(obst_idx, inplace=True)
+                        dataframe.drop(obst_idx, inplace=True)
                 new_df = new_df.append(row)
 
                 count += 1
+
         new_df.reset_index(inplace=True, drop=True)
-        # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
-        #                'psyDifficulty', 'obstacle', 'userID', 'logID']
         column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty', 'psyStress',
-                            'psyDifficulty', 'obstacle']
+                        'psyDifficulty', 'obstacle', 'userID', 'logID']
+
         new_df = new_df.reindex(column_names, axis=1)
-        sd.df_list[df_idx] = new_df
-        new_df.to_csv(sd.abs_path_logfiles + "/" + sd.names_logfiles[df_idx], header=False, index=False, sep=';')
+        # Create new name
+        new_name = old_name[:2]
+
+        if 'Kinect' in old_name:
+            new_name += '_Kinect'
+        else:
+            new_name += '_FBMC'
+
+        if not (new_df['Heartrate'] == -1).all():
+            new_name += '_hr'
+
+        if (new_df['Points'] == 0).all():
+            new_name += '_np'
+        new_name += '_' + new_df['logID'][0]
+        print(new_name)
+
+        dataframes.append(new_df)
+
+        new_df.to_csv(sd.abs_path_logfiles + '/../text_logs_refactored/' + new_name + '.log', header=False,
+                      index=False, sep=';')
 
 
-def remove_logs_without_heartrates_or_points():
-    """Removes all logfiles that do not have any heartrate data or points (since we then can't calculate our features)
-        Saves changes directly to globals.df_list
 
-    """
 
-    sd.df_list = [df for df in sd.df_list if not (df['Heartrate'] == -1).all()]
-    sd.df_list = [df for df in sd.df_list if not (df['Points'] == 0).all()]
+

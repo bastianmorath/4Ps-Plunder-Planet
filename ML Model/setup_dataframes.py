@@ -17,19 +17,19 @@
 
 import os
 import re
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 import refactoring_logfiles as refactoring
-
-
 
 use_fewer_data = False  # Can be used for debugging (fewer data is used)
 
 working_directory_path = os.path.abspath(os.path.dirname(__file__))
 project_path = os.path.abspath(os.path.join(working_directory_path, '../../..'))
 
-abs_path_logfiles = project_path + '/Logs/text_logs_refactored_crashes'  # Logfiles to use
+abs_path_logfiles = project_path + '/Logs/text_logs_refactored'  # Logfiles to use
 names_logfiles = []  # Name of the logfiles
 
 df_list = []  # List with all dataframes; 1 dataframe per logfile
@@ -47,74 +47,43 @@ def setup(use_fewer_data=False):
     :param use_fewer_data:
 
     """
+    print('Loading dataframes...')
+
+    if  Path(abs_path_logfiles).exists():
+        # The very first time, we need to refactor the original logfiles to speed up everything afterwards
+        refactoring.refactor_crashes()
 
     all_names = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.log', f)]
 
-    kinect_names_all = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.{0,}Kinect.{0,}.log', f)]
     kinect_names_hr = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.{0,}Kinect_hr.{0,}.log', f)]
 
-    fbmc_names_all = [f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r'.{0,}FBMC.{0,}.log', f)]
     fbmc_names_hr_points = [f for f in sorted(os.listdir(abs_path_logfiles)) if
                             re.search(r'.{0,}FBMC_hr_(1|2).{0,}.log', f)]
 
-    globals()['names_logfiles'] = fbmc_names_hr_points
+    sorted_names = sorted(fbmc_names_hr_points)
+
+    globals()['names_logfiles'] = sorted_names
     globals()['use_fewer_data'] = use_fewer_data
 
     if use_fewer_data:
         # names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
-        globals()['names_logfiles'] = ['ISI_FBMC_hr_1.log']
+        globals()['names_logfiles'] = ['IS_FBMC_hr_1.log']
 
-    print('Creating dataframes...')
-    read_and_prepare_logs()
+    # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
+    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
+                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID', 'timedelta']
+
+    logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
+
+    globals()['df_list'] = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
+
+    normalize_heartrate()
+    refactoring.add_timedelta_column()
 
     globals()['obstacle_df_list'] = get_obstacle_times_with_success()
 
     if print_key_numbers:
         print_keynumbers_logfiles()
-
-
-'''Reads the logfiles and parses them into Pandas dataframes. 
-    Also adds additional log&timedelta column, cuts them to the same length and normalizes heartrate
-'''
-
-
-def read_and_prepare_logs():
-
-    logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
-
-    # This read_csv is used when using the original logfiles
-    # column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
-    #                 'psyStress', 'psyDifficulty', 'obstacle']
-    #  globals()['df_list'] = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False,
-    #                                  names=column_names) for log in logs)
-
-    # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
-    column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
-                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
-    globals()['df_list'] = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
-
-    refactoring.add_timedelta_column()  # Is added after refactoring, since timedelta format gets lost otherwise
-    # POSSIBLY_DANGEROUS
-    refactoring.remove_logs_without_heartrates_or_points()  # Now done by using corresponding logs directly
-
-    refactoring.normalize_heartrate()
-
-    refactoring.add_log_and_user_column()
-
-
-def refactor_crashes():
-    """
-        In the original logfiles, there are always two event happening in case of an obstacle:
-        an EVENT_CRASH (Which doesn't have any information about its obstacle) and an EVENT_OBSTACLE, which makes it
-        more difficult to use the logs later.
-        Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
-        Additionaly, I add a column with the userID and whether it's the first or second logfile of the user
-
-    :return: New dataframe that either contains an EVENT_CRASH (obstacle with crash) or
-                EVENT_OBSTACLE (obstacle without a crash)
-
-    """
-    refactoring.refactor_crashes()
 
 
 def print_keynumbers_logfiles():
@@ -138,6 +107,7 @@ def print_keynumbers_logfiles():
 
 def get_obstacle_times_with_success():
     """Returns a list of dataframes, each dataframe has time of each obstacle and whether crash or not (1 df per logfile)
+    First max(f_factory.cw, f_factory.hw) seconds are removed
 
     userID/logID is used such that we can later (after creating feature matrix), still differentiate logfiles
 
@@ -153,7 +123,7 @@ def get_obstacle_times_with_success():
     for dataframe in df_list:
         obstacle_times_current_df = []
         for idx, row in dataframe.iterrows():
-            if row['Time'] > max(f_factory.cw, f_factory.hw):
+            if row['Time'] > max(f_factory.cw, f_factory.hw, f_factory.gradient_w):
                 if row['Logtype'] == 'EVENT_OBSTACLE':
                     obstacle_times_current_df.append((row['Time'], 0, row['userID'], row['logID']))
                 if row['Logtype'] == 'EVENT_CRASH':
@@ -168,3 +138,33 @@ def get_obstacle_times_with_success():
                                                  'logID': logIDs}))
 
     return obstacle_time_crash
+
+
+def normalize_heartrate():
+    """Normalizes heartrate of each dataframe/user by dividing by mean of first 60 seconds
+        Saves changes directly to globals.df_list
+
+        Note: I didn;t do this on the refactoring-step on purpose, since the user might want to
+        do some plots, which might be more convenient to do with non-normalized heartrate data
+    """
+
+    normalized_df_list = []
+    for dataframe in globals()['df_list']:
+        if not (dataframe['Heartrate'] == -1).all():
+            baseline = dataframe[dataframe['Time'] < 20]['Heartrate'].min()
+            dataframe['Heartrate'] = dataframe['Heartrate'] / baseline
+            normalized_df_list.append(dataframe)
+        else:
+            normalized_df_list.append(dataframe)
+
+    globals()['df_list'] = normalized_df_list
+
+
+def remove_logs_without_heartrates_or_points():
+    """Removes all logfiles that do not have any heartrate data or points (since we then can't calculate our features)
+        Saves changes directly to globals.df_list
+
+    """
+
+    globals()['df_list'] = [df for df in df_list if not (df['Heartrate'] == -1).all()]
+    globals()['df_list'] = [df for df in df_list if not (df['Points'] == 0).all()]
