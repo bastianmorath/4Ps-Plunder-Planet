@@ -137,8 +137,8 @@ def refactor_crashes():
                 return index + cnt, df.loc[index + cnt]
             cnt += 1
 
-    for df_idx, dataframe in enumerate(dataframes[15]):
-        old_name = names_logfiles[15]
+    for df_idx, dataframe in enumerate(dataframes):
+        old_name = names_logfiles[df_idx]
         new_df = pd.DataFrame()
         count = 0
         obst_indices = []

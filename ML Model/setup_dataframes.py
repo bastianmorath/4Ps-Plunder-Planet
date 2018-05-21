@@ -49,7 +49,7 @@ def setup(use_fewer_data=False):
     """
     print('Loading dataframes...')
 
-    if  Path(abs_path_logfiles).exists():
+    if not Path(abs_path_logfiles).exists():
         # The very first time, we need to refactor the original logfiles to speed up everything afterwards
         refactoring.refactor_crashes()
 
@@ -71,7 +71,7 @@ def setup(use_fewer_data=False):
 
     # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
-                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID', 'timedelta']
+                    'psyStress', 'psyDifficulty', 'obstacle', 'userID', 'logID']
 
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
 

@@ -16,7 +16,7 @@ import setup_dataframes as sd
 import plots
 
 """INITIALIZATION"""
-plot_corr_matrix = False
+plot_corr_matrix = True
 
 feature_names = []  # Set below
 use_reduced_features = False
@@ -179,12 +179,13 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         if save_as_pickle_file and (not sd.use_fewer_data):
             matrix.to_pickle(path)
 
-    # remove ~ first heartrate_window rows (they have < hw seconds to compute features, and are thus not accurate)
+    # remove ~ first couple of seconds (they have < window seconds to compute features, and are thus not accurate)
     labels = []
     for df in sd.obstacle_df_list:
         labels.append(df[df['Time'] > max(cw, hw, gradient_w)]['crash'].copy())
     y = list(itertools.chain.from_iterable(labels))
 
+    # Create feature matrix from df
     X = matrix.as_matrix()
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
@@ -239,6 +240,7 @@ def get_last_obstacle_crash_feature():
     # list that contains one dataframe with whether last obstacle was a crash or not
     # for each point in time for each logfile
     crashes_list = []
+
     for list_idx, df in enumerate(sd.df_list):
         df_obstacles = get_last_obstacle_crash_column(list_idx)
         # df = df[df['Time'] > max(cw, hw, gradient_w)]  # remove first window-seconds bc. not accurate data
@@ -251,6 +253,7 @@ def get_lin_regression_hr_slope_feature():
     if _verbose:
         print('Creating lin_regression_hr_slope feature...')
     slopes = []  # list that contains (for each logfile) a dataframe with the slope of the heartrate
+
     for list_idx, df in enumerate(sd.df_list):
         slope = get_hr_slope_column(list_idx)
         slopes.append(slope)
@@ -262,6 +265,7 @@ def get_number_of_gradient_changes(data_name):
     if _verbose:
         print('Creating %s_gradient_changes feature...' % data_name)
     changes_list = []  # list that contains (for each logfile) a dataframe with the number of slope changes
+
     for list_idx, df in enumerate(sd.df_list):
         changes = get_gradient_changes_column(list_idx, data_name)
         changes_list.append(changes)

@@ -29,7 +29,6 @@ def resample_dataframe(df, resolution):
     :return: Resampled dataframe
 
     """
-    print(df)
     df = df.set_index('timedelta', drop=True)  # set timedelta as new index
     resampled = df.resample(str(resolution)+'S').mean()
     resampled.reset_index(inplace=True)
