@@ -77,6 +77,7 @@ def setup(use_fewer_data=False):
 
     globals()['df_list'] = list(pd.read_csv(log, sep=';', index_col=False, names=column_names) for log in logs)
 
+
     normalize_heartrate()
     refactoring.add_timedelta_column()
 

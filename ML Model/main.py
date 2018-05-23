@@ -24,7 +24,7 @@ plot_feature_distributions = False
 plot_heartrate_histogram = False
 plot_mean_value_of_feature_at_crash = False
 plot_correlation_matrix = False
-
+plot_feature = (True, 8)
 
 def main(args):
     start = time.time()
@@ -90,6 +90,9 @@ def plot(X, y):
     if plot_mean_value_of_feature_at_crash or plot_all:
 
         plots.plot_mean_value_of_feature_at_crash(X, y)  # DONE
+
+    if plot_feature[0] or plot_all:
+        plots.plot_feature(X, plot_feature[1])
 
 
 if __name__ == '__main__':

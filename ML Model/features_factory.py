@@ -80,7 +80,7 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
 
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
                                  use_boxcox=False, feature_selection=False,
-                                 hw=30, cw=5, gradient_w=10):
+                                 h_window=hw, c_window=cw, gradient_window=gradient_w):
 
     """ Computes the feature matrix and the corresponding labels
 
@@ -97,9 +97,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     """
 
-    globals()['hw'] = hw
-    globals()['cw'] = cw
-    globals()['gradient_w'] = gradient_w
+    globals()['hw'] = h_window
+    globals()['cw'] = c_window
+    globals()['gradient_w'] = gradient_window
 
     globals()['use_cached_feature_matrix'] = use_cached_feature_matrix
     globals()['use_reduced_features'] = feature_selection

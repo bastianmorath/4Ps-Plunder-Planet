@@ -22,7 +22,7 @@ def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_fil
     clf = svm.SVC(class_weight='balanced')
 
     X, y = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=True,
-                                                  save_as_pickle_file=True, hw=hw, cw=cw, gradient_w=gradient_w)
+                                                  save_as_pickle_file=True, h_window=hw, c_window=cw, gradient_window=gradient_w)
     _, _, _, _, _, s = model_factory.get_performance(clf, "SVM (w/ rfb kernel)", X, y, False, False)
 
     if verbose:

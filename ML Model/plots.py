@@ -1,6 +1,7 @@
 """This module is responsible for plotting various things
 
 """
+import itertools
 
 import matplotlib
 matplotlib.use('Agg')
@@ -65,7 +66,7 @@ def plot_correlation_matrix(X):
 
 
 def plot_feature_distributions(X):
-    """Plots the distribution of the features
+    """Plots the distribution of the features in separate plots
 
     :param X: Feature matrix
     """
@@ -198,6 +199,38 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     save_plot(plt, 'Performance/', filename)
 
     return plt
+
+
+def plot_feature(X, i):
+    """Plots the feature at position i of each logfile
+
+    :param X: Feature matrix
+    :param i: Feature index to plot (look at features_factoy for order)
+
+    """
+
+
+    # df_num_resampled = resample_dataframe(samples, resolution)
+    # first dataframe only
+    for i in range(0, len(f_factory.feature_names)-1):
+        feature_name = f_factory.feature_names[i]
+        for idx, df in enumerate(sd.df_list):
+            times = sd.obstacle_df_list[idx]['Time']
+            start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
+            #print(start, start+len(times))
+            samples = list(X[start:start+len(times), i])
+            #print(samples[0], samples[-1])
+            _, ax1 = plt.subplots()
+
+            #ax1.scatter(times, samples, c=red_color)
+            ax1.plot(times, samples, c=red_color)
+            ax1.set_xlabel('Playing time [s]')
+            ax1.set_ylabel(feature_name, color=blue_color)
+            plt.title('Feature ' + feature_name + ' for user ' + str(idx))
+            ax1.tick_params('y', colors=blue_color)
+
+            filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
+            save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
 
 
 def save_plot(plt, folder, filename):
