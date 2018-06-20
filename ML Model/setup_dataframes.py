@@ -41,12 +41,15 @@ obstacle_df_list = []
 print_key_numbers = False
 
 
-def setup(use_fewer_data=False):
+def setup(use_fewer_data=False, normalize_heartrate=True):
+    """ Sets up the logfile datastructures/lists and does some basic refactoring
+    
+    Note: No machine learning specific things are done yet!
+
+    :param use_fewer_data: Whether we should only use a little part of the data or not (helps for faster debugging)
+
     """
 
-    :param use_fewer_data:
-
-    """
     print("Loading dataframes...")
 
     if not Path(abs_path_logfiles).exists():
@@ -75,10 +78,8 @@ def setup(use_fewer_data=False):
     globals()["use_fewer_data"] = use_fewer_data
 
     if use_fewer_data:
-        # names_logfiles = ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
-        globals()["names_logfiles"] = ["IS_FBMC_hr_1.log"]
+        globals()["names_logfiles"] =  ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
 
-    # This read_csv is used when using the refactored logs (Crash/Obstacle cleaned up)
     column_names = [
         "Time",
         "Logtype",
@@ -98,14 +99,14 @@ def setup(use_fewer_data=False):
     globals()["df_list"] = list(
         pd.read_csv(log, sep=";", index_col=False, names=column_names) for log in logs
     )
+    if normalize_heartrate:
+        normalize_heartrate_of_logfiles()
 
-    normalize_heartrate()
+    remove_movement_tutorials()
+
     refactoring.add_timedelta_column()
 
     globals()["obstacle_df_list"] = get_obstacle_times_with_success()
-
-    if print_key_numbers:
-        print_keynumbers_logfiles()
 
 
 def print_keynumbers_logfiles():
@@ -113,6 +114,7 @@ def print_keynumbers_logfiles():
         - number of logs, events, features (=obstacles)
         - number of files that contain heartrate vs no heartrate
     """
+
     print("\nImportant numbers about the logfiles:")
     print("\t#files: " + str(len(df_list)))
     print(
@@ -181,25 +183,56 @@ def get_obstacle_times_with_success():
     return obstacle_time_crash
 
 
-def normalize_heartrate():
-    """Normalizes heartrate of each dataframe/user by dividing by mean of first 60 seconds
+def normalize_heartrate_of_logfiles():
+    """Normalizes heartrate of each dataframe/user by dividing by min of the movementtutorial.
         Saves changes directly to globals.df_list
 
-        Note: I didn;t do this on the refactoring-step on purpose, since the user might want to
+        Note: I didn't do this on the refactoring-step on purpose, since the user might want to
         do some plots, which might be more convenient to do with non-normalized heartrate data
     """
 
     normalized_df_list = []
     for dataframe in globals()["df_list"]:
-        if not (dataframe["Heartrate"] == -1).all():
-            baseline = dataframe[dataframe["Time"] < 20]["Heartrate"].min()
+        if 'MOVEMENTTUTORIAL' in dataframe['Gamemode'].values:
+            # Remove movement tutorial
+            tutorial_mask = dataframe['Gamemode']=='MOVEMENTTUTORIAL'
+            tutorial_entries = dataframe[tutorial_mask]
+            tutorial_endtime = tutorial_entries['Time'].max()
+
+            baseline = dataframe[dataframe["Time"] < tutorial_endtime]["Heartrate"].min() # Use MINIMUM of tutorial 
+            if baseline==-1:
+                print('ERROR: No Heartrate data!!!')
+
             dataframe["Heartrate"] = dataframe["Heartrate"] / baseline
+
             normalized_df_list.append(dataframe)
         else:
-            normalized_df_list.append(dataframe)
-
+            print('ERROR: No Movement tutorial')
+    print(normalized_df_list[0])
     globals()["df_list"] = normalized_df_list
 
+
+def remove_movement_tutorials():
+    """Since the MOVEMENTTUTORIAL at the beginning is different for each player/logfile,
+        we need to align them, i.e. remove tutorial-log entries and then set timer to 0
+
+    """
+
+    dataframe_list_with_tutorials_removed = []
+    for dataframe in globals()["df_list"]:
+        if 'MOVEMENTTUTORIAL' in dataframe['Gamemode'].values:
+            # Remove movement tutorial
+            tutorial_mask = dataframe['Gamemode']=='MOVEMENTTUTORIAL'
+            tutorial_entries = dataframe[tutorial_mask]
+            tutorial_endtime = tutorial_entries['Time'].max()
+            dataframe['Time'] = dataframe['Time'].apply(lambda x: x - tutorial_endtime) # Adjust time by removing time of tutorial
+
+            dataframe_list_with_tutorials_removed.append(dataframe[~tutorial_mask].reset_index(drop=True))
+        else:
+            print('ERROR: No Movement tutorial')
+    print(dataframe_list_with_tutorials_removed[0])
+    globals()["df_list"] = dataframe_list_with_tutorials_removed
+   
 
 def remove_logs_without_heartrates_or_points():
     """Removes all logfiles that do not have any heartrate data or points (since we then can't calculate our features)

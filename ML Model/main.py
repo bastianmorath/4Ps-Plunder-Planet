@@ -42,7 +42,8 @@ def main(args):
             f_factory.plot_corr_matrix = True
 
         setup_dataframes.setup(
-            use_fewer_data=False
+            use_fewer_data=False,
+            normalize_heartrate=(not args.do_not_normalize_heartrate),
         )  # Specify if we want fewer data (for debugging purposes...)
 
         X, y = f_factory.get_feature_matrix_and_label(
@@ -165,6 +166,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Plot performance when leaving out a logfile "
         "vs leaving out a whole user in crossvalidation",
+    )
+
+    parser.add_argument(
+        "--do_not_normalize_heartrate",
+        action="store_true",
+        help="Do not normalize heartrate (e.g. if you want plots or values with real heartrate)",
     )
     args = parser.parse_args()
 
