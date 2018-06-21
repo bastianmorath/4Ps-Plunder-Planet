@@ -53,6 +53,25 @@ def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20)
     return names, scores, optimal_params, conf_mats
 
 
+def report(results, n_top=3):
+    """Displays the n_top hyperparameter configurations with the best score and reports
+    performance scores
+
+    :param results: cv_results of GridSearch/RandomSearchCV
+    :param n_top: First n_top hyperparameter configurations should be displayed
+    """
+
+    for i in range(1, n_top + 1):
+        candidates = np.flatnonzero(results['rank_test_score'] == i)
+        for candidate in candidates:
+            print("Model with rank: {0}".format(i))
+            print("\tMean validation score: {0:.3f} (std: {1:.3f})".format(
+                  results['mean_test_score'][candidate],
+                  results['std_test_score'][candidate]))
+            print("\tParameters: {0}".format(results['params'][candidate]))
+            print("")
+
+
 def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=False):
     """This method optimizes hyperparameters with cross-validation, which is done using RandomSearchCV and
     returns this optimized classifier
@@ -69,7 +88,7 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
     c_classifier = classifiers.get_clf_with_name(clf_name, X, y)
 
     if verbose:
-        print('# Tuning hyper-parameters for roc_auc \n')
+        print('Doing RandomSearchCV...\n')
 
     clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=10,
                              scoring='roc_auc', n_iter=num_iter)
@@ -77,16 +96,14 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
     clf.fit(X, y)
 
     if verbose:
+        model_factory.get_performance(clf, clf_name, X, y)
+        '''
         print()
         print("roc-auc grid scores on development set:")
-        print()
         means = clf.cv_results_['mean_test_score']
         stds = clf.cv_results_['std_test_score']
-        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-            print("%0.3f (+/-%0.03f) for %r"
-                  % (mean, std * 2, params))
-        print()
 
+        report(clf.cv_results_)
         print("Detailed classification report: \n")
 
         y_pred = cross_val_predict(clf, X, y, cv=10)
@@ -95,6 +112,7 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
         print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
         print(classification_report(y, y_pred, target_names=['No Crash: ', 'Crash: ']))
         print()
+        '''
 
     return clf
 

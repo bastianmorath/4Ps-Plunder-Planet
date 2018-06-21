@@ -76,10 +76,9 @@ class CLinearSVM(CClassifier):
     param2_name = 'penalty'
     tuned_params = {'C': param1, 'penalty': param2}
 
-    clf = LinearSVC(class_weight='balanced', dual=False)
-
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
+        self.clf = LinearSVC(class_weight='balanced', dual=False)
 
 '''
 class CLinearSVM(CClassifier):
@@ -95,6 +94,8 @@ class CLinearSVM(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
 '''
+
+
 class CNearestNeighbors(CClassifier):
     name = 'Nearest Neighbor'
 
@@ -104,10 +105,9 @@ class CNearestNeighbors(CClassifier):
     param2_name = 'metric'
     tuned_params = {'n_neighbors': param1, 'metric': param2}
 
-    clf = KNeighborsClassifier()
-
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
+        self.clf = KNeighborsClassifier()
 
 
 class CQuadraticDiscriminantAnalysis(CClassifier):
@@ -119,10 +119,9 @@ class CQuadraticDiscriminantAnalysis(CClassifier):
     param2_name = 'tol'
     tuned_params = {'reg_param': param1, 'tol': param2}
 
-    clf = QuadraticDiscriminantAnalysis()
-
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
+        self.clf = QuadraticDiscriminantAnalysis()
 
 
 class CGradientBoostingClassifier(CClassifier):

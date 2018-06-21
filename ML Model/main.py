@@ -58,18 +58,18 @@ def main(args):
             write_to_file=True,
         )
 
-    if args.grid_search:
+    if args.optimize_clf:
         print("\n'hyperparameter_optimization' called")
 
-        if args.grid_search == "all":
+        if args.optimize_clf == "all":
             names, scores, optimal_params, conf_mats = hyperparameter_optimization.\
                 get_performance_of_all_clf_with_optimized_hyperparameters(X, y, 20)
 
             model_factory.plot_barchart_scores(names, scores)
             model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
         else:
-             hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.grid_search, 20, verbose=True  # TODO: args.verbose
+            hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
+                X, y, args.optimize_clf, 20, verbose=True  # TODO: args.verbose
             )
 
     if args.leave_one_out:
@@ -122,11 +122,11 @@ if __name__ == "__main__":
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
     parser.add_argument(
-        "-g",
-        "--grid_search",
+        "-o",
+        "--optimize_clf",
         type=str,
-        help="Optimizes the given classifier with RAndomSearchCV. Set"
-        "clf_name='all' if you want to test all classifiers",
+        help="Optimizes the given classifier with RandomSearchCV and outputs detailed scores."
+             " Set clf_name='all' if you want to test all classifiers",
         metavar='clf_name',
     )
 
