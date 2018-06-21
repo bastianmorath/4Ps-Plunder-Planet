@@ -6,8 +6,7 @@ contain hyperparameters to do grid search over and the classifier obejct itself
 
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.utils import class_weight
+from sklearn.svm import SVC, LinearSVC
 from scipy.stats import randint as sp_randint
 from sklearn.naive_bayes import GaussianNB
 
@@ -23,7 +22,7 @@ import features_factory as f_factory
 EPSILON = 0.0001
 
 
-def get_clf_with_name(clf_name):
+def get_clf_with_name(clf_name, X, y):
     """Returns the classifier with the given name
 
     :param clf_name: name of the classifier
@@ -32,18 +31,20 @@ def get_clf_with_name(clf_name):
     """
 
     clfs = [
-        CSVM,
-        CLinearSVM,
-        CNearestNeighbors,
-        CQuadraticDiscriminantAnalysis,
-        CGradientBoostingClassifier,
-        CDecisionTreeClassifier,
-        CRandomForest,
-        CAdaBoost,
-        CNaiveBayes
+        CSVM(X, y),
+        CLinearSVM(X, y),
+        CNearestNeighbors(X, y),
+        CQuadraticDiscriminantAnalysis(X, y),
+        CGradientBoostingClassifier(X, y),
+        CDecisionTreeClassifier(X, y),
+        CRandomForest(X, y),
+        CAdaBoost(X, y),
+        CNaiveBayes(X, y),
     ]
 
-    return [clf for clf in clfs if clf.name == clf_name][0]
+    list_clf = [clf for clf in clfs if clf.name == clf_name]
+    assert len(list_clf) != 0, 'Classifier does not exist. Available classifiers: ' + str([clf.name for clf in clfs])
+    return list_clf[0]
 
 
 class CClassifier(object):
@@ -51,176 +52,184 @@ class CClassifier(object):
 
         self.X = X
         self.y = y
-        self.clf = None
-        self.tuned_params = None
 
 
 class CSVM(CClassifier):
+    name = 'SVM'
+
+    param1 = sp_randint(1, 100)  # C
+    param1_name = 'C'
+    param2 = sp_randint(EPSILON, 10)  # gamma
+    param2_name = 'gamma'
+    tuned_params = {'C': param1, 'gamma': param2}
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'SVM'
-
-        self.param1 = sp_randint(1, 100)  # C
-        self.param1_name = 'C'
-        self.param2 = sp_randint(EPSILON, 10)  # gamma
-        self.param2_name = 'gamma'
-        self.tuned_params = {'C': self.param1, 'gamma': self.param2}
-
         self.clf = SVC(class_weight='balanced')
 
 
 class CLinearSVM(CClassifier):
+    name = 'Linear SVM'
+    param1 = sp_randint(1, 100)  # C
+    param1_name = 'C'
+    param2 = ['l1', 'l2']  # penalty
+    param2_name = 'penalty'
+    tuned_params = {'C': param1, 'penalty': param2}
+
+    clf = LinearSVC(class_weight='balanced', dual=False)
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
 
-        self.name = 'Linear SVM'
+'''
+class CLinearSVM(CClassifier):
+    name = 'Linear SVM'
+    param1 = sp_randint(1, 100)  # C
+    param1_name = 'C'
+    param2 = sp_randint(EPSILON, 10)  # gamma
+    param2_name = 'gamma'
+    tuned_params = {'C': param1, 'gamma': param2}
 
-        self.param1 = sp_randint(1, 100)  # C
-        self.param1_name = 'C'
-        self.param2 = ['l1', 'l2']  # loss
-        self.param2_name = 'loss'
-        self.tuned_params = {'C': self.param1, 'gamma': self.param2}
+    clf = SVC(class_weight='balanced', degree=1)
 
-        self.clf = SVC(class_weight='balanced')
-
-
+    def __init__(self, X, y):
+        CClassifier.__init__(self, X, y)
+'''
 class CNearestNeighbors(CClassifier):
+    name = 'Nearest Neighbor'
+
+    param1 = sp_randint(1, 100)  # n_neighbors
+    param1_name = 'n_neighbors'
+    param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
+    param2_name = 'metric'
+    tuned_params = {'n_neighbors': param1, 'metric': param2}
+
+    clf = KNeighborsClassifier()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'Nearest Neighbor'
-
-        self.param1 = sp_randint(1, 100)  # n_neighbors
-        self.param1_name = 'n_neighbors'
-        self.param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
-        self.param2_name = 'metric'
-
-        self.tuned_params = {'n_neighbors': self.param1, 'metric': self.param2}
-
-        self.clf = KNeighborsClassifier()
 
 
 class CQuadraticDiscriminantAnalysis(CClassifier):
+    name = 'QDA'
+
+    param1 = sp_randint(0, 1)  # reg_param
+    param1_name = 'reg_param'
+    param2 = np.random.uniform(EPSILON, 1)  # tol
+    param2_name = 'tol'
+    tuned_params = {'reg_param': param1, 'tol': param2}
+
+    clf = QuadraticDiscriminantAnalysis()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'QDA'
-
-        self.param1 = sp_randint(0, 1)  # reg_param
-        self.param1_name = 'reg_param'
-        self.param2 = np.random.uniform(EPSILON, 1)  # tol
-        self.param2_name = 'tol'
-
-        self.tuned_params = {'reg_param': self.param1, 'tol': self.param2}
-
-        self.clf = QuadraticDiscriminantAnalysis()
 
 
 class CGradientBoostingClassifier(CClassifier):
+    name = 'Gradient Boosting'
+
+    param1 = ['deviance', 'exponential']  # loss
+    param1_name = 'loss'
+    param2 = np.random.uniform(EPSILON, 1)  # learning_rate
+    param2_name = 'learning_rate'
+    param3 = sp_randint(1, 10000)  # n_estimators
+    param3_name = 'n_estimators'
+    param4 = sp_randint(1, 5)  # max_depth
+    param4_name = 'max_depth'
+    param5 = np.random.uniform(EPSILON, 1)  # min_samples_split
+    param5_name = 'min_samples_split'
+    param6 = sp_randint(1, 5)  # min_samples_leaf
+    param6_name = 'min_samples_leaf'
+    param7 = sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names))  # max_features
+    param7_name = 'max_features'
+    param8 = np.random.uniform(EPSILON, 1)  # subsample
+    param8_name = 'subsample'
+    tuned_params = {'loss': param1, 'learning_rate': param2,
+                    'n_estimators': param3, 'max_depth': param4,
+                    'min_samples_split': param5, 'min_samples_leaf': param6,
+                    'max_features': param7, 'subsample': param8
+                    }
+
+    clf = GradientBoostingClassifier()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'Gradient Boosting'
-
-        self.param1 = ['deviance', 'exponential']  # loss
-        self.param1_name = 'loss'
-        self.param2 = np.random.uniform(EPSILON, 1)  # learning_rate
-        self.param2_name = 'learning_rate'
-        self.param3 = sp_randint(1, 10000)  # n_estimators
-        self.param3_name = 'n_estimators'
-        self.param4 = sp_randint(1, 5)  # max_depth
-        self.param4_name = 'max_depth'
-        self.param5 = np.random.uniform(EPSILON, 1)  # min_samples_split
-        self.param5_name = 'min_samples_split'
-        self.param6 = sp_randint(1, 5)  # min_samples_leaf
-        self.param6_name = 'min_samples_leaf'
-        self.param7 = sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names))  # max_features
-        self.param7_name = 'max_features'
-        self.param8 = np.random.uniform(EPSILON, 1)  # subsample
-        self.param8_name = 'subsample'
-        self.tuned_params = {'loss': self.param1, 'learning_rate': self.param2,
-                             'n_estimators': self.param3, 'max_depth': self.param4,
-                             'min_samples_split': self.param5, 'min_samples_leaf': self.param6,
-                             'max_features': self.param7, 'subsample': self.param8}
-
-        self.clf = GradientBoostingClassifier()
 
 
 class CDecisionTreeClassifier(CClassifier):
+    name = 'Decision Tree'
+
+    param1 = ['gini', 'entropy']  # criterion
+    param1_name = 'criterion'
+    param2 = ['best', 'random']  # splitter
+    param2_name = 'splitter'
+    param3 = sp_randint(1, 5)  # max_depth
+    param3_name = 'max_depth'
+    param4 = np.random.uniform(EPSILON, 1)  # min_samples_split
+    param4_name = 'min_samples_split'
+    param5 = sp_randint(1, 5)  # min_samples_leaf
+    param5_name = 'min_samples_leaf'
+    param6 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
+    param6_name = 'max_features'
+    tuned_params = {'criterion': param1, 'splitter': param2,
+                    'max_depth': param3, 'min_samples_split': param4,
+                    'min_samples_leaf': param5, 'max_features': param6,
+                    }
+
+    clf = DecisionTreeClassifier()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'Decision Tree'
-
-        self.param1 = ['gini', 'entropy']  # criterion
-        self.param1_name = 'criterion'
-        self.param2 = ['best', 'random']  # splitter
-        self.param2_name = 'splitter'
-        self.param3 = sp_randint(1, 5)  # max_depth
-        self.param3_name = 'max_depth'
-        self.param4 = np.random.uniform(EPSILON, 1)  # min_samples_split
-        self.param4_name = 'min_samples_split'
-        self.param5 = sp_randint(1, 5)  # min_samples_leaf
-        self.param5_name = 'min_samples_leaf'
-        self.param6 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
-        self.param6_name = 'max_features'
-
-        self.tuned_params = {'criterion': self.param1, 'splitter': self.param2,
-                             'max_depth': self.param3, 'min_samples_split': self.param4,
-                             'min_samples_leaf': self.param5, 'max_features': self.param6,
-                             }
-
-        self.clf = DecisionTreeClassifier()
 
 
 class CRandomForest(CClassifier):
+    name = 'Random Forest'
+
+    param1 = [3, None]  # max_depth
+    param1_name = 'max_depth'
+    param2 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
+    param2_name = 'max_features'
+    param3 = np.random.uniform(EPSILON, 1)  # min_samples_split
+    param3_name = 'min_samples_split'
+    param4 = sp_randint(1, 11)  # min_samples_leaf
+    param4_name = 'min_samples_leaf'
+    tuned_params = {'max_depth': param1, 'max_features': param2,
+                    'min_samples_split': param3, 'min_samples_leaf': param4}
+
+    clf = RandomForestClassifier()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'Random Forest'
-
-        self.param1 = [3, None]  # max_depth
-        self.param1_name = 'max_depth'
-        self.param2 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
-        self.param2_name = 'max_features'
-        self.param3 = np.random.uniform(EPSILON, 1)  # min_samples_split
-        self.param3_name = 'min_samples_split'
-        self.param4 = sp_randint(1, 11)  # min_samples_leaf
-        self.param4_name = 'min_samples_leaf'
-
-        self.tuned_params = {'max_depth': self.param1, 'max_features': self.param2,
-                             'min_samples_split': self.param3, 'min_samples_leaf': self.param4}
-
-        self.clf = RandomForestClassifier()
 
 
 class CAdaBoost(CClassifier):
+
+    name = 'Ada Boost'
+
+    param1 = sp_randint(1, 200)  # n_estimators
+    param1_name = 'n_estimators'
+    param2 = np.random.uniform(EPSILON, 1)  # learning_rate
+    param2_name = 'learning_rate'
+    param3 = ['SAMME', 'SAMME.R']  # algorithm
+    param3_name = 'algorithm'
+
+    tuned_params = {'n_estimators': param1, 'learning_rate': param2,
+                    'algorithm': param3,
+                    }
+
+    clf = AdaBoostClassifier()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-
-        self.name = 'Ada Boost'
-
-        self.param1 = sp_randint(1, 200)  # n_estimators
-        self.param1_name = 'n_estimators'
-        self.param2 = np.random.uniform(EPSILON, 1)  # learning_rate
-        self.param2_name = 'learning_rate'
-        self.param3 = ['SAMME', 'SAMME.R']  # algorithm
-        self.param3_name = 'algorithm'
-
-        self.tuned_params = {'n_estimators': self.param1, 'learning_rate': self.param2,
-                             'algorithm': self.param3,
-                             }
-
-        self.clf = AdaBoostClassifier()
 
 
 class CNaiveBayes(CClassifier):
+    name = 'Naive Bayes'
+
+    tuned_params = {}
+
+    clf = GaussianNB()
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
 
-        self.name = 'Naive Bayes'
-
-        self.tuned_params = {}
-
-        self.clf = GaussianNB()

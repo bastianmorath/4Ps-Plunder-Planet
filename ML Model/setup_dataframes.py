@@ -65,7 +65,7 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
         for f in sorted(os.listdir(abs_path_logfiles))
         if re.search(r".{0,}Kinect_hr.{0,}.log", f)
     ]
-
+    
     fbmc_names_hr_points = [
         f
         for f in sorted(os.listdir(abs_path_logfiles))
@@ -78,7 +78,7 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
     globals()["use_fewer_data"] = use_fewer_data
 
     if use_fewer_data:
-        globals()["names_logfiles"] =  ['ISI_FBMC_hr_1.log', 'LZ_FBMC_hr_2.log', 'MH_FBMC_hr_1.log']
+        globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
 
     column_names = [
         "Time",
@@ -93,9 +93,7 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
         "userID",
         "logID",
     ]
-
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
-
     globals()["df_list"] = list(
         pd.read_csv(log, sep=";", index_col=False, names=column_names) for log in logs
     )
@@ -208,7 +206,7 @@ def normalize_heartrate_of_logfiles():
             normalized_df_list.append(dataframe)
         else:
             print('ERROR: No Movement tutorial')
-    print(normalized_df_list[0])
+
     globals()["df_list"] = normalized_df_list
 
 
@@ -230,7 +228,7 @@ def remove_movement_tutorials():
             dataframe_list_with_tutorials_removed.append(dataframe[~tutorial_mask].reset_index(drop=True))
         else:
             print('ERROR: No Movement tutorial')
-    print(dataframe_list_with_tutorials_removed[0])
+
     globals()["df_list"] = dataframe_list_with_tutorials_removed
    
 

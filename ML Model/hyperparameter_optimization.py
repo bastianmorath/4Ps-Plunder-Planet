@@ -66,8 +66,7 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
     :return: roc_auc, recall, specificity, precision, conf_mat
 
     """
-
-    c_classifier = classifiers.get_clf_with_name(clf_name).__init__(X, y)
+    c_classifier = classifiers.get_clf_with_name(clf_name, X, y)
 
     if verbose:
         print('# Tuning hyper-parameters for roc_auc \n')

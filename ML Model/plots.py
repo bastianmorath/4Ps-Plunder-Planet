@@ -71,6 +71,8 @@ def plot_feature_distributions(X):
     :param X: Feature matrix
     """
 
+    print("Plotting histogram of each feature...")
+
     f_names = f_factory.feature_names
     for idx, feature in enumerate(f_names):
         x = X[:, idx]
@@ -89,6 +91,8 @@ def plot_hr_of_dataframes():
 
     :return:
     """
+
+    print("Plotting heartrate of dataframes over time...")
     resolution = 5
     for idx, df in enumerate(sd.df_list):
         if not (df['Heartrate'] == -1).all():
@@ -108,6 +112,7 @@ def plot_heartrate_histogram():
     """ Plots a histogram of  heartrate data accumulated over all logfiles
 
     """
+    print("Plotting histogram of heartrate of accumulated logfiles...")
 
     _, _ = plt.subplots()
     df = pd.concat(sd.df_list, ignore_index=True)
@@ -126,6 +131,9 @@ def plot_mean_value_of_feature_at_crash(X, y):
     :param y: labels
 
     """
+
+    print("Plotting mean value of each feature when crash vs no crash happened...")
+
     # TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
 
     rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
@@ -202,12 +210,14 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
 
 
 def plot_feature(X, i):
-    """Plots the feature at position i of each logfile
+    """Plots the feature at position i of each logfile over time
 
     :param X: Feature matrix
     :param i: Feature index to plot (look at features_factoy for order)
 
     """
+        
+    print("Plotting feature %f of each logfile over time...", i)
 
 
     # df_num_resampled = resample_dataframe(samples, resolution)
