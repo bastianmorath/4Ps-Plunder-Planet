@@ -53,7 +53,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
 
     :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
     """
-    print('Calculating performance of %s...' % clf_name)
+    print('Calculating performance of %s...\n' % clf_name)
 
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
@@ -93,13 +93,11 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
 
     if write_to_file:
         # Write result to a file
-        filename = 'performance_' + clf_name + '_windows_' + str(f_factory.hw) + '_' + str(f_factory.cw) + '_' + str(f_factory.gradient_w) + '.txt'
-        write_to_file(s, 'Performance/', filename, 'w+')
+        filename = 'performance_' + clf_name + '_windows_' + str(f_factory.hw) + '_' + str(f_factory.cw) + '_' + \
+                    str(f_factory.gradient_w) + '.txt'
+        _write_to_file(s, 'Performance/', filename, 'w+')
 
     return roc_auc, recall, specificity, precision, conf_mat, s
-
-
-
 
 
 def feature_selection(X, y, verbose=False):
@@ -256,22 +254,24 @@ def plot_barchart_scores(names, scores):
                         )
 
 
-def write_scores_to_file(names, scores, optimal_params, conf_mat):
+def write_scores_to_file(names, scores, optimal_params, conf_mats):
     s = ''
+
     for i, sc in enumerate(scores):
-        s += 'Scores for %s: \n\n' \
+
+        s += '********  %s  ******** \n\n' \
              '\troc_auc: %.3f, ' \
              'recall: %.3f, ' \
              'specificity: %.3f, ' \
              'precision: %.3f \n\n' \
              '\tOptimal params: %s \n\n' \
-             '\tConfusion matrix: \t %s \n\t\t\t %s\n\n\n' \
-             % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mat[2 * i], conf_mat[2 * i + 1])
+             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
+             % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mats[i][0], conf_mats[ i ][1])
 
-    write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
+    _write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
 
 
-def write_to_file(string, folder, filename, mode, verbose=True):
+def _write_to_file(string, folder, filename, mode, verbose=True):
     """Writes a string to a file while checking that the path already exists and creating it if not
 
         :param string:  Strin to be written to the file

@@ -27,7 +27,7 @@ def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20)
     :param y: labels
     :param num_iter: number of iterations RandomSearchCv should do
 
-    :return: lists for names, scores, optimal_params and conf_mats
+    :return: lists of names, scores, optimal_params and conf_mats
 
     """
 
@@ -36,12 +36,12 @@ def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20)
     conf_mats = []
 
     for name in classifiers.names:
-        optimal_clf, rep = get_clf_with_optimized_hyperparameters(X, y, name, num_iter)
-        # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
-        optimal_params.append(optimal_clf.best_params_)
-
-        roc_auc, recall, specificity, precision, conf_mat = \
-            model_factory.get_performance(optimal_clf, name, X, y, verbose=False)
+        optimal_clf, roc_auc, recall, specificity, precision, conf_mat, rep = get_clf_with_optimized_hyperparameters(X, y, name, num_iter, verbose=False)
+        # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier) # TODO maybe add
+        if name == 'Naive Bayes':
+            optimal_params.append([])
+        else:
+            optimal_params.append(optimal_clf.best_params_)
 
         scores.append([roc_auc, recall, specificity, precision])
         conf_mats.append(conf_mat)
@@ -70,7 +70,7 @@ def report(results, n_top=3):
     print(s)
 
 
-def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20):
+def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
     """This method optimizes hyperparameters with cross-validation, which is done using RandomSearchCV and
     returns this optimized classifier and a report
 
@@ -78,14 +78,14 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20):
     :param y: labels
     :param clf_name:  Name of the classifier as given in classifiers.py
     :param num_iter: Number of iterations the RandomSearchCV should perform
+    :param verbose: Whether a detailed score should be printed out (optional)
 
-    :return: optimized classifier and report (
+    :return: optimized classifier, roc_auc, recall, specificity, precision, conf_mat and report of those as a string
 
     """
     c_classifier = classifiers.get_clf_with_name(clf_name, X, y)
 
-    print('Doing RandomSearchCV for ' + clf_name + '...\n')
-
+    print('Doing RandomSearchCV for ' + clf_name + '...')
 
     # Naive Bayes doesn't have any hyperparameters to tune
     if clf_name == 'Naive Bayes':
@@ -100,37 +100,20 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20):
 
         # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf.best_estimator_,
         #                                                                     c_classifier.tuned_params)) + '\n')
-        report(clf.cv_results_)
+        if verbose:
+            report(clf.cv_results_)
 
     # Naive Bayes doesn't have any hyperparameters to tune
     if clf_name == 'Naive Bayes':
-        rep  = model_factory.get_performance(clf, clf_name, X, y)[5]
+        roc_auc, recall, specificity, precision, conf_mat, rep = model_factory.get_performance(clf, clf_name, X, y)
     else:
-        rep = model_factory.get_performance(clf.best_estimator_, clf_name, X, y, list(c_classifier.tuned_params.keys()))[5]
+        roc_auc, recall, specificity, precision, conf_mat, rep = \
+            model_factory.get_performance(clf.best_estimator_, clf_name, X, y,
+                                          list(c_classifier.tuned_params.keys()))
 
-    return clf, rep
+    return clf, roc_auc, recall, specificity, precision, conf_mat, rep
 
 
-def evaluate_model(results, n_top=3):
-    """Returns the n_top hyperparameter configurations with the best score and its scores
-
-        :param results: cv_results of GridSearch/RandomSearchCV
-        :param n_top: Best n_top hyperparameter configurations should be displayed
-
-        :return report
-        """
-    s = ''
-    for i in range(1, n_top + 1):
-        candidates = np.flatnonzero(results['rank_test_score'] == i)
-        for candidate in candidates:
-            s += "Model with rank: {0}".format(i)
-            s += "\n\tMean validation score: {0:.3f} (std: {1:.3f})".format(
-                results['mean_test_score'][candidate],
-                results['std_test_score'][candidate])
-            s += "\n\tParameters: {0}".format(results['params'][candidate])
-            s += "\n"
-
-    return s
 def plot_heat_map_of_grid_search(cv_results, Classifier):
     """Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
 

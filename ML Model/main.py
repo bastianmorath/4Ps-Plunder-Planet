@@ -18,6 +18,8 @@ import leave_one_out_cv
 
 plot_correlation_matrix = False
 
+# TODO: Put undersocre in front of private functions
+
 
 def main(args):
     start = time.time()
@@ -71,8 +73,8 @@ def main(args):
             model_factory.plot_barchart_scores(names, scores)
             model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
         else:
-            _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.optimize_clf, 20  # TODO: args.verbose
+            _, _, _, _, _, _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
+                X, y, args.optimize_clf, 20
             )
             print(rep)
 
