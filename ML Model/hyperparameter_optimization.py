@@ -70,9 +70,9 @@ def report(results, n_top=3):
     print(s)
 
 
-def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
-    """This method optimizes hyperparameters with cross-validation, which is done using RandomSearchCV and
-    returns this optimized classifier and a report
+def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True, create_roc=True):
+    """This method optimizes hyperparameters with cross-validation using RandomSearchCV, optionally creates a ROC curve
+        and returns this optimized classifier and a report
 
     :param X: Feature matrix
     :param y: labels
@@ -94,8 +94,8 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
 
         # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf, c_classifier.tuned_params)) + '\n')
     else:
-        clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=2,
-                                 scoring='roc_auc', n_iter=3)  # TODO: Change to num_iter and 10
+        clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=10,
+                                 scoring='roc_auc', n_iter=num_iter)  # TODO: Change to num_iter and 10
         clf.fit(X, y)
 
         # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf.best_estimator_,
@@ -110,6 +110,10 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
         roc_auc, recall, specificity, precision, conf_mat, rep = \
             model_factory.get_performance(clf.best_estimator_, clf_name, X, y,
                                           list(c_classifier.tuned_params.keys()))
+
+    if create_roc:
+        filename = 'roc_curve_with_hyperparameter_tuning' + clf_name + '.pdf'
+        model_factory.plot_roc_curve(clf, X, y, clf_name, filename, 'ROC with hyperparameter tuning')
 
     return clf, roc_auc, recall, specificity, precision, conf_mat, rep
 

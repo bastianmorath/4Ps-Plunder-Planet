@@ -11,6 +11,7 @@ import os
 
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.exceptions import NotFittedError
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, confusion_matrix, roc_curve)
 from sklearn.model_selection import (cross_val_predict, train_test_split)
@@ -149,7 +150,7 @@ def feature_selection(X, y, verbose=False):
     return X_new, y
 
 
-def plot_roc_curve(classifier, X, y, classifier_name):
+def plot_roc_curve(classifier, X, y, classifier_name, filename, title='ROC'):
     """Plots roc_curve for a given classifier
 
     :param classifier:  Classifier
@@ -161,15 +162,16 @@ def plot_roc_curve(classifier, X, y, classifier_name):
 
     # allows to add probability output to classifiers which implement decision_function()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-    classifier.fit(X_train, y_train)
     clf = CalibratedClassifierCV(classifier)
+    clf.fit(X_train, y_train)
+
     predicted_probas = clf.predict_proba(X_test)  # returns class probabilities for each class
 
     fpr, tpr, _ = roc_curve(y_test, predicted_probas[:, 1])
     roc_auc = auc(fpr, tpr)
 
     plt.figure()
-    plt.title('Receiver Operating Characteristic')
+    plt.title(title)
     plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
     plt.legend(loc='lower right')
     plt.plot([0, 1], [0, 1], 'r--')
@@ -178,12 +180,12 @@ def plot_roc_curve(classifier, X, y, classifier_name):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
-    filename = 'roc_curve_'+classifier_name+'.pdf'
     plots.save_plot(plt, 'Performance/Roc Curves/', filename)
 
 
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):
-    """Prints all wrongly classifed datapoints and with which confidentiality the classifier classified them
+    """Prints all wrongly classifed datapoints of KNeighborsClassifier and with which confidentiality the classifier
+    classified them
 
     :param X_train: Training data (Feature matrix)
     :param X_test:  Test data (Feature matrix)
@@ -191,6 +193,8 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
     :param y_test:  labels of test data
 
     """
+
+    # TODO: Use this somewhere
 
     from sklearn.neighbors import KNeighborsClassifier
     model = KNeighborsClassifier()
@@ -205,32 +209,34 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
 
 def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
     # Plots performance of the given classifiers in a barchart for comparison without hyperparameter tuning
-
+    # TODO: Use this somewhere
+    print('################# Plots and ROC of all classifiers without hyperparameter tuning #################')
     clf_list = [
-        classifiers.CLinearSVM(X, y),
         classifiers.CSVM(X, y),
+        classifiers.CLinearSVM(X, y),
         classifiers.CNearestNeighbors(X, y),
-        classifiers.CNaiveBayes(X, y),
         classifiers.CQuadraticDiscriminantAnalysis(X, y),
+        classifiers.CNaiveBayes(X, y),
     ]
 
     auc_scores = []
     for classifier in clf_list:
         print('Name: ' + classifier.name)
+        filename = 'roc_curve_without_hyperparameter_tuning' + classifier.name + '.pdf'
+
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if classifier.name == 'Naive Bayes':
             X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix='all',
                                                                 use_boxcox=True)
-
             classifier.clf.fit(X_nb, y_nb)
             auc_scores.append(get_performance(classifier.clf, classifier.name, X_nb, y_nb)[0])
 
-            plot_roc_curve(classifier.clf, X_nb, y_nb, classifier.name)
+            plot_roc_curve(classifier.clf, X_nb, y_nb, classifier.name, filename,  'ROC without hyperparameter tuning')
         else:
             classifier.clf.fit(X, y)
             auc_scores.append(get_performance(classifier.clf, classifier.name, X, y)[0])
 
-            plot_roc_curve(classifier.clf, X, y, classifier.name)
+            plot_roc_curve(classifier.clf, X, y, classifier.name, filename,  'ROC without hyperparameter tuning')
 
     # Plots roc_auc for the different classifiers
     plots.plot_barchart(title='performance_per_clf_without_grid_search',
@@ -266,7 +272,7 @@ def write_scores_to_file(names, scores, optimal_params, conf_mats):
              'precision: %.3f \n\n' \
              '\tOptimal params: %s \n\n' \
              '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
-             % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mats[i][0], conf_mats[ i ][1])
+             % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mats[i][0], conf_mats[i][1])
 
     _write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
 

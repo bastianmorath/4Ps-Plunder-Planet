@@ -165,7 +165,7 @@ class CDecisionTreeClassifier(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         # Compute this after instantiations since feature_names are [] otherwise
-        self.param6 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
+        self.param6 = sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names))  # max_features
         self.param6_name = 'max_features'
         self.tuned_params = {'criterion': CDecisionTreeClassifier.param1, 'splitter': CDecisionTreeClassifier.param2,
                              'max_depth': CDecisionTreeClassifier.param3, 'min_samples_split': CDecisionTreeClassifier.param4,

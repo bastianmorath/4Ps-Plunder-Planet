@@ -52,7 +52,8 @@ def main(args):
         print("\n################# Printing keynumbers #################\n")
 
         setup_dataframes.print_keynumbers_logfiles()
-
+    if args.scores_without_tuning:
+        model_factory.plot_performance_of_classifiers_without_hyperparameter_tuning(X, y)
     if args.test_windows:
         print("\n################# window_optimization #################\n")
         window_optimization.performance_score_for_windows(
@@ -65,7 +66,6 @@ def main(args):
 
     if args.optimize_clf:
         print("\n################# Hyperparameter_optimization #################\n")
-
         if args.optimize_clf == "all":
             names, scores, optimal_params, conf_mats = hyperparameter_optimization.\
                 get_performance_of_all_clf_with_optimized_hyperparameters(X, y, 20)
@@ -74,7 +74,7 @@ def main(args):
             model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
         else:
             _, _, _, _, _, _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.optimize_clf, 20
+                X, y, args.optimize_clf, 20 # TODO: Increase num_iter
             )
             print(rep)
 
@@ -116,6 +116,14 @@ if __name__ == "__main__":
     # Add user-friendly command-line interface to enter windows and RandomSearchCV parameters etc.
 
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-w",
+        "--scores_without_tuning",
+        action="store_true",
+        help="Calculates the performance of SVM, LinearSVM, NearestNeighbor, DecisionTree and Naive Bayes"
+             "and plots it in a barchart. Also creates ROC curves",
+    )
 
     parser.add_argument(
         "-t",
