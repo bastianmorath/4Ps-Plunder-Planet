@@ -8,8 +8,7 @@ from __future__ import division, print_function  # s.t. division uses float resu
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import (classification_report, confusion_matrix)
-from sklearn.model_selection import ( RandomizedSearchCV, cross_val_predict)
+from sklearn.model_selection import (RandomizedSearchCV)
 
 import matplotlib.pyplot as plt
 
@@ -32,15 +31,12 @@ def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20)
 
     """
 
-    names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree',
-             'Random Forest', 'Ada Boost', 'Naive Bayes']
-
     scores = []
     optimal_params = []
     conf_mats = []
 
-    for name in names:
-        optimal_clf = get_clf_with_optimized_hyperparameters(X, y, name, num_iter)
+    for name in classifiers.names:
+        optimal_clf, rep = get_clf_with_optimized_hyperparameters(X, y, name, num_iter)
         # plot_heat_map_of_grid_search(optimal_clf.cv_results_, Classifier)
         optimal_params.append(optimal_clf.best_params_)
 
@@ -50,80 +46,91 @@ def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20)
         scores.append([roc_auc, recall, specificity, precision])
         conf_mats.append(conf_mat)
 
-    return names, scores, optimal_params, conf_mats
+    return classifiers.names, scores, optimal_params, conf_mats
 
 
 def report(results, n_top=3):
-    """Displays the n_top hyperparameter configurations with the best score and reports
-    performance scores
+    """Prints a  report with the scores from the n_top hyperparameter configurations with the best score
 
     :param results: cv_results of GridSearch/RandomSearchCV
     :param n_top: Best n_top hyperparameter configurations should be displayed
-    """
 
+    """
+    s = '******** Scores of best ' + str(n_top) + ' hyperparameter configurations ********\n'
     for i in range(1, n_top + 1):
         candidates = np.flatnonzero(results['rank_test_score'] == i)
         for candidate in candidates:
-            print("Model with rank: {0}".format(i))
-            print("\tMean validation score: {0:.3f} (std: {1:.3f})".format(
+            s += "\tModel with rank: {0}".format(i)
+            s += "\n\t\tMean validation score: {0:.3f} (std: {1:.3f})".format(
                   results['mean_test_score'][candidate],
-                  results['std_test_score'][candidate]))
-            print("\tParameters: {0}".format(results['params'][candidate]))
-            print("")
+                  results['std_test_score'][candidate])
+            s += "\n\t\tParameters: {0}".format(results['params'][candidate])
+            s += "\n"
+
+    print(s)
 
 
-def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=False):
+def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20):
     """This method optimizes hyperparameters with cross-validation, which is done using RandomSearchCV and
-    returns this optimized classifier
+    returns this optimized classifier and a report
 
     :param X: Feature matrix
     :param y: labels
     :param clf_name:  Name of the classifier as given in classifiers.py
     :param num_iter: Number of iterations the RandomSearchCV should perform
-    :param verbose: Whether a detailed report should be printed
 
-    :return: roc_auc, recall, specificity, precision, conf_mat
+    :return: optimized classifier and report (
 
     """
     c_classifier = classifiers.get_clf_with_name(clf_name, X, y)
 
-    if verbose:
-        print('Doing RandomSearchCV...\n')
+    print('Doing RandomSearchCV for ' + clf_name + '...\n')
+
+
+    # Naive Bayes doesn't have any hyperparameters to tune
     if clf_name == 'Naive Bayes':
         clf = c_classifier.clf
+        clf.fit(X, y)
+
+        # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf, c_classifier.tuned_params)) + '\n')
     else:
-        clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=3,
-                                scoring='roc_auc', n_iter=5)  # TODO: Change to num_iter and 10
+        clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=2,
+                                 scoring='roc_auc', n_iter=3)  # TODO: Change to num_iter and 10
+        clf.fit(X, y)
 
-    clf.fit(X, y)
-
-    if verbose:
-        if clf_name == 'Naive Bayes':
-            model_factory.get_performance(clf, clf_name, X, y)
-        else:
-            report(clf.cv_results_)
-            model_factory.get_performance(clf.best_estimator_, clf_name, X, y, list(c_classifier.tuned_params.keys()))
-
-        '''
-        print()
-        print("roc-auc grid scores on development set:")
-        means = clf.cv_results_['mean_test_score']
-        stds = clf.cv_results_['std_test_score']
-
+        # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf.best_estimator_,
+        #                                                                     c_classifier.tuned_params)) + '\n')
         report(clf.cv_results_)
-        print("Detailed classification report: \n")
 
-        y_pred = cross_val_predict(clf, X, y, cv=10)
-        conf_mat = confusion_matrix(y, y_pred)
+    # Naive Bayes doesn't have any hyperparameters to tune
+    if clf_name == 'Naive Bayes':
+        rep  = model_factory.get_performance(clf, clf_name, X, y)[5]
+    else:
+        rep = model_factory.get_performance(clf.best_estimator_, clf_name, X, y, list(c_classifier.tuned_params.keys()))[5]
 
-        print('\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t'))
-        print(classification_report(y, y_pred, target_names=['No Crash: ', 'Crash: ']))
-        print()
-        '''
-
-    return clf
+    return clf, rep
 
 
+def evaluate_model(results, n_top=3):
+    """Returns the n_top hyperparameter configurations with the best score and its scores
+
+        :param results: cv_results of GridSearch/RandomSearchCV
+        :param n_top: Best n_top hyperparameter configurations should be displayed
+
+        :return report
+        """
+    s = ''
+    for i in range(1, n_top + 1):
+        candidates = np.flatnonzero(results['rank_test_score'] == i)
+        for candidate in candidates:
+            s += "Model with rank: {0}".format(i)
+            s += "\n\tMean validation score: {0:.3f} (std: {1:.3f})".format(
+                results['mean_test_score'][candidate],
+                results['std_test_score'][candidate])
+            s += "\n\tParameters: {0}".format(results['params'][candidate])
+            s += "\n"
+
+    return s
 def plot_heat_map_of_grid_search(cv_results, Classifier):
     """Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
 

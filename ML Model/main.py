@@ -39,7 +39,7 @@ def main(args):
         )  # Specify if we want fewer data (for debugging purposes...)
 
         X, y = f_factory.get_feature_matrix_and_label(
-            verbose=args.verbose,
+            verbose=True,
             use_cached_feature_matrix=True,
             save_as_pickle_file=True,
             feature_selection=(not args.no_feature_selection),
@@ -47,10 +47,12 @@ def main(args):
         )
 
     if args.print_keynumbers_logfiles:
+        print("\n################# Printing keynumbers #################\n")
+
         setup_dataframes.print_keynumbers_logfiles()
 
     if args.test_windows:
-        print("\n'window_optimization' called: ")
+        print("\n################# window_optimization #################\n")
         window_optimization.performance_score_for_windows(
             args.test_windows[0],
             args.test_windows[1],
@@ -60,7 +62,7 @@ def main(args):
         )
 
     if args.optimize_clf:
-        print("\n'hyperparameter_optimization' called")
+        print("\n################# Hyperparameter_optimization #################\n")
 
         if args.optimize_clf == "all":
             names, scores, optimal_params, conf_mats = hyperparameter_optimization.\
@@ -69,23 +71,24 @@ def main(args):
             model_factory.plot_barchart_scores(names, scores)
             model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
         else:
-            hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.optimize_clf, 20, verbose=True  # TODO: args.verbose
+            _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
+                X, y, args.optimize_clf, 20  # TODO: args.verbose
             )
+            print(rep)
 
     if args.leave_one_out:
-        print("'leave_one_out' called")
+        print("\n################# leave_one_out #################\n")
         leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
         )
 
     if args.generate_plots_about_features:
-        print("Generating plots about features")
+        print("\n################# Generate plots about features #################\n")
         plot_features(X, y)
 
     if args.generate_plots_about_logfiles:
-        print("Generating plots about logfiles")
-        plot_logfiles(X, y)
+        print("\n################# Generate plots about logfiles #################\n")
+        plot_logfiles()
 
     end = time.time()
     print("Time elapsed: " + str(end - start))

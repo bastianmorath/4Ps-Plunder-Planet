@@ -38,23 +38,22 @@ def get_tuned_params_dict(model, tuned_params_keys):
     return dict(zip(tuned_params_keys, values))
 
 
-def get_performance(model, clf_name, X, y, tuned_params_keys=[], verbose=True, write_to_file=False, ):
+def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False, write_to_file=False):
     """Computes performance of the model by doing cross validation with 10 folds, using
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
-        as a string
+        as a string (plus tuned hyperparameters optionally)
 
     :param model: the classifier that should be applied
     :param clf_name: Name of the classifier (used to print scores)
-    :param X:
-    :param y:
-    :param tuned_params_keys:
-    :param verbose: Whether a detailed score should be printed out
-    :param write_to_file: Write summary of performance in a file
+    :param X: Feature matrix
+    :param y: labels
+    :param tuned_params_keys: keys of parameters that got tuned (in classifiers.py) (optional)
+    :param verbose: Whether a detailed score should be printed out (optional)
+    :param write_to_file: Write summary of performance in a file (optional)
 
-    :return: (Hyperparameter), roc_auc, recall, specificity, precicion, confusion_matrix and summary of those as a string
+    :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
     """
-    if verbose:
-        print('Calculating performance of %s...' % clf_name)
+    print('Calculating performance of %s...' % clf_name)
 
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
@@ -67,20 +66,19 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=[], verbose=True, w
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
     roc_auc = metrics.roc_auc_score(y, y_pred)
 
-    s = ''
-    if not tuned_params_keys:
-        s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
+    if tuned_params_keys is None:
+        s = '\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\troc_auc: %.3f, ' \
             'recall: %.3f, ' \
             'specificity: %.3f, ' \
             'precision: %.3f \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
             % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, roc_auc, recall, specificity,
-            precision, conf_mat[0], conf_mat[1])
+               precision, conf_mat[0], conf_mat[1])
     else:
         tuned_params_dict = get_tuned_params_dict(model, tuned_params_keys)
 
-        s = 'Scores for %s (Windows:  %i, %i, %i): \n\n' \
+        s = '\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\tHyperparameters: %s,\n' \
             '\troc_auc: %.3f, ' \
             'recall: %.3f, ' \
@@ -99,6 +97,9 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=[], verbose=True, w
         write_to_file(s, 'Performance/', filename, 'w+')
 
     return roc_auc, recall, specificity, precision, conf_mat, s
+
+
+
 
 
 def feature_selection(X, y, verbose=False):

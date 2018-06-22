@@ -93,10 +93,13 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
         "userID",
         "logID",
     ]
+
     logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
+
     globals()["df_list"] = list(
         pd.read_csv(log, sep=";", index_col=False, names=column_names) for log in logs
     )
+
     if normalize_heartrate:
         normalize_heartrate_of_logfiles()
 

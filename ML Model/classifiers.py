@@ -3,13 +3,10 @@ contain hyperparameters to do grid search over and the classifier obejct itself
 
 """
 
-
-import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 from scipy.stats import randint as sp_randint
-from random import uniform
-from random import randint
+
 from sklearn.naive_bayes import GaussianNB
 from scipy.stats import uniform
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
@@ -22,6 +19,9 @@ import features_factory as f_factory
 
 
 EPSILON = 0.0001
+
+names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree',
+         'Random Forest', 'Ada Boost', 'Naive Bayes']
 
 
 def get_clf_with_name(clf_name, X, y):
@@ -81,21 +81,6 @@ class CLinearSVM(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = LinearSVC(class_weight='balanced', dual=False)
-
-'''
-class CLinearSVM(CClassifier):
-    name = 'Linear SVM'
-    param1 = sp_randint(1, 100)  # C
-    param1_name = 'C'
-    param2 = sp_randint(EPSILON, 10)  # gamma
-    param2_name = 'gamma'
-    tuned_params = {'C': param1, 'gamma': param2}
-
-    clf = SVC(class_weight='balanced', degree=1)
-
-    def __init__(self, X, y):
-        CClassifier.__init__(self, X, y)
-'''
 
 
 class CNearestNeighbors(CClassifier):
