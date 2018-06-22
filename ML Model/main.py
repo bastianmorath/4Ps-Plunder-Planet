@@ -37,11 +37,12 @@ def main(args):
             use_fewer_data=args.reduced_data,
             normalize_heartrate=(not args.do_not_normalize_heartrate),
         )  # Specify if we want fewer data (for debugging purposes...)
+
         X, y = f_factory.get_feature_matrix_and_label(
             verbose=args.verbose,
             use_cached_feature_matrix=True,
             save_as_pickle_file=True,
-            feature_selection=args.do_feature_selection,
+            feature_selection=(not args.no_feature_selection),
             use_boxcox=False,
         )
 
@@ -163,9 +164,9 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-s",
-        "--do_feature_selection",
+        "--no_feature_selection",
         action='store_true',
-        help="Do feature selection with cross_correlation matrix"
+        help="Do not do feature selection with cross_correlation matrix"
     )
 
     parser.add_argument(

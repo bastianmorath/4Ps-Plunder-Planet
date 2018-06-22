@@ -58,7 +58,7 @@ def report(results, n_top=3):
     performance scores
 
     :param results: cv_results of GridSearch/RandomSearchCV
-    :param n_top: First n_top hyperparameter configurations should be displayed
+    :param n_top: Best n_top hyperparameter configurations should be displayed
     """
 
     for i in range(1, n_top + 1):
@@ -90,13 +90,15 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
     if verbose:
         print('Doing RandomSearchCV...\n')
 
-    clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=10,
-                             scoring='roc_auc', n_iter=num_iter)
+    clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=3,
+                             scoring='roc_auc', n_iter=20) # TODO: Change to num_iter and 10
 
     clf.fit(X, y)
 
     if verbose:
-        model_factory.get_performance(clf, clf_name, X, y)
+        report(clf.cv_results_)
+        model_factory.get_performance(clf.best_estimator_, clf_name, X, y, list(c_classifier.tuned_params.keys()))
+
         '''
         print()
         print("roc-auc grid scores on development set:")

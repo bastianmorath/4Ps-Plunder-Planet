@@ -8,8 +8,10 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 from scipy.stats import randint as sp_randint
+from random import uniform
+from random import randint
 from sklearn.naive_bayes import GaussianNB
-
+from scipy.stats import uniform
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.ensemble import (AdaBoostClassifier,
                               GradientBoostingClassifier,
@@ -56,10 +58,10 @@ class CClassifier(object):
 
 class CSVM(CClassifier):
     name = 'SVM'
-
+    # TODO: see difference randint/uniform etc...
     param1 = sp_randint(1, 100)  # C
     param1_name = 'C'
-    param2 = sp_randint(EPSILON, 10)  # gamma
+    param2 = uniform(EPSILON, 10)  # gamma
     param2_name = 'gamma'
     tuned_params = {'C': param1, 'gamma': param2}
 
@@ -113,11 +115,11 @@ class CNearestNeighbors(CClassifier):
 class CQuadraticDiscriminantAnalysis(CClassifier):
     name = 'QDA'
 
-    param1 = sp_randint(0, 1)  # reg_param
+    param1 = uniform(0, 1)  # reg_param
     param1_name = 'reg_param'
-    param2 = np.random.uniform(EPSILON, 1)  # tol
+    param2 = uniform(EPSILON, 0.1)  # tol
     param2_name = 'tol'
-    tuned_params = {'reg_param': param1, 'tol': param2}
+    tuned_params = {'reg_param': param1, 'tol': param2}  # TODO redo
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -129,19 +131,19 @@ class CGradientBoostingClassifier(CClassifier):
 
     param1 = ['deviance', 'exponential']  # loss
     param1_name = 'loss'
-    param2 = np.random.uniform(EPSILON, 1)  # learning_rate
+    param2 = uniform(EPSILON, 1)  # learning_rate
     param2_name = 'learning_rate'
     param3 = sp_randint(1, 10000)  # n_estimators
     param3_name = 'n_estimators'
     param4 = sp_randint(1, 5)  # max_depth
     param4_name = 'max_depth'
-    param5 = np.random.uniform(EPSILON, 1)  # min_samples_split
+    param5 = uniform(EPSILON, 1)  # min_samples_split
     param5_name = 'min_samples_split'
     param6 = sp_randint(1, 5)  # min_samples_leaf
     param6_name = 'min_samples_leaf'
     param7 = sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names))  # max_features
     param7_name = 'max_features'
-    param8 = np.random.uniform(EPSILON, 1)  # subsample
+    param8 = uniform(EPSILON, 1)  # subsample
     param8_name = 'subsample'
     tuned_params = {'loss': param1, 'learning_rate': param2,
                     'n_estimators': param3, 'max_depth': param4,
@@ -153,6 +155,8 @@ class CGradientBoostingClassifier(CClassifier):
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
+        print(len(f_factory.feature_names) - 5)
+        print(len(f_factory.feature_names))
 
 
 class CDecisionTreeClassifier(CClassifier):
