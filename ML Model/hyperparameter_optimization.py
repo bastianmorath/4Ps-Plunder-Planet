@@ -56,7 +56,7 @@ def calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y
 
     # Tune hyperparameters
     for name in classifiers.names:
-        clf_list.append(get_clf_with_tuned_hyperparameters(X, y, name, num_iter, verbose=False))
+        clf_list.append(get_clf_with_tuned_hyperparameters(X, y, name, num_iter, verbose=False)[0])
         clf_names.append(name)
 
     # Compute performance; Write to file and plot barchart

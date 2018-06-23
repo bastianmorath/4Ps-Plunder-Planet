@@ -11,7 +11,6 @@ import os
 
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.exceptions import NotFittedError
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, confusion_matrix, roc_curve)
 from sklearn.model_selection import (cross_val_predict, train_test_split)
@@ -50,7 +49,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     :param y: labels
     :param tuned_params_keys: keys of parameters that got tuned (in classifiers.py) (optional)
     :param verbose: Whether a detailed score should be printed out (optional)
-    :param write_to_file: Write summary of performance in a file (optional)
+    :param do_write_to_file: Write summary of performance in a file (optional)
 
     :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
     """
