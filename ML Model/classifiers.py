@@ -60,7 +60,7 @@ class CClassifier(object):
 class CSVM(CClassifier):
     name = 'SVM'
     # TODO: see difference randint/uniform etc...
-    param1 = sp_randint(1, 100)  # C
+    param1 = sp_randint(1, 10000)  # C
     param1_name = 'C'
     param2 = uniform(EPSILON, 10)  # gamma
     param2_name = 'gamma'
@@ -73,7 +73,7 @@ class CSVM(CClassifier):
 
 class CLinearSVM(CClassifier):
     name = 'Linear SVM'
-    param1 = sp_randint(1, 100)  # C
+    param1 = sp_randint(1, 10000)  # C
     param1_name = 'C'
     param2 = ['l1', 'l2']  # penalty
     param2_name = 'penalty'
@@ -87,7 +87,7 @@ class CLinearSVM(CClassifier):
 class CNearestNeighbors(CClassifier):
     name = 'Nearest Neighbor'
 
-    param1 = sp_randint(1, 100)  # n_neighbors
+    param1 = sp_randint(1, 1000)  # n_neighbors
     param1_name = 'n_neighbors'
     param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
     param2_name = 'metric'

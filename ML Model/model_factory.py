@@ -39,7 +39,7 @@ def get_tuned_params_dict(model, tuned_params_keys):
     return dict(zip(tuned_params_keys, values))
 
 
-def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False, write_to_file=False):
+def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False, do_write_to_file=False):
     """Computes performance of the model by doing cross validation with 10 folds, using
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
         as a string (plus tuned hyperparameters optionally)
@@ -92,11 +92,11 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     if verbose:
         print(s)
 
-    if write_to_file:
+    if do_write_to_file:
         # Write result to a file
         filename = 'performance_' + clf_name + '_windows_' + str(f_factory.hw) + '_' + str(f_factory.cw) + '_' + \
                     str(f_factory.gradient_w) + '.txt'
-        _write_to_file(s, 'Performance/', filename, 'w+')
+        write_to_file(s, 'Performance/', filename, 'w+')
 
     return roc_auc, recall, specificity, precision, conf_mat, s
 
@@ -150,13 +150,14 @@ def feature_selection(X, y, verbose=False):
     return X_new, y
 
 
-def plot_roc_curve(classifier, X, y, classifier_name, filename, title='ROC'):
+def plot_roc_curve(classifier, X, y, filename, title='ROC'):
     """Plots roc_curve for a given classifier
 
     :param classifier:  Classifier
     :param X: Feature matrix
     :param y: labels
-    :param classifier_name: Name of the classifier
+    :param filename: name of the file that the roc plot should be stored in
+    :param title: title of the roc plot
 
     """
 
@@ -210,7 +211,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
 def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
     # Plots performance of the given classifiers in a barchart for comparison without hyperparameter tuning
     # TODO: Use this somewhere
-    print('################# Plots and ROC of all classifiers without hyperparameter tuning #################')
+    print('\n################# Plots and ROC of all classifiers without hyperparameter tuning #################')
     clf_list = [
         classifiers.CSVM(X, y),
         classifiers.CLinearSVM(X, y),
@@ -222,7 +223,7 @@ def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
     auc_scores = []
     for classifier in clf_list:
         print('Name: ' + classifier.name)
-        filename = 'roc_curve_without_hyperparameter_tuning' + classifier.name + '.pdf'
+        filename = 'roc_without_hp_tuning_' + classifier.name + '.pdf'
 
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if classifier.name == 'Naive Bayes':
@@ -231,12 +232,14 @@ def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
             classifier.clf.fit(X_nb, y_nb)
             auc_scores.append(get_performance(classifier.clf, classifier.name, X_nb, y_nb)[0])
 
-            plot_roc_curve(classifier.clf, X_nb, y_nb, classifier.name, filename,  'ROC without hyperparameter tuning')
+            plot_roc_curve(classifier.clf, X_nb, y_nb, filename,  'ROC for ' + classifier.name +
+                                                                  ' without hyperparameter tuning')
         else:
             classifier.clf.fit(X, y)
             auc_scores.append(get_performance(classifier.clf, classifier.name, X, y)[0])
 
-            plot_roc_curve(classifier.clf, X, y, classifier.name, filename,  'ROC without hyperparameter tuning')
+            plot_roc_curve(classifier.clf, X, y, filename,  'ROC for ' + classifier.name +
+                                                            ' without hyperparameter tuning')
 
     # Plots roc_auc for the different classifiers
     plots.plot_barchart(title='performance_per_clf_without_grid_search',
@@ -274,10 +277,10 @@ def write_scores_to_file(names, scores, optimal_params, conf_mats):
              '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
              % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mats[i][0], conf_mats[i][1])
 
-    _write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
+    write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
 
 
-def _write_to_file(string, folder, filename, mode, verbose=True):
+def write_to_file(string, folder, filename, mode, verbose=True):
     """Writes a string to a file while checking that the path already exists and creating it if not
 
         :param string:  Strin to be written to the file

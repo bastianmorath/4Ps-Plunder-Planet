@@ -217,8 +217,7 @@ def plot_feature(X, i):
 
     """
         
-    print("Plotting feature %f of each logfile over time...", i)
-
+    print('Plotting feature ' + f_factory.feature_names[i] + ' of each logfile over time...')
 
     # df_num_resampled = resample_dataframe(samples, resolution)
     # first dataframe only
@@ -227,12 +226,9 @@ def plot_feature(X, i):
         for idx, df in enumerate(sd.df_list):
             times = sd.obstacle_df_list[idx]['Time']
             start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
-            #print(start, start+len(times))
             samples = list(X[start:start+len(times), i])
-            #print(samples[0], samples[-1])
             _, ax1 = plt.subplots()
 
-            #ax1.scatter(times, samples, c=red_color)
             ax1.plot(times, samples, c=red_color)
             ax1.set_xlabel('Playing time [s]')
             ax1.set_ylabel(feature_name, color=blue_color)
@@ -250,7 +246,8 @@ def save_plot(plt, folder, filename):
     :param folder: Folder to be saved to
     :param filename: The name (.pdf) under which the plot should be saved
     """
-    path = sd.working_directory_path + '/Evaluation/' + folder + filename
+
+    path = sd.working_directory_path + '/Plots/' + folder + filename
 
     # In some cases, I provide sth like abc/test.pdf as filename. I need to split the
     # directory abc and add it to the folder

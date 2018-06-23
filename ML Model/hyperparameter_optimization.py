@@ -17,6 +17,7 @@ import seaborn as sns
 import model_factory
 import classifiers
 import plots
+import features_factory as f_factory
 
 
 def get_performance_of_all_clf_with_optimized_hyperparameters(X, y, num_iter=20):
@@ -83,6 +84,7 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
     :return: optimized classifier, roc_auc, recall, specificity, precision, conf_mat and report of those as a string
 
     """
+
     c_classifier = classifiers.get_clf_with_name(clf_name, X, y)
 
     print('Doing RandomSearchCV for ' + clf_name + '...')
@@ -90,12 +92,13 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
     # Naive Bayes doesn't have any hyperparameters to tune
     if clf_name == 'Naive Bayes':
         clf = c_classifier.clf
+        X, y = f_factory.get_feature_matrix_and_label(True, True, True, True, True)
         clf.fit(X, y)
 
         # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf, c_classifier.tuned_params)) + '\n')
     else:
         clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=10,
-                                 scoring='roc_auc', n_iter=num_iter)  # TODO: Change to num_iter and 10
+                                 scoring='roc_auc', n_iter=num_iter)  # TODO: Change num_iter
         clf.fit(X, y)
 
         # print('Best parameters: ' + str(model_factory.get_tuned_params_dict(clf.best_estimator_,
@@ -112,8 +115,9 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
                                           list(c_classifier.tuned_params.keys()))
 
     if create_roc:
-        filename = 'roc_curve_with_hyperparameter_tuning' + clf_name + '.pdf'
-        model_factory.plot_roc_curve(clf, X, y, clf_name, filename, 'ROC with hyperparameter tuning')
+        filename = 'roc_with_hp_tuning' + clf_name + '.pdf'
+        model_factory.plot_roc_curve(clf, X, y, filename, 'ROC for ' + clf_name +
+                                     'with hyperparameter tuning')
 
     return clf, roc_auc, recall, specificity, precision, conf_mat, rep
 

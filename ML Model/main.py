@@ -36,36 +36,38 @@ def main(args):
             f_factory.plot_corr_matrix = True
 
         setup_dataframes.setup(
-            use_fewer_data=args.reduced_data,
+            use_fewer_data=args.reduced_data,  # Specify if we want fewer data (for debugging purposes...)
             normalize_heartrate=(not args.do_not_normalize_heartrate),
-        )  # Specify if we want fewer data (for debugging purposes...)
-
-        X, y = f_factory.get_feature_matrix_and_label(
-            verbose=True,
-            use_cached_feature_matrix=True,
-            save_as_pickle_file=True,
-            feature_selection=(not args.no_feature_selection),
-            use_boxcox=False,
         )
+        if not args.test_windows:  # We most likely have to calculate new feature matrix anyways
+            X, y = f_factory.get_feature_matrix_and_label(
+                verbose=True,
+                use_cached_feature_matrix=True,
+                save_as_pickle_file=True,
+                feature_selection=(not args.no_feature_selection),
+                use_boxcox=False,
+            )
 
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
 
         setup_dataframes.print_keynumbers_logfiles()
+
     if args.scores_without_tuning:
         model_factory.plot_performance_of_classifiers_without_hyperparameter_tuning(X, y)
+
     if args.test_windows:
-        print("\n################# window_optimization #################\n")
+        print("\n################# Window optimization #################\n")
         window_optimization.performance_score_for_windows(
             args.test_windows[0],
             args.test_windows[1],
             args.test_windows[2],
-            verbose=args.v,
+            verbose=args.verbose,
             write_to_file=True,
         )
 
     if args.optimize_clf:
-        print("\n################# Hyperparameter_optimization #################\n")
+        print("\n################# Hyperparameter optimization #################\n")
         if args.optimize_clf == "all":
             names, scores, optimal_params, conf_mats = hyperparameter_optimization.\
                 get_performance_of_all_clf_with_optimized_hyperparameters(X, y, 20)
@@ -74,12 +76,12 @@ def main(args):
             model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
         else:
             _, _, _, _, _, _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.optimize_clf, 20 # TODO: Increase num_iter
+                X, y, args.optimize_clf, 20  # TODO: Increase num_iter
             )
             print(rep)
 
     if args.leave_one_out:
-        print("\n################# leave_one_out #################\n")
+        print("\n################# Leave one out #################\n")
         leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
         )
@@ -135,9 +137,10 @@ if __name__ == "__main__":
              "Note: Provide the windows in seconds",
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
+
     parser.add_argument(
         "-o",
-        "--optimize_clf",
+        "--optimize_clf",  # TODO SVM works really slow?
         type=str,
         help="Optimizes the given classifier with RandomSearchCV and outputs detailed scores."
              " Set clf_name='all' if you want to test all classifiers",
@@ -172,7 +175,7 @@ if __name__ == "__main__":
         "--generate_plots_about_logfiles",
         action="store_true",
         help="Generates different plots from the logfiles (Look at main.py for details) and stores it "
-             "in folder /Evaluation/Logfiles",
+             "in folder /Evaluation/Logfiles (Note: Probably use with -n, i.e. without normalizing heartrate)",
     )
 
     parser.add_argument(

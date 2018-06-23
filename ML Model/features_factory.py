@@ -79,7 +79,7 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
 
 
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
-                                 use_boxcox=False, feature_selection=False,
+                                 use_boxcox=False, feature_selection=True,
                                  h_window=hw, c_window=cw, gradient_window=gradient_w):
 
     """ Computes the feature matrix and the corresponding labels
@@ -90,7 +90,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :argument save_as_pickle_file:          if use_use_cached_feature_matrix=False, then store newly computed
                                             matrix in a pickle file (IMPORTANT: Usually only used the very first time to
                                             store feature matrix with e.g. default windows)
-    :argument use_boxcox:                   Whether boxcox transofrmation should be done (e.g. when Naive Bayes
+    :argument use_boxcox:                   Whether boxcox transformation should be done (e.g. when Naive Bayes
                                             classifier is used)
     :argument feature_selection:            Whether to do feature selection or not
     :return: Feature matrix and labels
