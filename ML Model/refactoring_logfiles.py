@@ -93,6 +93,7 @@ def add_log_and_user_column():
 
 
 def refactor_crashes():
+    # TODO: Do naming beforehand (Anna). Tell her how to do it.
     """In the original logfiles, there is always an EVENT_CRASH and an EVENT_OBSTACLE in case of a crash, which makes it
     hard to analyze and use the data.
     Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
@@ -122,7 +123,7 @@ def refactor_crashes():
                     'psyStress', 'psyDifficulty', 'obstacle']
 
     dataframes = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False,
-                                names=column_names) for log in paths_logfiles)
+                                  names=column_names) for log in paths_logfiles)
 
     if not Path(sd.abs_path_logfiles).exists():
         os.mkdir(sd.abs_path_logfiles)
@@ -161,6 +162,7 @@ def refactor_crashes():
                         'psyDifficulty', 'obstacle', 'userID', 'logID']
 
         new_df = new_df.reindex(column_names, axis=1)
+
         # Create new name
         new_name = old_name[:2]
 
@@ -176,8 +178,6 @@ def refactor_crashes():
             new_name += '_np'
         new_name += '_' + new_df['logID'][0]
         print(new_name)
-
-        dataframes.append(new_df)
 
         new_df.to_csv(sd.abs_path_logfiles + '/../text_logs_refactored/' + new_name + '.log', header=False,
                       index=False, sep=';')

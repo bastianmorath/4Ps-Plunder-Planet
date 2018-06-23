@@ -51,7 +51,7 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
     """
 
     print("Loading dataframes...")
-    print(abs_path_logfiles)
+
     if not Path(abs_path_logfiles).exists():
         # The very first time, we need to refactor the original logfiles to speed up everything afterwards
         refactoring.refactor_crashes()

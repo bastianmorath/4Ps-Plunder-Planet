@@ -16,10 +16,9 @@ import setup_dataframes as sd
 import plots
 
 """INITIALIZATION"""
-plot_corr_matrix = True
 
 feature_names = []  # Set below
-use_reduced_features = False
+use_reduced_features = True
 
 _verbose = True
 
@@ -82,7 +81,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
                                  use_boxcox=False, feature_selection=True,
                                  h_window=hw, c_window=cw, gradient_window=gradient_w):
 
-    """ Computes the feature matrix and the corresponding labels
+    """ Computes the feature matrix and the corresponding labels and creates a correlation_matrix
 
     :argument verbose:                      Whether to print messages
     :argument use_cached_feature_matrix:    Use already cached matrix; 'all' (use all features), 'selected'
@@ -93,6 +92,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :argument use_boxcox:                   Whether boxcox transformation should be done (e.g. when Naive Bayes
                                             classifier is used)
     :argument feature_selection:            Whether to do feature selection or not
+
     :return: Feature matrix and labels
 
     """
@@ -190,9 +190,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
-    if plot_corr_matrix:
-        plots.plot_correlation_matrix(matrix)
-        globals()['plot_corr_matrix'] = False
+    plots.plot_correlation_matrix(matrix)
 
     if verbose:
         print('Feature matrix and labels created!')

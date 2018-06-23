@@ -16,7 +16,6 @@ import hyperparameter_optimization
 import model_factory
 import leave_one_out_cv
 
-plot_correlation_matrix = False
 
 # TODO: Put undersocre in front of private functions
 
@@ -32,8 +31,6 @@ def main(args):
             verbose=args.verbose, use_cached_feature_matrix=True, save_as_pickle_file=False
         )
     else:
-        if plot_correlation_matrix:
-            f_factory.plot_corr_matrix = True
 
         setup_dataframes.setup(
             use_fewer_data=args.reduced_data,  # Specify if we want fewer data (for debugging purposes...)
@@ -81,6 +78,7 @@ def main(args):
             print(rep)
 
     if args.leave_one_out:
+        # TODO: Add old plot where logfile_left_out is used into report
         print("\n################# Leave one out #################\n")
         leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
