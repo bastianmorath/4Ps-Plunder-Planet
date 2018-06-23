@@ -209,7 +209,7 @@ if __name__ == "__main__":
         "-r",
         "--reduced_data",
         action="store_true",
-        help="Use only a small aprt of the data. Mostly for debugging purposes",
+        help="Use only a small part of the data. Mostly for debugging purposes",
     )
 
     args = parser.parse_args()

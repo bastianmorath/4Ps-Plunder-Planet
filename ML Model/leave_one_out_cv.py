@@ -43,7 +43,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
     # Get scores for scenario 1 (normal crossvalidation)
     auc_scores_scenario_1 = []
-    print('\n\tScenario 1 (normal crossvalidation)...')
+    print('\nScenario 1 (normal crossvalidation)...')
     for name, classifier in zip(names, clfs):
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
@@ -59,7 +59,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
             auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X, y, verbose=False)[0])
 
     # Get scores for scenario 2 (Leave one user out in training phase)
-    print('\tScenario 2  (Leave one user out in training phase)...')
+    print('Scenario 2  (Leave one user out in training phase)...')
     auc_scores_scenario_2 = []
     auc_stds_scenario_2 = []
     for name, classifier in zip(names, clfs):
@@ -86,7 +86,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
 
 def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False, verbose=False):
-
+    # TODO: Maybe sort along names (Now it's order of LeaveOneGroupOut)
     """Takes one entire user (i.e. two logfiles most of the time) out of training phase and does prediction
     on left out user. Result can be used as an indication which users are hard to predict
 
@@ -99,12 +99,11 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
 
     """
 
-    print('\t\tCalculating roc_auc when doing LeaveOneOutCV for %s...' % clf_name)
+    print('\tCalculating performance of %s with doing LeaveOneOutCV ...' % clf_name)
     y = np.asarray(y)  # Used for .split() function
 
     # Each user should be a separate group, s.t. we can always leaveout one user
     groups_ids = pd.concat(sd.obstacle_df_list)['userID'].map(str).tolist()
-
     logo = LeaveOneGroupOut()
     scores_and_ids = []  # tuples of (auc, recall, specificity, precision, user_id)
     df_obstacles_concatenated = pd.concat(sd.obstacle_df_list, ignore_index=True)

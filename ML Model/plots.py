@@ -60,9 +60,13 @@ def plot_correlation_matrix(X):
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
-    plt.tight_layout()
 
-    save_plot(plt, 'Features/', 'correlation_matrix.pdf')
+    plt.tight_layout()
+    if f_factory.use_reduced_features:
+        save_plot(plt, 'Features/', 'correlation_matrix_reduced_features.pdf')
+
+    else:
+        save_plot(plt, 'Features/', 'correlation_matrix_all_features.pdf')
 
 
 def plot_feature_distributions(X):
