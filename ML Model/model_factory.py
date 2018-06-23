@@ -208,9 +208,47 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
                   + str(max(a,b)*100) + '%')
 
 
-def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
+def print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, tuning=False,
+                                              create_barchart=True, create_roc=True):
+    scores = []
+    names = []
+    optimal_params = []
+    conf_mats = []
+
+    filename = 'clf_performances_with_hp_tuning' if tuning else 'clf_performances_without_hp_tuning'
+
+    for idx, clf in enumerate(clf_list):
+        tuned_params = classifiers.get_clf_with_name(clf_names[idx], X, y).tuned_params
+        clf_name = clf_names[idx]
+        names.append(clf_name)
+        if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
+
+            roc_auc, recall, specificity, precision, conf_mat, rep = get_performance(clf, clf_name, X, y)
+        else:
+            roc_auc, recall, specificity, precision, conf_mat, rep = \
+                get_performance(clf, clf_name, X, y,
+                                list(tuned_params.keys()))
+
+        scores.append([roc_auc, recall, specificity, precision])
+        optimal_params.append(get_tuned_params_dict(clf, list(tuned_params.keys())))
+        conf_mats.append(conf_mat)
+
+        if create_roc:
+            fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuning \
+                 else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
+            plot_roc_curve(clf, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
+
+    if create_barchart:
+        title = 'Scores by classifier with hyperparameter tuning' if tuning \
+                else 'Scores by classifier without hyperparameter tuning'
+        plot_barchart_scores(names, scores, title, filename + '.pdf')  # 'Scores by classifier with hyperparameter tuning'
+
+    write_scores_to_file(names, scores, optimal_params, conf_mats,
+                         filename + '.txt')  # 'clf_performances_with_hp_tuning.txt'
+
+
+def performance_of_classifiers_without_hyperparameter_tuning(X, y):
     # Plots performance of the given classifiers in a barchart for comparison without hyperparameter tuning
-    # TODO: Use this somewhere
     print('\n################# Plots and ROC of all classifiers without hyperparameter tuning #################')
     clf_list = [
         classifiers.CSVM(X, y),
@@ -220,50 +258,24 @@ def plot_performance_of_classifiers_without_hyperparameter_tuning(X, y):
         classifiers.CNaiveBayes(X, y),
     ]
 
-    auc_scores = []
-    for classifier in clf_list:
-        print('Name: ' + classifier.name)
-        filename = 'roc_without_hp_tuning_' + classifier.name + '.pdf'
-
-        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
-        if classifier.name == 'Naive Bayes':
-            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix='all',
-                                                                use_boxcox=True)
-            classifier.clf.fit(X_nb, y_nb)
-            auc_scores.append(get_performance(classifier.clf, classifier.name, X_nb, y_nb)[0])
-
-            plot_roc_curve(classifier.clf, X_nb, y_nb, filename,  'ROC for ' + classifier.name +
-                                                                  ' without hyperparameter tuning')
-        else:
-            classifier.clf.fit(X, y)
-            auc_scores.append(get_performance(classifier.clf, classifier.name, X, y)[0])
-
-            plot_roc_curve(classifier.clf, X, y, filename,  'ROC for ' + classifier.name +
-                                                            ' without hyperparameter tuning')
-
-    # Plots roc_auc for the different classifiers
-    plots.plot_barchart(title='performance_per_clf_without_grid_search',
-                        xlabel='',
-                        ylabel='roc_auc',
-                        x_tick_labels=[clf.name for clf in clf_list],
-                        values=auc_scores,
-                        lbl='roc_auc',
-                        filename='performance_per_clf_without_grid_search.pdf'
-                        )
+    print_and_plot_performance_of_classifiers([CClassifier.clf for CClassifier in clf_list],
+                                              [CClassifier.name for CClassifier in clf_list], X, y,
+                                              False,
+                                              )
 
 
-def plot_barchart_scores(names, scores):
-    plots.plot_barchart(title='Scores by classifier with hyperparameter tuning',
+def plot_barchart_scores(names, scores, title, filename):
+    plots.plot_barchart(title=title,
                         xlabel='Classifier',
                         ylabel='Performance',
                         x_tick_labels=names,
                         values=[a[0] for a in scores],
                         lbl='auc_score',
-                        filename='performance_per_clf_after_grid_search.pdf'
+                        filename=filename
                         )
 
 
-def write_scores_to_file(names, scores, optimal_params, conf_mats):
+def write_scores_to_file(names, scores, optimal_params, conf_mats, filename):
     s = ''
 
     for i, sc in enumerate(scores):
@@ -277,7 +289,7 @@ def write_scores_to_file(names, scores, optimal_params, conf_mats):
              '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
              % (names[i], sc[0], sc[1], sc[2], sc[3], optimal_params[i], conf_mats[i][0], conf_mats[i][1])
 
-    write_to_file(s, 'Performance/', 'classifier_performances_randomsearch_cv.txt', 'w+')
+    write_to_file(s, 'Performance/', filename, 'w+')
 
 
 def write_to_file(string, folder, filename, mode, verbose=True):

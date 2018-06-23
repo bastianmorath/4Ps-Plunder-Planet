@@ -59,8 +59,7 @@ class CClassifier(object):
 
 class CSVM(CClassifier):
     name = 'SVM'
-    # TODO: see difference randint/uniform etc...
-    param1 = sp_randint(1, 10000)  # C
+    param1 = sp_randint(1, 100)  # C
     param1_name = 'C'
     param2 = uniform(EPSILON, 10)  # gamma
     param2_name = 'gamma'

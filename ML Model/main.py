@@ -51,7 +51,7 @@ def main(args):
         setup_dataframes.print_keynumbers_logfiles()
 
     if args.scores_without_tuning:
-        model_factory.plot_performance_of_classifiers_without_hyperparameter_tuning(X, y)
+        model_factory.performance_of_classifiers_without_hyperparameter_tuning(X, y)
 
     if args.test_windows:
         print("\n################# Window optimization #################\n")
@@ -66,14 +66,12 @@ def main(args):
     if args.optimize_clf:
         print("\n################# Hyperparameter optimization #################\n")
         if args.optimize_clf == "all":
-            names, scores, optimal_params, conf_mats = hyperparameter_optimization.\
-                get_performance_of_all_clf_with_optimized_hyperparameters(X, y, 20)
+            hyperparameter_optimization.\
+                 calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y, 200)
 
-            model_factory.plot_barchart_scores(names, scores)
-            model_factory.write_scores_to_file(names, scores, optimal_params, conf_mats)
         else:
             _, _, _, _, _, _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.optimize_clf, 20  # TODO: Increase num_iter
+                X, y, args.optimize_clf, 200  # TODO: Increase num_iter
             )
             print(rep)
 
