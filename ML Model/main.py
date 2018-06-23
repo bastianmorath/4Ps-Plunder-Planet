@@ -18,6 +18,8 @@ import leave_one_out_cv
 
 
 # TODO: Put undersocre in front of private functions
+# TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
+# TODO: Add :type in docstrings where necessary
 
 
 def main(args):
@@ -67,12 +69,13 @@ def main(args):
         print("\n################# Hyperparameter optimization #################\n")
         if args.optimize_clf == "all":
             hyperparameter_optimization.\
-                 calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y, 200)
+                 calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y, 2)
 
         else:
-            _, _, _, _, _, _, rep = hyperparameter_optimization.get_clf_with_optimized_hyperparameters(
-                X, y, args.optimize_clf, 200  # TODO: Increase num_iter
+            clf, tuned_params = hyperparameter_optimization.get_clf_with_tuned_hyperparameters(
+                X, y, args.optimize_clf, 2  # TODO: Increase num_iter
             )
+            _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params)
             print(rep)
 
     if args.leave_one_out:

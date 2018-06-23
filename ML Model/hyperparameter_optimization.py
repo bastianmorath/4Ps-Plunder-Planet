@@ -42,7 +42,7 @@ def report(results, n_top=3):
 
 
 def calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y, num_iter=20):
-    """Does Hyperparameter optimization for all classifiers and plots roc_aucs in a abarchart and writes a detailed
+    """Does Hyperparameter optimization for all classifiers and plots roc_aucs in a barchart and writes a detailed
     report into a file
 
     :param X: Feature matrix
@@ -54,25 +54,26 @@ def calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y
     clf_list = []
     clf_names = []
 
+    # Tune hyperparameters
     for name in classifiers.names:
-        clf_list.append(get_clf_with_optimized_hyperparameters(X, y, name, num_iter, verbose=False))
+        clf_list.append(get_clf_with_tuned_hyperparameters(X, y, name, num_iter, verbose=False))
         clf_names.append(name)
 
+    # Compute performance; Write to file and plot barchart
     model_factory.print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, True)
 
 
-def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
+def get_clf_with_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
     """This method optimizes hyperparameters with cross-validation using RandomSearchCV, optionally creates a ROC curve
-        and returns this optimized classifier and a report
+        and returns this optimized classifier and the tuned parameters
 
     :param X: Feature matrix
     :param y: labels
     :param clf_name:  Name of the classifier as given in classifiers.py
     :param num_iter: Number of iterations the RandomSearchCV should perform
     :param verbose: Whether scores of top hyperparameter configurations should be printed out
-    :param create_roc: Create roc_curve of optimized classifier
 
-    :return: optimized classifier
+    :return: optimized classifier, dictionary of tuned_params
 
     """
 
@@ -80,13 +81,12 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
 
     print('Doing RandomSearchCV for ' + clf_name + '...')
 
-    # RandomSearchCV
-
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
 
-        clf = c_classifier.clf
-        X, y = f_factory.get_feature_matrix_and_label(True, True, True, True, True)
-        clf.fit(X, y)
+        X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, True)  # Use features with boxcox
+        c_classifier.clf.fit(X_n, y_n)
+
+        return c_classifier.clf, []
 
     else:
         clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=5,
@@ -96,7 +96,7 @@ def get_clf_with_optimized_hyperparameters(X, y, clf_name='svm', num_iter=20, ve
         if verbose:
             report(clf.cv_results_)
 
-    return clf
+    return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_, list(c_classifier.tuned_params.keys()))
 
 
 def plot_heat_map_of_grid_search(cv_results, Classifier):
