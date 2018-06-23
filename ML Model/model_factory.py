@@ -22,6 +22,7 @@ import setup_dataframes as sd
 import plots
 import classifiers
 import setup_dataframes
+import hyperparameter_optimization
 
 
 def get_tuned_params_dict(model, tuned_params_keys):
@@ -53,6 +54,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
 
     :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
     """
+
     print('Calculating performance of %s...\n' % clf_name)
 
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
@@ -230,8 +232,8 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
                   + str(max(a,b)*100) + '%')
 
 
-def print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, tuning=False,
-                                              create_barchart=True, create_roc_curves=True):
+def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=False,
+                                         create_barchart=True, create_roc_curves=True, write_to_file=True):
     """Given a list of classifiers, computes performance (roc_auc, recall, specificity, precision, confusion matrix),
        writes it into a file and plots roc_auc scores of the classifiers in a barchart.
 
@@ -240,9 +242,9 @@ def print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, tuning=
     :param clf_names: names of the classifiers
     :param X: feature matrix
     :param y: labels
-    :param tuning: Do hyperparameter tuning (RandomSearchCV)
+    :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomSearchCV) -> To simplify printing scores
     :param create_barchart: Create a barchart consisting of the roc_auc scores
-    :param create_roc_curves: Create roc)curves
+    :param create_roc_curves: Create roc_curves
 
     """
 
@@ -251,10 +253,10 @@ def print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, tuning=
     tuned_params = []
     conf_mats = []
 
-    filename = 'clf_performances_with_hp_tuning' if tuning else 'clf_performances_without_hp_tuning'
+    filename = 'clf_performances_with_hp_tuning' if hyperparameters_are_tuned else 'clf_performances_without_hp_tuning'
 
     for idx, clf in enumerate(clf_list):
-        tuned_parameters = classifiers.get_clf_with_name(clf_names[idx], X, y).tuned_params
+        tuned_parameters = classifiers.get_cclassifier_with_name(clf_names[idx], X, y).tuned_params
         clf_name = clf_names[idx]
         names.append(clf_name)
 
@@ -269,42 +271,47 @@ def print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, tuning=
         conf_mats.append(conf_mat)
 
         if create_roc_curves:
-            fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuning \
+            fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if hyperparameters_are_tuned \
                  else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
             plot_roc_curve(clf, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
 
     if create_barchart:
-        title = 'Scores by classifier with hyperparameter tuning' if tuning \
+        title = 'Scores by classifier with hyperparameter tuning' if hyperparameters_are_tuned \
                 else 'Scores by classifier without hyperparameter tuning'
-        plot_barchart_scores(names, [s[0] for s in scores], title, filename + '.pdf')  # 'Scores by classifier with hyperparameter tuning'
+        plot_barchart_scores(names, [s[0] for s in scores], title, filename + '.pdf')
 
-    write_scores_to_file(names, [s[0] for s in scores], [s[1] for s in scores], [s[2] for s in scores],
-                        [s[3] for s in scores], tuned_params, conf_mats, filename + '.txt')
+    if write_to_file:
+        write_scores_to_file(names, [s[0] for s in scores], [s[1] for s in scores], [s[2] for s in scores],
+                             [s[3] for s in scores], tuned_params, conf_mats, filename + '.txt')
 
-
-def performance_of_classifiers_without_hyperparameter_tuning(X, y):
-    """Plots roc_auc of SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes in a barchart.
-        Also writes detailed scores (hyperparameters, roc_auc, recall, specificity, precision) and conf_mat
-        into to a file
+    return [s[0] for s in scores]
 
 
-    :param X: Feature matrix
-    :param y: labels
+def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False, num_iter=20):
+    """
+
+    :param X:
+    :param y:
+    :param tune_hyperparameters:
+    :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
+    :param num_iter: if tune_hyperparameters==True, then how many iterations should be done in RandomSearchCV
 
     """
-    print('\n################# Plots and ROC of all classifiers without hyperparameter tuning #################')
-    clf_list = [
-        classifiers.CSVM(X, y),
-        classifiers.CLinearSVM(X, y),
-        classifiers.CNearestNeighbors(X, y),
-        classifiers.CQuadraticDiscriminantAnalysis(X, y),
-        classifiers.CNaiveBayes(X, y),
-    ]
 
-    print_and_plot_performance_of_classifiers([CClassifier.clf for CClassifier in clf_list],
-                                              [CClassifier.name for CClassifier in clf_list], X, y,
-                                              False,
-                                              )
+    if reduced_clfs:
+        clf_names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Naive Bayes']
+    else:
+        clf_names = classifiers.names
+
+    clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
+
+    if tune_hyperparameters:
+        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name, num_iter)[0] for name in clf_names]
+
+    # Compute performance; Write to file and plot barchart
+    auc_scores = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters)
+
+    return auc_scores
 
 
 def plot_barchart_scores(names, roc_auc_scores, title, filename):

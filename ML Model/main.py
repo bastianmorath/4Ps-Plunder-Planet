@@ -53,7 +53,7 @@ def main(args):
         setup_dataframes.print_keynumbers_logfiles()
 
     if args.scores_without_tuning:
-        model_factory.performance_of_classifiers_without_hyperparameter_tuning(X, y)
+        model_factory.calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True)
 
     if args.test_windows:
         print("\n################# Window optimization #################\n")
@@ -68,11 +68,11 @@ def main(args):
     if args.optimize_clf:
         print("\n################# Hyperparameter optimization #################\n")
         if args.optimize_clf == "all":
-            hyperparameter_optimization.\
-                 calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y, 2)
+            model_factory. \
+                calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False, num_iter=2)
 
         else:
-            clf, tuned_params = hyperparameter_optimization.get_clf_with_tuned_hyperparameters(
+            clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
                 X, y, args.optimize_clf, 2  # TODO: Increase num_iter
             )
             _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params)

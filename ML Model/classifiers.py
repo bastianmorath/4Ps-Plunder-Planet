@@ -20,13 +20,11 @@ import features_factory as f_factory
 
 EPSILON = 0.0001
 
-#names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree',
-names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Decision Tree',
-            'Random Forest', 'Ada Boost', 'Naive Bayes']
+names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
 
 
-def get_clf_with_name(clf_name, X, y):
-    """Returns the classifier with the given name
+def get_cclassifier_with_name(clf_name, X, y):
+    """Returns the CClassifier with the given name
 
     :param clf_name: name of the classifier
 
@@ -38,7 +36,7 @@ def get_clf_with_name(clf_name, X, y):
         CLinearSVM(X, y),
         CNearestNeighbors(X, y),
         CQuadraticDiscriminantAnalysis(X, y),
-        # CGradientBoostingClassifier(X, y),
+        CGradientBoostingClassifier(X, y),
         CDecisionTreeClassifier(X, y),
         CRandomForest(X, y),
         CAdaBoost(X, y),

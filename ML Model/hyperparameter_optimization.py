@@ -41,29 +41,7 @@ def report(results, n_top=3):
     print(s)
 
 
-def calculate_performance_of_all_classifiers_with_optimized_hyperparameters(X, y, num_iter=20):
-    """Does Hyperparameter optimization for all classifiers and plots roc_aucs in a barchart and writes a detailed
-    report into a file
-
-    :param X: Feature matrix
-    :param y: labels
-    :param num_iter: number of iterations RandomSearchCv should do
-
-    """
-
-    clf_list = []
-    clf_names = []
-
-    # Tune hyperparameters
-    for name in classifiers.names:
-        clf_list.append(get_clf_with_tuned_hyperparameters(X, y, name, num_iter, verbose=False)[0])
-        clf_names.append(name)
-
-    # Compute performance; Write to file and plot barchart
-    model_factory.print_and_plot_performance_of_classifiers(clf_list, clf_names, X, y, True)
-
-
-def get_clf_with_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
+def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
     """This method optimizes hyperparameters with cross-validation using RandomSearchCV, optionally creates a ROC curve
         and returns this optimized classifier and the tuned parameters
 
@@ -77,7 +55,7 @@ def get_clf_with_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, verbos
 
     """
 
-    c_classifier = classifiers.get_clf_with_name(clf_name, X, y)
+    c_classifier = classifiers.get_cclassifier_with_name(clf_name, X, y)
 
     print('Doing RandomSearchCV for ' + clf_name + '...')
 

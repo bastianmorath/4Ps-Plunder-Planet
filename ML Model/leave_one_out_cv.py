@@ -34,29 +34,17 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     """
     names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Naive Bayes']
 
-    clfs = [classifiers.CSVM(X, y),
-            classifiers.CLinearSVM(X, y),
-            classifiers.CNearestNeighbors(X, y),
-            classifiers.CQuadraticDiscriminantAnalysis(X, y),
-            classifiers.CNaiveBayes(X, y)
+    clfs = [classifiers.CSVM(X, y).clf,
+            classifiers.CLinearSVM(X, y).clf,
+            classifiers.CNearestNeighbors(X, y).clf,
+            classifiers.CQuadraticDiscriminantAnalysis(X, y).clf,
+            classifiers.CNaiveBayes(X, y).clf
             ]
 
     # Get scores for scenario 1 (normal crossvalidation)
-    auc_scores_scenario_1 = []
     print('\nScenario 1 (normal crossvalidation)...')
-    for name, classifier in zip(names, clfs):
-        # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
-        if name == 'Naive Bayes':
-            feature_selection = 'selected' if reduced_features else 'all'
-            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=feature_selection,
-                                                                save_as_pickle_file=False, use_boxcox=True)
-
-            classifier.clf.fit(X_nb, y_nb)
-            auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X_nb, y_nb, verbose=False)[0])
-
-        else:
-            classifier.clf.fit(X, y)
-            auc_scores_scenario_1.append(model_factory.get_performance(classifier.clf, name, X, y, verbose=False)[0])
+    auc_scores_scenario_1 = model_factory.analyse_performance(clfs, names, X, y, create_barchart=False,
+                                                     create_roc_curves=False, write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
     print('Scenario 2  (Leave one user out in training phase)...')
@@ -68,14 +56,14 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
             feature_selection = 'selected' if reduced_features else 'all'
             X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=feature_selection,
                                                                 save_as_pickle_file=False, use_boxcox=True)
-            classifier.clf.fit(X_nb, y_nb)
+            classifier.fit(X_nb, y_nb)
 
-            auc_mean, auc_std = apply_cv_per_user_model(classifier.clf, name,
+            auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
                                                         X_nb, y_nb, plot_auc_score_per_user, verbose=True)
         else:
-            classifier.clf.fit(X, y)
+            classifier.fit(X, y)
 
-            auc_mean, auc_std = apply_cv_per_user_model(classifier.clf, name,
+            auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
                                                         X, y, plot_auc_score_per_user, verbose=True)
 
         auc_scores_scenario_2.append(auc_mean)
@@ -158,6 +146,15 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
 
 def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2):
+    """
+
+    :param names: names of the
+    :param auc_scores_scenario_1:
+    :param auc_scores_scenario_2:
+    :param auc_stds_scenario_2:
+    :return:
+    """
+    print(names)
     fix, ax = plt.subplots()
     bar_width = 0.3
     opacity = 0.4
@@ -203,7 +200,7 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
     the performance for each fold (i.e. in each round of CV, there was one user left out for test-set. Write down
     auc, recall, specificity and precision with std for each such user.) Also write down overall conf_matrix
     and mean-auc
-
+    # TODO Prettify log
     :param scores: array for each cv fold: auc, recall, specificity, precision, user_id
     :param y: y
     :param y_pred: y_predicted with scross_val_predict
