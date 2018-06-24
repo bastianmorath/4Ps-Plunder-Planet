@@ -10,7 +10,7 @@ from pathlib import Path
 from scipy import stats
 import numpy as np
 import itertools
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 import setup_dataframes as sd
 import plots
@@ -26,8 +26,8 @@ _verbose = True
 # TODO: Explicitly write down which features use which window
 # TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
-cw = 300  # Over how many preceeding seconds should %crashes be calculated?
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
+cw = 10  # Over how many preceeding seconds should %crashes be calculated?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
@@ -85,15 +85,18 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     """ Computes the feature matrix and the corresponding labels and creates a correlation_matrix
 
-    :argument verbose:                      Whether to print messages
-    :argument use_cached_feature_matrix:    Use already cached matrix; 'all' (use all features), 'selected'
+    :param verbose:                      Whether to print messages
+    :param use_cached_feature_matrix:    Use already cached matrix; 'all' (use all features), 'selected'
                                             (do feature selection first), None (don't use cache)
-    :argument save_as_pickle_file:          if use_use_cached_feature_matrix=False, then store newly computed
+    :param save_as_pickle_file:          if use_use_cached_feature_matrix=False, then store newly computed
                                             matrix in a pickle file (IMPORTANT: Usually only used the very first time to
                                             store feature matrix with e.g. default windows)
-    :argument use_boxcox:                   Whether boxcox transformation should be done (e.g. when Naive Bayes
+    :param use_boxcox:                   Whether boxcox transformation should be done (e.g. when Naive Bayes
                                             classifier is used)
-    :argument feature_selection:            Whether to do feature selection or not
+    :param feature_selection:            Whether to do feature selection or not
+    :param h_window:                     Size of heartrate window
+    :param c_window:                     Size of crash window
+    :param gradient_window:              Size of gradient window
 
     :return: Feature matrix and labels
 
@@ -126,7 +129,6 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
-    print(hw, cw, gradient_w)
 
     sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
@@ -182,12 +184,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
                         matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                     else:
                         matrix[feature] = stats.boxcox(matrix[feature])[0]
-        print(hw, cw, gradient_w)
 
         if save_as_pickle_file and (not sd.use_fewer_data):
             matrix.to_pickle(path)
-
-
 
     # remove ~ first couple of seconds (they have < window seconds to compute features, and are thus not accurate)
     labels = []
@@ -195,12 +194,13 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         labels.append(df[df['Time'] > max(cw, hw, gradient_w)]['crash'].copy())
     y = list(itertools.chain.from_iterable(labels))
 
-    matrix.dropna(inplace=True)
+    matrix.dropna(inplace=True)  # First max(hw, cw, gradient_w) seconds did not get computed since inaccurate -> Delete
     # Create feature matrix from df
+
     X = matrix.as_matrix()
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
-    print(matrix)
+
     plots.plot_correlation_matrix(matrix)
 
     if verbose:
@@ -317,7 +317,6 @@ def get_column(idx, applier, data_name):
     df = sd.df_list[idx]
 
     window = hw
-    print(hw, cw, gradient_w)
 
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
@@ -359,7 +358,6 @@ def get_percentage_crashes_column(idx):
     :return: Percentage feature column
 
     """
-    print(hw, cw, gradient_w)
 
     df = sd.df_list[idx]
 
@@ -382,7 +380,6 @@ def get_last_obstacle_crash_column(idx):
       :return: last_obstacle_crash feature column
 
     """
-    print(hw, cw, gradient_w)
 
     df = sd.df_list[idx]
 
@@ -408,7 +405,6 @@ def get_hr_slope_column(idx):
           """
 
     df = sd.df_list[idx]
-    print(hw, cw, gradient_w)
 
     def compute_slope(row):
         if row['Time'] > max(cw, hw, gradient_w):
@@ -431,7 +427,6 @@ def get_gradient_changes_column(idx, data_name):
         :return: gradient_changes feature column for either points or heartrate
 
     """
-    print(hw, cw, gradient_w)
 
     df = sd.df_list[idx]
 

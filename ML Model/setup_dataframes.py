@@ -79,7 +79,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
 
     if fewer_data:
         # globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
-        globals()["names_logfiles"] = ['Lo_FBMC_hr_1.log']
+        globals()["names_logfiles"] = ['MH_FBMC_hr_1.log']
 
     column_names = [
         "Time",
@@ -107,7 +107,6 @@ def setup(fewer_data=False, normalize_heartrate=True):
     remove_movement_tutorials()
 
     refactoring.add_timedelta_column()
-    print(df_list[0][:60])
     # globals()["obstacle_df_list"] = get_obstacle_times_with_success()
 
 

@@ -47,7 +47,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
                                                      create_roc_curves=False, write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
-    print('***** Scenario 2  (Leave one user out in training phase) ***** \n')
+    print('\n***** Scenario 2  (Leave one user out in training phase) ***** \n')
     auc_scores_scenario_2 = []
     auc_stds_scenario_2 = []
     for name, classifier in zip(names, clfs):
@@ -193,7 +193,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
 
     plt.tight_layout()
 
-    plots.save_plot(plt, 'Performance/', 'clf_performance_with_user_left_out_vs_normal.pdf')
+    plots.save_plot(plt, 'Performance/LeaveOneOut/', 'clf_performance_with_user_left_out_vs_normal.pdf')
 
 
 def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
