@@ -42,20 +42,22 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
             ]
 
     # Get scores for scenario 1 (normal crossvalidation)
-    print('\nScenario 1 (normal crossvalidation)...')
+    print('\n***** Scenario 1 (normal crossvalidation) *****\n')
     auc_scores_scenario_1 = model_factory.analyse_performance(clfs, names, X, y, create_barchart=False,
                                                      create_roc_curves=False, write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
-    print('Scenario 2  (Leave one user out in training phase)...')
+    print('***** Scenario 2  (Leave one user out in training phase) ***** \n')
     auc_scores_scenario_2 = []
     auc_stds_scenario_2 = []
     for name, classifier in zip(names, clfs):
+        print('Calculating performance of %s with doing LeaveOneOutCV ...' % name)
+
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
             feature_selection = 'selected' if reduced_features else 'all'
             X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=feature_selection,
-                                                                save_as_pickle_file=False, use_boxcox=True)
+                                                                save_as_pickle_file=True, use_boxcox=True)
             classifier.fit(X_nb, y_nb)
 
             auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
@@ -87,7 +89,6 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
 
     """
 
-    print('\tCalculating performance of %s with doing LeaveOneOutCV ...' % clf_name)
     y = np.asarray(y)  # Used for .split() function
 
     # Each user should be a separate group, s.t. we can always leaveout one user
@@ -135,7 +136,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
     if plot_auc_score_per_user:
         title = r'Auc scores per user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, auc_mean, auc_std)
         filename = 'LeaveOneOut/performance_per_user_' + clf_name + '.pdf'
-        plots.plot_barchart(title, 'Users', 'Auc score', names, aucs, 'auc_score', filename)
+        plots.plot_barchart(title, 'Users', 'Auc score', names, aucs, 'auc_score', filename, verbose=False)
 
     y_pred = cross_val_predict(model, X, y, cv=logo.split(X, y, groups_ids))
 

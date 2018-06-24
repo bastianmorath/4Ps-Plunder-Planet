@@ -69,7 +69,7 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
     fbmc_names_hr_points = [
         f
         for f in sorted(os.listdir(abs_path_logfiles))
-        if re.search(r".{0,}FBMC_hr_(1|2).{0,}.log", f)
+        if re.search(r".{0,}FBMC_hr_(1|2).{0,}.log", f)  # TODO: Stefan is not considered..
     ]
 
     sorted_names = sorted(fbmc_names_hr_points)
@@ -196,12 +196,12 @@ def normalize_heartrate_of_logfiles():
     for dataframe in globals()["df_list"]:
         if 'MOVEMENTTUTORIAL' in dataframe['Gamemode'].values:
             # Remove movement tutorial
-            tutorial_mask = dataframe['Gamemode']=='MOVEMENTTUTORIAL'
+            tutorial_mask = dataframe['Gamemode'] == 'MOVEMENTTUTORIAL'
             tutorial_entries = dataframe[tutorial_mask]
             tutorial_endtime = tutorial_entries['Time'].max()
 
             baseline = dataframe[dataframe["Time"] < tutorial_endtime]["Heartrate"].min() # Use MINIMUM of tutorial 
-            if baseline==-1:
+            if baseline == -1:
                 print('ERROR: No Heartrate data!!!')
 
             dataframe["Heartrate"] = dataframe["Heartrate"] / baseline

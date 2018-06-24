@@ -18,7 +18,7 @@ import model_factory
 import classifiers
 import plots
 import features_factory as f_factory
-
+import synthesized_data
 
 def report(results, n_top=3):
     """Prints a  report with the scores from the n_top hyperparameter configurations with the best score
@@ -60,8 +60,12 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, v
     print('Doing RandomSearchCV for ' + clf_name + '...')
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
+        if synthesized_data.test_data_enabled:
+            print('in')
+            X_n, y_n = f_factory.get_feature_matrix_and_label(False, False, True, True, f_factory.use_reduced_features)  # Use features with boxcox
+        else:
+            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, f_factory.use_reduced_features)  # Use features with boxcox
 
-        X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, True)  # Use features with boxcox
         c_classifier.clf.fit(X_n, y_n)
 
         return c_classifier.clf, []

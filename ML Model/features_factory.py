@@ -14,6 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 import setup_dataframes as sd
 import plots
+import synthesized_data
 
 """INITIALIZATION"""
 
@@ -23,6 +24,7 @@ use_reduced_features = True
 _verbose = True
 
 # TODO: Explicitly write down which features use which window
+# TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
 cw = 30  # Over how many preceeding seconds should %crashes be calculated?
 hw = 5  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
@@ -65,7 +67,7 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
 
     file_path = path + file_name
 
-    if not use_cached_feature_matrix or sd.use_fewer_data:
+    if not use_cached_feature_matrix or sd.use_fewer_data or synthesized_data.test_data_enabled:
         return False, file_path
     else:
         if not Path(file_path).exists():

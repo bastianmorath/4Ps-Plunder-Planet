@@ -17,21 +17,29 @@ import model_factory
 import leave_one_out_cv
 
 
-# TODO: Put undersocre in front of private functions
+# TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
-
+# TODO: In RandomSearchCV, also try out standard parameters!
 
 def main(args):
     start = time.time()
+    f_factory.use_reduced_features = not args.no_feature_selection
+
+    assert (not (args.use_test_data and args.leave_one_out)), 'Can\'t do leave_one_out with synthesized data'
 
     if args.use_test_data:
+
+        print('Creating synthesized data...')
+        synthesized_data.test_data_enabled = True
         synthesized_data.init_with_testdata_events_random_hr_const()
         # test_data.init_with_testdata_events_const_hr_const()
         # test_data.init_with_testdata_events_random_hr_continuous()
         X, y = f_factory.get_feature_matrix_and_label(
-            verbose=args.verbose, use_cached_feature_matrix=True, save_as_pickle_file=False
+            verbose=args.verbose, use_cached_feature_matrix=False, save_as_pickle_file=False,
+            feature_selection=f_factory.use_reduced_features
         )
+
     else:
 
         setup_dataframes.setup(
@@ -43,7 +51,7 @@ def main(args):
                 verbose=True,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                feature_selection=(not args.no_feature_selection),
+                feature_selection=f_factory.use_reduced_features, # TODO: Remove f_selection argument as it is stored as local variable anyways
                 use_boxcox=False,
             )
 
@@ -53,6 +61,7 @@ def main(args):
         setup_dataframes.print_keynumbers_logfiles()
 
     if args.scores_without_tuning:
+        print("\n################# Calculating performance without hyperparameter tuning #################\n")
         model_factory.calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True)
 
     if args.test_windows:
@@ -73,7 +82,7 @@ def main(args):
 
         else:
             clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                X, y, args.optimize_clf, 2  # TODO: Increase num_iter
+                X, y, clf_name=args.optimize_clf, num_iter=2  # TODO: Increase num_iter
             )
             _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params)
             print(rep)

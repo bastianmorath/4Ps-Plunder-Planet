@@ -55,7 +55,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
     """
 
-    print('Calculating performance of %s...\n' % clf_name)
+    print('Calculating performance of %s...' % clf_name)
 
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
@@ -306,9 +306,11 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
 
     if tune_hyperparameters:
-        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name, num_iter)[0] for name in clf_names]
+        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name, num_iter,
+                    verbose=False)[0] for name in clf_names]
 
     # Compute performance; Write to file and plot barchart
+
     auc_scores = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters)
 
     return auc_scores
@@ -371,8 +373,10 @@ def write_to_file(string, folder, filename, mode, verbose=True):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    savepath = path + '/' + filename
+    savepath = path + filename
+
     if verbose:
-        print('Scores written to file...')
+        print('\nScores written to file ' + '/Evaluation/' + folder + '/' + filename)
+
     file = open(savepath, mode)
     file.write(string)

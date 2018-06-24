@@ -160,7 +160,7 @@ def plot_mean_value_of_feature_at_crash(X, y):
         save_plot(plt, 'Features/Crash Correlation/', filename)
 
 
-def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None):
+def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None, verbose=True):
     """Helper function to plot a barchart with the given arguments
 
     :param title: Title of the plot
@@ -189,7 +189,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    ax.set_ylim([0, 0.8])
+    ax.set_ylim([0, min(max(values)+0.15, 1.0)])
 
     plt.xticks(index, x_tick_labels, rotation='vertical')
     plt.legend()
@@ -210,6 +210,9 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
 
     save_plot(plt, 'Performance/', filename)
 
+    if verbose:
+        print('Barchart plot saved in file Plots/Performance/' + filename)
+
     return plt
 
 
@@ -225,7 +228,7 @@ def plot_feature(X, i):
 
     # df_num_resampled = resample_dataframe(samples, resolution)
     # first dataframe only
-    for i in range(0, len(f_factory.feature_names)-1):
+    for i in range(0, len(f_factory.feature_names)):
         feature_name = f_factory.feature_names[i]
         for idx, df in enumerate(sd.df_list):
             times = sd.obstacle_df_list[idx]['Time']

@@ -19,9 +19,11 @@ import plots
 make_plots = False
 
 num_dataframes = 3  # How many dataframes should be created?
-length_dataframe = 500  # How many rows should one dataframe have?
+length_dataframe = 1000  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
+
+test_data_enabled = False
 
 
 def init_with_testdata_events_const_hr_const():
@@ -45,7 +47,6 @@ def init_with_testdata_events_const_hr_const():
 
         sd.df_list.append(dataframe)
 
-    refactoring_logfiles.normalize_heartrate()
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
 
@@ -94,7 +95,6 @@ def init_with_testdata_events_random_hr_const():
 
         sd.df_list.append(dataframe)
 
-    refactoring_logfiles.normalize_heartrate()
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
 
@@ -144,7 +144,6 @@ def init_with_testdata_events_random_hr_continuous():
 
         sd.df_list.append(dataframe)
 
-    refactoring_logfiles.normalize_heartrate()
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
 
