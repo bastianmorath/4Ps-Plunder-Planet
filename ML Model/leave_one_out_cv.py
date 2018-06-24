@@ -163,7 +163,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
 
     r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
                  alpha=opacity,
-                 color=plots.green_color,
+                 color=plots.blue_color,
                  label='roc_auc normal CV'
                  )
     r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,

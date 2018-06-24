@@ -45,6 +45,7 @@ def main(args):
             fewer_data=args.reduced_data,  # Specify if we want fewer data (for debugging purposes...)
             normalize_heartrate=(not args.do_not_normalize_heartrate),
         )
+
         if not args.test_windows:  # We most likely have to calculate new feature matrix anyways
             X, y = f_factory.get_feature_matrix_and_label(
                 verbose=True,
@@ -117,8 +118,19 @@ def plot_features(X, y):
 
 
 def plot_logfiles():
-
+    if not args.do_not_normalize_heartrate:
+        print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
+    plots.crashes_per_obstacle_arrangement()
+    plots.plot_crashes_vs_size_of_obstacle()
+    plots.plot_hr_vs_difficulty_scatter_plot()
+    plots.print_obstacle_information()
+    plots.plot_difficulty_vs_size_obstacle_scatter_plot()
+    plots.plot_hr_or_points_corr_with_difficulty('Heartrate')
+    plots.plot_hr_or_points_corr_with_difficulty('Points')
+    plots.plot_heartrate_change()
+    plots.plot_mean_and_std_hr_boxplot()
     plots.plot_hr_of_dataframes()
+    plots.plot_average_hr_over_all_logfiles()
 
 
 if __name__ == "__main__":
