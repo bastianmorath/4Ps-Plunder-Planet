@@ -26,8 +26,8 @@ _verbose = True
 # TODO: Explicitly write down which features use which window
 # TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
-cw = 30  # Over how many preceeding seconds should %crashes be calculated?
-hw = 5  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
+cw = 300  # Over how many preceeding seconds should %crashes be calculated?
+hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
@@ -98,6 +98,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :return: Feature matrix and labels
 
     """
+    for df in sd.df_list:
+        assert (max(h_window, c_window, gradient_window) < max(df['Time'])),\
+            'Window sizes must be smaller than maximal logfile length'
 
     globals()['hw'] = h_window
     globals()['cw'] = c_window
@@ -120,10 +123,12 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
                                       'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
                                       'max_minus_min_points']
-
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
+    print(hw, cw, gradient_w)
+
+    sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
     if should_read_from_pickle_file:
         if _verbose:
@@ -177,9 +182,12 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
                         matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                     else:
                         matrix[feature] = stats.boxcox(matrix[feature])[0]
+        print(hw, cw, gradient_w)
 
         if save_as_pickle_file and (not sd.use_fewer_data):
             matrix.to_pickle(path)
+
+
 
     # remove ~ first couple of seconds (they have < window seconds to compute features, and are thus not accurate)
     labels = []
@@ -187,11 +195,12 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         labels.append(df[df['Time'] > max(cw, hw, gradient_w)]['crash'].copy())
     y = list(itertools.chain.from_iterable(labels))
 
+    matrix.dropna(inplace=True)
     # Create feature matrix from df
     X = matrix.as_matrix()
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
-
+    print(matrix)
     plots.plot_correlation_matrix(matrix)
 
     if verbose:
@@ -308,33 +317,35 @@ def get_column(idx, applier, data_name):
     df = sd.df_list[idx]
 
     window = hw
+    print(hw, cw, gradient_w)
 
     def compute(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - window), row['Time'], df)
-        res = -1
-        if applier == 'mean':
-            res = last_x_seconds_df[data_name].mean()
-        elif applier == 'min':
-            res = last_x_seconds_df[data_name].min()
-        elif applier == 'max':
-            res = last_x_seconds_df[data_name].max()
-        elif applier == 'std':
-            res = last_x_seconds_df[data_name].std()
-        elif applier == 'max_minus_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
-            max_v = last_x_seconds_df[data_name].max()
-            min_v = last_x_seconds_df[data_name].min()
-            res = max_v - min_v
-        elif applier == 'max_over_min':
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
-            max_v = last_x_seconds_df[data_name].max()
-            min_v = last_x_seconds_df[data_name].min()
-            res = max_v / min_v
-        if res == -1:
-            print('error in applying ' + data_name + '_' + applier)
+        if row['Time'] > max(cw, hw, gradient_w):
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - window), row['Time'], df)
+            res = -1
+            if applier == 'mean':
+                res = last_x_seconds_df[data_name].mean()
+            elif applier == 'min':
+                res = last_x_seconds_df[data_name].min()
+            elif applier == 'max':
+                res = last_x_seconds_df[data_name].max()
+            elif applier == 'std':
+                res = last_x_seconds_df[data_name].std()
+            elif applier == 'max_minus_min':
+                last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
+                max_v = last_x_seconds_df[data_name].max()
+                min_v = last_x_seconds_df[data_name].min()
+                res = max_v - min_v
+            elif applier == 'max_over_min':
+                last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
+                max_v = last_x_seconds_df[data_name].max()
+                min_v = last_x_seconds_df[data_name].min()
+                res = max_v / min_v
+            if res == -1:
+                print('error in applying ' + data_name + '_' + applier)
 
-        # first mean will be nan, so replace it with second row instead
-        return res if not math.isnan(res) else compute(df.iloc[1])
+            # first mean will be nan, so replace it with second row instead
+            return res if not math.isnan(res) else compute(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute, axis=1)
 
@@ -348,15 +359,17 @@ def get_percentage_crashes_column(idx):
     :return: Percentage feature column
 
     """
+    print(hw, cw, gradient_w)
 
     df = sd.df_list[idx]
 
     def compute_crashes(row):
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
-        num_obstacles = len(last_x_seconds_df[(last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE')
-                                              | (last_x_seconds_df['Logtype'] == 'EVENT_CRASH')].index)
-        num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
-        return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
+        if row['Time'] > max(cw, hw, gradient_w):
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
+            num_obstacles = len(last_x_seconds_df[(last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE')
+                                                  | (last_x_seconds_df['Logtype'] == 'EVENT_CRASH')].index)
+            num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
+            return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
 
     return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
@@ -369,14 +382,17 @@ def get_last_obstacle_crash_column(idx):
       :return: last_obstacle_crash feature column
 
     """
+    print(hw, cw, gradient_w)
 
     df = sd.df_list[idx]
 
     def compute_crashes(row):
-        last = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
-        if last.empty:
-            return 0
-        return 1 if last.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
+        if row['Time'] > max(cw, hw, gradient_w):
+
+            last = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
+            if last.empty:
+                return 0
+            return 1 if last.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
 
     return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
@@ -392,14 +408,15 @@ def get_hr_slope_column(idx):
           """
 
     df = sd.df_list[idx]
+    print(hw, cw, gradient_w)
 
     def compute_slope(row):
+        if row['Time'] > max(cw, hw, gradient_w):
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
 
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
+            slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
-        slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
-
-        return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
+            return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute_slope, axis=1)
 
@@ -414,20 +431,22 @@ def get_gradient_changes_column(idx, data_name):
         :return: gradient_changes feature column for either points or heartrate
 
     """
+    print(hw, cw, gradient_w)
 
     df = sd.df_list[idx]
 
     def compute_gradient_changes(row):
+        if row['Time'] > max(cw, hw, gradient_w):
 
-        last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
-        data = last_x_seconds_df[data_name].tolist()
-        gradx = np.gradient(data)
-        asign = np.sign(gradx)
+            last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
+            data = last_x_seconds_df[data_name].tolist()
+            gradx = np.gradient(data)
+            asign = np.sign(gradx)
 
-        num_sign_changes = len(list(itertools.groupby(asign, lambda x: x >= 0))) - 1
-        if num_sign_changes == 0:
-            num_sign_changes = 1
-        return num_sign_changes if not math.isnan(num_sign_changes) else compute_gradient_changes(df.iloc[1])
+            num_sign_changes = len(list(itertools.groupby(asign, lambda x: x >= 0))) - 1
+            if num_sign_changes == 0:
+                num_sign_changes = 1
+            return num_sign_changes if not math.isnan(num_sign_changes) else compute_gradient_changes(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
 

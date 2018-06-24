@@ -41,13 +41,13 @@ obstacle_df_list = []
 print_key_numbers = False
 
 
-def setup(use_fewer_data=False, normalize_heartrate=True):
+def setup(fewer_data=False, normalize_heartrate=True):
     """ Sets up the logfile datastructures/lists and does some basic refactoring
     
     Note: No machine learning specific things are done yet!
 
     :param use_fewer_data: Whether we should only use a little part of the data or not (helps for faster debugging)
-
+    :param normalize_heartrate: Whether we should normalize heartrate or not
     """
 
     print("Loading dataframes...")
@@ -75,10 +75,11 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
     sorted_names = sorted(fbmc_names_hr_points)
 
     globals()["names_logfiles"] = sorted_names
-    globals()["use_fewer_data"] = use_fewer_data
+    globals()["use_fewer_data"] = fewer_data
 
-    if use_fewer_data:
-        globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
+    if fewer_data:
+        # globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
+        globals()["names_logfiles"] = ['Lo_FBMC_hr_1.log']
 
     column_names = [
         "Time",
@@ -106,8 +107,8 @@ def setup(use_fewer_data=False, normalize_heartrate=True):
     remove_movement_tutorials()
 
     refactoring.add_timedelta_column()
-
-    globals()["obstacle_df_list"] = get_obstacle_times_with_success()
+    print(df_list[0][:60])
+    # globals()["obstacle_df_list"] = get_obstacle_times_with_success()
 
 
 def print_keynumbers_logfiles():
@@ -223,7 +224,7 @@ def remove_movement_tutorials():
     for dataframe in globals()["df_list"]:
         if 'MOVEMENTTUTORIAL' in dataframe['Gamemode'].values:
             # Remove movement tutorial
-            tutorial_mask = dataframe['Gamemode']=='MOVEMENTTUTORIAL'
+            tutorial_mask = dataframe['Gamemode'] == 'MOVEMENTTUTORIAL'
             tutorial_entries = dataframe[tutorial_mask]
             tutorial_endtime = tutorial_entries['Time'].max()
             dataframe['Time'] = dataframe['Time'].apply(lambda x: x - tutorial_endtime) # Adjust time by removing time of tutorial

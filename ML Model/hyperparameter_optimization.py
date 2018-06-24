@@ -20,6 +20,7 @@ import plots
 import features_factory as f_factory
 import synthesized_data
 
+
 def report(results, n_top=3):
     """Prints a  report with the scores from the n_top hyperparameter configurations with the best score
 

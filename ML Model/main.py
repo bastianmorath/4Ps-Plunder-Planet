@@ -41,9 +41,8 @@ def main(args):
         )
 
     else:
-
         setup_dataframes.setup(
-            use_fewer_data=args.reduced_data,  # Specify if we want fewer data (for debugging purposes...)
+            fewer_data=args.reduced_data,  # Specify if we want fewer data (for debugging purposes...)
             normalize_heartrate=(not args.do_not_normalize_heartrate),
         )
         if not args.test_windows:  # We most likely have to calculate new feature matrix anyways
@@ -51,7 +50,7 @@ def main(args):
                 verbose=True,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                feature_selection=f_factory.use_reduced_features, # TODO: Remove f_selection argument as it is stored as local variable anyways
+                feature_selection=f_factory.use_reduced_features,  # TODO: Remove f_selection argument as it is stored as local variable anyways
                 use_boxcox=False,
             )
 
