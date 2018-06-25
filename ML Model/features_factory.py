@@ -25,6 +25,7 @@ use_reduced_features = True
 _verbose = True
 
 # TODO: Explicitly write down which features use which window
+# TODO: Onlt if not_reduced, add if-clauses. But we can always add the shared features...
 # TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
@@ -175,7 +176,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['std_points'] = get_standard_feature('std', 'Points')
         if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
+        times = get_time_feature()  # TODO: Only add if LSTM
 
+        matrix['Time'] = times
         # Boxcox transformation
         if use_boxcox:
             # Values must be positive. If not, shift it
@@ -194,19 +197,32 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     for df in sd.obstacle_df_list:
         labels.append(df[df['Time'] > max(cw, hw, gradient_w)]['crash'].copy())
     y = list(itertools.chain.from_iterable(labels))
+    np.set_printoptions(suppress=True)
 
     matrix.dropna(inplace=True)  # First max(hw, cw, gradient_w) seconds did not get computed since inaccurate -> Delete
     # Create feature matrix from df
     X = matrix.values
     scaler = MinMaxScaler(feature_range=(0, 1))
-    X = scaler.fit_transform(X)  # Rescale between 0 and 1
-
+    # X = scaler.fit_transform(X)  # Rescale between 0 and 1
     plots.plot_correlation_matrix(matrix)
-
     if verbose:
         print('Feature matrix and labels created!')
 
     return X, y
+
+
+def get_time_feature():
+    hr_df_list = []  # list that contains a dataframe with feature for each logfile
+
+    def compute(row):
+        if row['Time'] > max(cw, hw, gradient_w):
+            return row['Time']
+
+    for list_idx, df in enumerate(sd.df_list):
+        hr_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
+        print()
+
+    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=['Time'])
 
 
 def get_standard_feature(feature, data_name):

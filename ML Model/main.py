@@ -80,11 +80,11 @@ def main(args):
         print("\n################# Hyperparameter optimization #################\n")
         if args.optimize_clf == "all":
             model_factory. \
-                calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False, num_iter=2)
+                calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False, num_iter=5)
 
         else:
             clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                X, y, clf_name=args.optimize_clf, num_iter=40  # TODO: Increase num_iter
+                X, y, clf_name=args.optimize_clf, num_iter=5  # TODO: Increase num_iter
             )
             _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params)
             print(rep)
