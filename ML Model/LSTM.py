@@ -2,13 +2,18 @@
 This module is responsible to for the LSTM network
 
 """
+from collections import Counter
+
 from keras import Sequential
 from keras.layers import LSTM, Dense, K, Flatten, TimeDistributed
 from keras.preprocessing import sequence
 import tensorflow as tf
 from numpy import array
 import numpy as np
+from sklearn import metrics
+
 import setup_dataframes as sd
+import model_factory
 
 
 def get_trained_lstm_classifier(X, y):
@@ -75,27 +80,46 @@ def apply_lstm(X_reshaped, y_reshaped):
     :return: trained classifier
     """
 
-    model = Sequential()
-    model.add(LSTM(30, return_sequences=True, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    # model.add(Flatten())  # you start with a three dimensional layer. Reduce the dimensionality in this layer to get 2D.
-    model.add(TimeDistributed(Dense(1, activation='relu')))
-    '''
-    model.compile(loss='mae', optimizer='adam', metrics=[auc])
+    class_weights = {'0': 1, '1': 5}
 
-    history = model.fit(X_reshaped, y, epochs=50, batch_size=72,  verbose=2, shuffle=False, callbacks=[auc])
-    '''
-    model.compile(loss='mae', optimizer='adam', metrics=[auc])
+    model = Sequential()
+    model.add(LSTM(340, return_sequences=True, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
+    model.add(TimeDistributed(Dense(1, activation='sigmoid')))
+
+    metrics = [sensitivity, specificity, 'accuracy']
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print('Shape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape))
 
-    model.fit(X_reshaped, array(y_reshaped), epochs=20, batch_size=72, verbose=2, shuffle=False)
-    result = model.predict(X_reshaped, batch_size=72, verbose=0)
+    model.fit(X_reshaped, array(y_reshaped), epochs=20, batch_size=200,
+              verbose=1, shuffle=False)
+    result = model.predict(X_reshaped, batch_size=200, verbose=0)
+
+    c = Counter(result.ravel())
+    pred = []
+    for v, _ in c.items():
+        if v < 0.5:
+            pred.append(0)
+        else:
+            pred.append(1)
+
+    c2 = Counter(pred)
+    print(c2)
 
 
 """
 3. Calculate performance
 """
 
+def calculate_performance(y, y_pred):
+    conf_mat = tf.confusion_matrix(y, y_pred)
+
+    precision = metrics.precision_score(y, y_pred)
+    recall = metrics.recall_score(y, y_pred)
+    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+    roc_auc = metrics.roc_auc_score(y, y_pred)
+    print(model_factory.create_string_from_scores('LSTM', roc_auc, recall, specificity, precision, conf_mat)
+)
 """
 Helper methods
 """
@@ -153,3 +177,12 @@ def binary_PTA(y_true, y_pred, threshold=K.variable(value=0.5)):
     return TP/P
 
 
+def sensitivity(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    return true_positives / (possible_positives + K.epsilon())
+
+def specificity(y_true, y_pred):
+    true_negatives = K.sum(K.round(K.clip((1-y_true) * (1-y_pred), 0, 1)))
+    possible_negatives = K.sum(K.round(K.clip(1-y_true, 0, 1)))
+    return true_negatives / (possible_negatives + K.epsilon())
