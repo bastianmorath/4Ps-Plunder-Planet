@@ -1,4 +1,5 @@
-"""This module is responsible to generate all the features from the data/logfiles
+"""
+This module is responsible to generate all the features from the data/logfiles
 
 """
 
@@ -196,8 +197,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     matrix.dropna(inplace=True)  # First max(hw, cw, gradient_w) seconds did not get computed since inaccurate -> Delete
     # Create feature matrix from df
-
-    X = matrix.as_matrix()
+    X = matrix.values
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
 

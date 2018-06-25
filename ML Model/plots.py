@@ -1,8 +1,7 @@
-"""This module is responsible for plotting various things
+"""
+This module is responsible for plotting various things
 
 """
-import itertools
-
 import matplotlib
 from matplotlib.ticker import MaxNLocator
 

@@ -1,4 +1,7 @@
-"""This module does some refactoring to the logfiles, mostly at the very beginning of the process"""
+"""
+This module does some refactoring to the logfiles, mostly at the very beginning of the process
+"""
+
 import os
 import re
 from pathlib import Path
@@ -45,14 +48,13 @@ def cut_frames():
 
     """
 
-    global dataframes
-
     cutted_df_list = []
-    min_time = min(dataframe['Time'].max() for dataframe in dataframes)
-    for dataframe in dataframes:
+    min_time = min(dataframe['Time'].max() for dataframe in sd.df_list)
+
+    for dataframe in sd.df_list:
         cutted_df_list.append(dataframe[dataframe['Time'] < min_time])
 
-    dataframes = cutted_df_list
+    sd.df_list = cutted_df_list
 
 
 def add_timedelta_column():

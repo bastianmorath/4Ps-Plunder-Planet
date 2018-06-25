@@ -1,4 +1,5 @@
-"""This module reads the logfiles and transforms them into dataframes.
+"""
+This module reads the logfiles and transforms them into dataframes.
 
 - One can choose whether one wants only the fbmc, only the kinect, or all files.
 
@@ -107,7 +108,14 @@ def setup(fewer_data=False, normalize_heartrate=True):
     remove_movement_tutorials()
 
     refactoring.add_timedelta_column()
-    # globals()["obstacle_df_list"] = get_obstacle_times_with_success()
+
+    '''
+    len_before = len(pd.concat(df_list, ignore_index=True))
+    refactoring.cut_frames()
+    len_after = len(pd.concat(df_list, ignore_index=True))
+    print('Dataframes cutted to same length: Lost ' + str(round((1.0 - len_after/len_before) * 100, 3))
+          + ' percent of data')
+    '''
 
 
 def print_keynumbers_logfiles():

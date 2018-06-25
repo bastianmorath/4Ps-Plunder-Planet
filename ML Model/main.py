@@ -1,4 +1,5 @@
-"""This module is the main file when one wants to ...
+"""
+This module is the main file when one wants to ...
 
 """
 
@@ -15,12 +16,13 @@ import window_optimization
 import hyperparameter_optimization
 import model_factory
 import leave_one_out_cv
-
+import LSTM
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 # TODO: In RandomSearchCV, also try out standard parameters!
+
 
 def main(args):
     start = time.time()
@@ -82,7 +84,7 @@ def main(args):
 
         else:
             clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                X, y, clf_name=args.optimize_clf, num_iter=2  # TODO: Increase num_iter
+                X, y, clf_name=args.optimize_clf, num_iter=40  # TODO: Increase num_iter
             )
             _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params)
             print(rep)
@@ -93,6 +95,10 @@ def main(args):
         leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
         )
+
+    if args.get_trained_lstm:
+        print("\n################# Get trained LSTM #################\n")
+        LSTM.get_trained_lstm_classifier(X, y)
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")
@@ -179,6 +185,13 @@ if __name__ == "__main__":
         "--print_keynumbers_logfiles",
         action="store_true",
         help="Print important numbers and stats about the logfiles ",
+    )
+
+    parser.add_argument(
+        "-m",
+        "--get_trained_lstm",
+        action="store_true",
+        help="Get a trained lstm classifier",
     )
 
     parser.add_argument(
