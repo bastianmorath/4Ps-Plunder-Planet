@@ -5,18 +5,28 @@ This module is responsible to for the LSTM network
 from collections import Counter
 
 from keras import Sequential
-from keras.layers import LSTM, Dense, K, Flatten, TimeDistributed
-from keras.preprocessing import sequence
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking
 import tensorflow as tf
-from numpy import array
+from keras.preprocessing import sequence
+from sklearn.metrics import confusion_matrix
 import numpy as np
+from numpy import array
 from sklearn import metrics
+import itertools
 
-import setup_dataframes as sd
 import model_factory
+import setup_dataframes as sd
+
+_nepochs = 30
+_maxlen = 0
 
 
-def get_trained_lstm_classifier(X, y):
+# TODO: Split into train, test, validation set
+# TODO: Save model in pickle file for later use
+# TODO: Try softmax pred_classes
+
+
+def get_trained_lstm_classifier(X, y, padding=True):
     """
     Reshapes feature matrix X, applies LSTM and returns the performance of the neural network
 
@@ -25,12 +35,19 @@ def get_trained_lstm_classifier(X, y):
 
     :return: neural network
     """
-    # TODO: Feature matrix is sorted along time!!!!!????
+
     X_splitted, y_splitted = get_splitted_up_feature_matrix_and_labels(X, y)
 
-    X_reshaped, y_reshaped = get_reshaped_feature_matrix(X_splitted, y_splitted)
+    globals()["_maxlen"] = max(len(fm) for fm in X_splitted)
 
-    apply_lstm(X_reshaped, y_reshaped)
+    X_reshaped, y_reshaped = get_reshaped_feature_matrix(X_splitted, y_splitted, padding)
+
+    X_lstm = array(X_reshaped)
+    y_lstm = array(y_reshaped)
+
+    model = generate_lstm_classifier(X_lstm, y_lstm, padding=padding)
+
+    calculate_performance(X_splitted, y_splitted, model)
 
 
 """
@@ -45,81 +62,125 @@ Features: 9 or 16 (depending on feature_reduction or not)
 """
 
 
-def get_reshaped_feature_matrix(X_splitted, y_splitted):
+def get_reshaped_feature_matrix(new_X, new_y, padding=True):
     """ Returns the reshaped feature matrix needed for applying LSTM. Also does zero-padding
 
-    :param X_splitted: Non-reshaped/original feature matrix
+    :param new_X: Non-reshaped/original feature matrix (list)
 
     :return: Reshaped feature matrix (3D)
     """
 
-    maxlen = max(len(fm) for fm in X_splitted)
-    minlen = min(len(fm) for fm in X_splitted)
+    minlen = min(len(fm) for fm in new_X)
 
-    print('Maxlen (=Max. #obstacles of logfiles) is ' + str(maxlen) + ', minlen is ' + str(minlen))
+    print('Maxlen (=Max. #obstacles of logfiles) is ' + str(_maxlen) + ', minlen is ' + str(minlen))
     # Since values of feature matrix are between -1 and +1, I pad not with 0, but with e.g. -99
-    padded_X = sequence.pad_sequences(X_splitted, maxlen=maxlen, padding='post', dtype='float64', value=-99)
-    padded_y = sequence.pad_sequences(y_splitted, maxlen=maxlen, padding='post', dtype='float64', value=-99)
-    X_reshaped = array(padded_X).reshape(len(padded_X), maxlen, padded_X[0].shape[1])
-    y_reshaped = array(padded_y).reshape(len(padded_X), maxlen, 1)
+    if padding:
+        new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64', value=-99)
+        new_y = sequence.pad_sequences(new_y, maxlen=_maxlen, padding='post', dtype='float64', value=-99)
+
+        X_reshaped = array(new_X).reshape(len(new_X), _maxlen, new_X[0].shape[1])
+        y_reshaped = array(new_y).reshape(len(new_y), _maxlen, 1)
+    else:
+        X_reshaped = array(new_X).reshape(len(new_X), None, new_X[0].shape[1])
+        y_reshaped = array(new_y).reshape(len(new_y), 1)
 
     return X_reshaped, y_reshaped
 
 
 """
-2. Apply LSTM
+2. Generate LSTM
 """
 
 
-def apply_lstm(X_reshaped, y_reshaped):
+def generate_lstm_classifier(X_reshaped, y_reshaped, padding=True):
     """
 
     :param X_reshaped: Reshaped feature matrix
-    :param y: labels
+    :param y_reshaped: Reshaped labels
 
     :return: trained classifier
     """
 
     class_weights = {'0': 1, '1': 5}
 
-    model = Sequential()
-    model.add(LSTM(340, return_sequences=True, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    model.add(TimeDistributed(Dense(1, activation='sigmoid')))
-
-    metrics = [sensitivity, specificity, 'accuracy']
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print('Shape X: ' + str(X_reshaped.shape))
-    print('Shape y: ' + str(array(y_reshaped).shape))
+    print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
 
-    model.fit(X_reshaped, array(y_reshaped), epochs=20, batch_size=200,
-              verbose=1, shuffle=False)
-    result = model.predict(X_reshaped, batch_size=200, verbose=0)
+    _metrics = [auc, sensitivity, 'accuracy']
+    print('Compiling lstm network...')
+    model = Sequential()
 
-    c = Counter(result.ravel())
-    pred = []
-    for v, _ in c.items():
-        if v < 0.5:
-            pred.append(0)
-        else:
-            pred.append(1)
+    if padding:
+        model.add(Masking(mask_value=-99, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
+        model.add(LSTM(256, return_sequences=True))
+        model.add(Dense(64, activation='sigmoid'))
 
-    c2 = Counter(pred)
-    print(c2)
+        model.add(TimeDistributed(Dense(1, activation='sigmoid')))
+
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=_metrics)
+        model.fit(X_reshaped, y_reshaped, epochs=_nepochs, batch_size=50,
+                  verbose=1, shuffle=False)
+    else:
+        model.add(LSTM(120, return_sequences=True, input_shape=(None, X_reshaped.shape[2])))
+        model.add(TimeDistributed(Dense(1, activation='sigmoid')))
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=_metrics)
+        model.fit(X_reshaped, y_reshaped, epochs=_nepochs, batch_size=1,
+                  verbose=1, shuffle=False)
+    print(model.summary())
+
+    return model
 
 
 """
 3. Calculate performance
 """
 
-def calculate_performance(y, y_pred):
-    conf_mat = tf.confusion_matrix(y, y_pred)
 
-    precision = metrics.precision_score(y, y_pred)
-    recall = metrics.recall_score(y, y_pred)
+def calculate_performance(X_splitted, y_true_list, lstm_model):
+    """
+    Iterates over all featurematrices (one per logfile), pads it to max_len (since lstm got trained on that length,
+    then opredicts labels, and discards the padded ones
+    :param X_splitted:
+    :param lstm_model:
+    :return:
+    """
+    y_pred_list = []
+    for X in X_splitted:
+        # We need to predict on maxlen, and can then take the first len(X_original) values
+        length_old = len(X)
+        X = X.reshape(1, X.shape[0], X.shape[1])
+        X_padded = sequence.pad_sequences(X, maxlen=_maxlen, padding='post', dtype='float64', value=-99)
+        predictions = lstm_model.predict_proba(X_padded, batch_size=1, verbose=0).ravel()[:length_old]
+        predictions_truncated = predictions  # Remove predictions for padded values
+
+        y_pred_list.append([int(round(x)) for x in predictions_truncated])
+
+
+        """
+        c = Counter(result)
+        pred = []
+        for v, times in c.items():
+            if v < 0.5:
+                pred.extend([0] * times)
+            else:
+                pred.extend([1] * times)
+        c2 = Counter(pred)
+
+        print(c2)
+        """
+
+    y_pred = list(itertools.chain.from_iterable(y_pred_list))
+    y_true = list(itertools.chain.from_iterable(y_true_list))
+
+    conf_mat = confusion_matrix(y_true, y_pred)
+    precision = metrics.precision_score(y_true, y_pred)
+    recall = metrics.recall_score(y_true, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    roc_auc = metrics.roc_auc_score(y, y_pred)
-    print(model_factory.create_string_from_scores('LSTM', roc_auc, recall, specificity, precision, conf_mat)
-)
+    roc_auc = metrics.roc_auc_score(y_true, y_pred)
+
+    print(model_factory.create_string_from_scores('LSTM', roc_auc, recall, specificity, precision, conf_mat))
+
+
 """
 Helper methods
 """
@@ -145,6 +206,8 @@ def get_splitted_up_feature_matrix_and_labels(X, y):
         obstacles_so_far += num_obstacles
 
     return feature_matrices, label_lists
+
+
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -186,3 +249,5 @@ def specificity(y_true, y_pred):
     true_negatives = K.sum(K.round(K.clip((1-y_true) * (1-y_pred), 0, 1)))
     possible_negatives = K.sum(K.round(K.clip(1-y_true, 0, 1)))
     return true_negatives / (possible_negatives + K.epsilon())
+
+

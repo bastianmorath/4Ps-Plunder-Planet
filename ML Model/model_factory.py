@@ -150,7 +150,6 @@ def create_string_from_scores(clf_name, roc_auc, recall, specificity, precision,
     :return: String
 
     """
-
     if tuned_params_dict is None:
         s = '\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\troc_auc: %.3f, ' \
