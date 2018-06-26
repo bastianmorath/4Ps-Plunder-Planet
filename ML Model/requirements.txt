@@ -6,3 +6,5 @@ numpy
 matplotlib
 pathlib
 keras
+tflearn
+tensorflow
