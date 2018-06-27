@@ -149,7 +149,7 @@ if __name__ == "__main__":
         "--scores_without_tuning",
         action="store_true",
         help="Calculates the performance of SVM, LinearSVM, NearestNeighbor, DecisionTree and Naive Bayes"
-             "and plots it in a barchart. Also creates ROC curves",
+             " and plots it in a barchart. Also creates ROC curves",
     )
 
     parser.add_argument(
@@ -181,17 +181,17 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "-m",
+        "--get_trained_lstm",
+        action="store_true",
+        help="Get a trained LSTM classifier",
+    )
+
+    parser.add_argument(
         "-k",
         "--print_keynumbers_logfiles",
         action="store_true",
         help="Print important numbers and stats about the logfiles ",
-    )
-
-    parser.add_argument(
-        "-m",
-        "--get_trained_lstm",
-        action="store_true",
-        help="Get a trained lstm classifier",
     )
 
     parser.add_argument(
@@ -207,7 +207,8 @@ if __name__ == "__main__":
         "--generate_plots_about_logfiles",
         action="store_true",
         help="Generates different plots from the logfiles (Look at main.py for details) and stores it "
-             "in folder /Evaluation/Logfiles (Note: Probably use with -n, i.e. without normalizing heartrate)",
+             "in folder /Evaluation/Logfiles (Note: Probably use in combination with -n, i.e. without "
+             "normalizing heartrate)",
     )
 
     parser.add_argument(
@@ -221,8 +222,7 @@ if __name__ == "__main__":
         "-d",
         "--use_test_data",
         action="store_true",
-        help="Plot performance when leaving out a logfile "
-        "vs leaving out a whole user in crossvalidation",
+        help="Use synthesized data. Might not work with everything."  # TODO
     )
 
     parser.add_argument(

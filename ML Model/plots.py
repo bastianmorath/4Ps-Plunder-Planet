@@ -206,6 +206,7 @@ def plot_mean_value_of_feature_at_crash(X, y):
         plt.bar(0,  mean_without_obstacles, width=0.5, yerr=std_without_obstacles, label='No crash')
         plt.bar(1,  mean_with_obstacles, width=0.5, yerr=std_with_obstacles, label='Crash')
         plt.legend()
+
         plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
 
         filename = str(f_factory.feature_names[i]) + '_crash.pdf'

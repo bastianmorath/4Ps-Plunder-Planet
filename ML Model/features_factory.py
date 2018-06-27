@@ -119,7 +119,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope',
                                       'hr_gradient_changes',
                                       '%crashes',
-                                      'points_gradient_changes', 'mean_points', 'std_points']
+                                      'points_gradient_changes', 'mean_points', 'std_points', 'Time']
     else:
         globals()['feature_names'] = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
                                       'lin_regression_hr_slope', 'hr_gradient_changes',
@@ -127,7 +127,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
                                       '%crashes', 'last_obstacle_crash',
 
                                       'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
-                                      'max_minus_min_points']
+                                      'max_minus_min_points', 'Time']
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
@@ -176,7 +176,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['std_points'] = get_standard_feature('std', 'Points')
         if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
-        times = get_time_feature()  # TODO: Only add if LSTM
+        times = get_time_feature()  # TODO: Add timeDELTA, not absolute time ( and maybe only add if LSTM)
 
         matrix['Time'] = times
         # Boxcox transformation

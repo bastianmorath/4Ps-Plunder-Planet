@@ -2,23 +2,20 @@
 This module is responsible to for the LSTM network
 
 """
-from collections import Counter
 
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking
-import tensorflow as tf
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, Dropout
 from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
-import numpy as np
 from numpy import array
 from sklearn import metrics
 import itertools
-import tflearn # Used for roc_auc optimization
+import tensorflow as tf
 import model_factory
 import setup_dataframes as sd
 
-_nepochs = 1000
+_nepochs = 500
 _maxlen = 0
 
 
@@ -38,11 +35,12 @@ def get_trained_lstm_classifier(X, y, padding=True):
     """
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=3)
 
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
 
     X_train_reshaped, y_train_reshaped = get_reshaped_feature_matrix(X_train_list, y_train_list, padding)
+    X_test_reshaped, y_test_reshaped = get_reshaped_feature_matrix(X_test_list, y_test_list, padding)
 
     X_lstm = array(X_train_reshaped)
     y_lstm = array(y_train_reshaped)
@@ -103,31 +101,35 @@ def generate_lstm_classifier(X_reshaped, y_reshaped):
     :return: trained classifier
     """
 
-    class_weights = {'0': 1, '1': 5}
-
     print('Shape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
 
     # Metrics are NOT used in training phase (only loss function is tried to minimized)
-    _metrics = [auc_roc,  recall, specificity, precision]
+    # _metrics = [auc_roc,  recall, specificity, precision]
+    _metrics=[auc_roc]
     my_callbacks = [EarlyStopping(monitor='auc_roc', patience=500, verbose=1, mode='max')]
 
     print('Compiling lstm network...')
     model = Sequential()
-
     model.add(Masking(mask_value=-99, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    model.add(LSTM(128, return_sequences=True, activation='tanh'))
+    model.add(Dropout(0.2))
+    model.add(LSTM(256, return_sequences=True))
+    model.add(Dropout(0.2))
+
     model.add(Dense(64, activation='relu'))
-    model.add(Dense(16, activation='relu'))
+    model.add(Dropout(0.2))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(1, activation='sigmoid')))
-
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=_metrics)
-    model.fit(X_reshaped, y_reshaped, epochs=_nepochs, batch_size=150,
-              verbose=1, shuffle=False, callbacks=my_callbacks)
-
+    loss = WeightedBinaryCrossEntropy(0.2)  # TODO: Maybe 0.8?
+    model.compile(loss=loss, optimizer='adam', metrics=_metrics)
+    # shuffle=True takes entire samples and shuffles those
+    model.fit(X_reshaped, y_reshaped, epochs=_nepochs, batch_size=75,
+              verbose=1, shuffle=False, callbacks=my_callbacks, validation_split=1/12.)
+    # TODO: Use validation_data or validation_split? Maybe validation_split doesn't take entire samples?
+    # TODO: Use model.evaluate with test_Data
+    # https: // github.com / keras - team / keras / issues / 1753
     print(model.summary())
 
     return model
@@ -260,7 +262,7 @@ def auc_roc(y_true, y_pred):
     """
     https: // stackoverflow.com / a / 46844409
  
-    """"""
+    """
     # any tensorflow metric
     value, update_op = tf.metrics.auc(y_true, y_pred)
 
@@ -276,3 +278,28 @@ def auc_roc(y_true, y_pred):
     with tf.control_dependencies([update_op]):
         value = tf.identity(value)
         return value
+
+
+class WeightedBinaryCrossEntropy(object):
+
+    def __init__(self, pos_ratio):
+        """
+
+        :param pos_ratio: Ratio of positive to negative labels (0.5 meaning 1:1)
+        """
+        neg_ratio = 1. - pos_ratio
+        self.pos_ratio = tf.constant(pos_ratio, tf.float32)
+        self.weights = tf.constant(neg_ratio / pos_ratio, tf.float32)
+        self.__name__ = "weighted_binary_crossentropy({0})".format(pos_ratio)
+
+    def __call__(self, y_true, y_pred):
+        return self.weighted_binary_crossentropy(y_true, y_pred)
+
+    def weighted_binary_crossentropy(self, y_true, y_pred):
+        # Transform to logits
+        epsilon = tf.convert_to_tensor(K.common._EPSILON, y_pred.dtype.base_dtype)
+        y_pred = tf.clip_by_value(y_pred, epsilon, 1 - epsilon)
+        y_pred = tf.log(y_pred / (1 - y_pred))
+
+        cost = tf.nn.weighted_cross_entropy_with_logits(y_true, y_pred, self.weights)
+        return K.mean(cost * self.pos_ratio, axis=-1)
