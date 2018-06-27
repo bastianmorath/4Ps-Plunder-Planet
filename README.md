@@ -19,18 +19,27 @@ usage: main.py [-h] [-t hw_window crash_window gc_window] [-g clf_name] [-l]
 optional arguments:
   -h, --help            show this help message and exit
   
-  -t hw_window crash_window gc_window, --test_windows hw_window crash_window gc_window
+  -w, --scores_without_tuning
+                        Calculates the performance of SVM, LinearSVM,
+                        NearestNeighbor, DecisionTree and Naive Bayes and
+                        plots it in a barchart. Also creates ROC curves
+                        
+  -t hw_window crash_window gc_window, --test_windows " " "
                         Trains and tests a SVM with the given window sizes.
                         Stores roc_auc score in a file in
                         /Evaluation/Performance/Windows. Note: Provide the
                         windows in seconds
                         
-  -g clf_name, --grid_search clf_name
-                        Optimizes the given classifier with RAndomSearchCV.
-                        Setclf_name='all' if you want to test all classifiers
+  -o clf_name, --optimize_clf clf_name
+                        Optimizes the given classifier with RandomSearchCV and
+                        outputs detailed scores. Set clf_name='all' if you
+                        want to test all classifiers
                         
   -l, --leave_one_out   Plot performance when leaving out a logfile vs leaving
                         out a whole user in crossvalidation
+                        
+  -m, --get_trained_lstm
+                        Get a trained LSTM classifier
                         
   -k, --print_keynumbers_logfiles
                         Print important numbers and stats about the logfiles
@@ -43,23 +52,25 @@ optional arguments:
   -p, --generate_plots_about_logfiles
                         Generates different plots from the logfiles (Look at
                         main.py for details) and stores it in folder
-                        /Evaluation/Logfiles
+                        /Evaluation/Logfiles (Note: Probably use in
+                        combination with -n, i.e. without normalizing
+                        heartrate)
                         
-  -s, --do_feature_selection
-                        Do feature selection with cross_correlation matrix
+  -s, --no_feature_selection
+                        Do not do feature selection with cross_correlation
+                        matrix
                         
-  -d, --use_test_data   
-                        Plot performance when leaving out a logfile vs leaving
-                        out a whole user in crossvalidation
-                        
+  -d, --use_test_data   Use synthesized data. Might not work with everything.
+  
   -n, --do_not_normalize_heartrate
                         Do not normalize heartrate (e.g. if you want plots or
                         values with real heartrate)
                         
   -v, --verbose         Prints various information while computing
   
-  -r, --reduced_data    Use only a small aprt of the data. Mostly for
+  -r, --reduced_data    Use only a small part of the data. Mostly for
                         debugging purposes
+
 ```
 
 ## More information
