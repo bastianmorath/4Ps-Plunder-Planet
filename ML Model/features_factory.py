@@ -28,9 +28,10 @@ _verbose = True
 # TODO: Onlt if not_reduced, add if-clauses. But we can always add the shared features...
 # TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
-hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
-cw = 10  # Over how many preceeding seconds should %crashes be calculated?
-gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
+
+hw = 3  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
+cw = 3  # Over how many preceeding seconds should %crashes be calculated?
+gradient_w = 3  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
 path_reduced_features = sd.working_directory_path + '/Pickle/reduced_features/'
@@ -117,17 +118,13 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     if feature_selection:
         globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope',
-                                      'hr_gradient_changes',
-                                      '%crashes',
-                                      'points_gradient_changes', 'mean_points', 'std_points', 'Time']
+                                      'hr_gradient_changes', '%crashes', 'points_gradient_changes', 'mean_points',
+                                      'std_points', 'timedelta_last_obst']
     else:
-        globals()['feature_names'] = ['mean_hr', 'max_hr', 'min_hr', 'std_hr', 'max_minus_min_hr', 'max_over_min_hr',
-                                      'lin_regression_hr_slope', 'hr_gradient_changes',
-
-                                      '%crashes', 'last_obstacle_crash',
-
-                                      'points_gradient_changes', 'mean_points', 'max_points', 'min_points', 'std_points',
-                                      'max_minus_min_points', 'Time']
+        globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope',
+                                      'hr_gradient_changes', '%crashes', 'points_gradient_changes', 'mean_points',
+                                      'std_points', 'timedelta_last_obst', 'max_hr', 'min_hr', 'max_over_min_hr',
+                                      'last_obstacle_crash', 'max_points', 'min_points', 'max_minus_min_points']
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
@@ -143,42 +140,28 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             print('Creating feature matrix...')
 
         # TODO: Ugly....
-        if 'mean_hr' in feature_names:
-            matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
-        if 'max_hr' in feature_names:
+
+        matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
+        matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
+        matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
+        matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
+        matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
+        matrix['%crashes'] = get_percentage_crashes_feature()
+        matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
+        matrix['mean_points'] = get_standard_feature('mean', 'Points')
+        matrix['std_points'] = get_standard_feature('std', 'Points')
+
+        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature()
+
+        if not use_reduced_features:
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
-        if 'min_hr' in feature_names:
             matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
-        if 'std_hr' in feature_names:
-            matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
-        if 'max_minus_min_hr' in feature_names:
-            matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
-        if 'max_over_min_hr' in feature_names:
             matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
-        if 'lin_regression_hr_slope' in feature_names:
-            matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
-        if 'hr_gradient_changes' in feature_names:
-            matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
-        if '%crashes' in feature_names:
-            matrix['%crashes'] = get_percentage_crashes_feature()
-        if 'last_obstacle_crash' in feature_names:
             matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
-
-        if 'points_gradient_changes' in feature_names:
-            matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
-        if 'mean_points' in feature_names:
-            matrix['mean_points'] = get_standard_feature('mean', 'Points')
-        if 'max_points' in feature_names:
             matrix['max_points'] = get_standard_feature('max', 'Points')
-        if 'min_points' in feature_names:
             matrix['min_points'] = get_standard_feature('min', 'Points')
-        if 'std_points' in feature_names:
-            matrix['std_points'] = get_standard_feature('std', 'Points')
-        if 'max_minus_min_points' in feature_names:
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
-        times = get_time_feature()  # TODO: Add timeDELTA, not absolute time ( and maybe only add if LSTM)
 
-        matrix['Time'] = times
         # Boxcox transformation
         if use_boxcox:
             # Values must be positive. If not, shift it
@@ -212,18 +195,41 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     return X, y
 
 
-def get_time_feature():
+def get_timedelta_last_obst_feature():
+    """ Returns the  normalized timedelta to the previous obstacle
+
+    """
     hr_df_list = []  # list that contains a dataframe with feature for each logfile
+    computed_timedeltas = []
 
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
-            return row['Time']
+            last_obstacles_df = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
+            if last_obstacles_df.empty:
+                return 0
+
+            timedelta = row['Time'] - last_obstacles_df.iloc[-1]['Time']
+
+            # print(last_obstacles_df.iloc[-3:])
+            # AdaBoost: 2 is best
+            # Decision Tree: No normalization is best
+            # Random Forest: 1 is best
+            last_n_obst = min(len(computed_timedeltas), 1)
+            if len(computed_timedeltas) > 0:
+                normalized = np.mean(computed_timedeltas[-last_n_obst:]) / timedelta
+            else:
+                normalized = timedelta
+
+            # print(row['crash'], normalized,  timedelta)
+
+            # If timedelta is too big, I cap it at 3, s.t. plots are nicer
+            normalized = normalized if normalized < 3 else 3
+            computed_timedeltas.append(timedelta)
+            return timedelta
 
     for list_idx, df in enumerate(sd.df_list):
         hr_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
-        print()
-
-    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=['Time'])
+    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=['timedelta_last_obst'])
 
 
 def get_standard_feature(feature, data_name):
@@ -403,10 +409,10 @@ def get_last_obstacle_crash_column(idx):
     def compute_crashes(row):
         if row['Time'] > max(cw, hw, gradient_w):
 
-            last = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
-            if last.empty:
+            last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
+            if last_obstacles.empty:
                 return 0
-            return 1 if last.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
+            return 1 if last_obstacles.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
 
     return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 

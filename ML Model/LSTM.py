@@ -15,7 +15,7 @@ import tensorflow as tf
 import model_factory
 import setup_dataframes as sd
 
-_nepochs = 1000
+_nepochs = 400
 _maxlen = 0
 
 
@@ -117,13 +117,15 @@ def generate_lstm_classifier(X_reshaped, y_reshaped):
     model.add(Dropout(0.2))
     model.add(Dense(64, activation='relu'))
     model.add(Dropout(0.2))
+    model.add(Dense(32, activation='relu'))
+    model.add(Dropout(0.2))
     model.add(Dense(16, activation='relu'))
     model.add(Dropout(0.2))
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(1, activation='sigmoid')))
 
-    loss = WeightedBinaryCrossEntropy(0.1)  # TODO: Maybe 0.8?
+    loss = WeightedBinaryCrossEntropy(0.2)  # TODO: Maybe 0.8?
 
     model.compile(loss=loss, optimizer='adam', metrics=_metrics)
 

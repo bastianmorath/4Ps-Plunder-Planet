@@ -177,12 +177,12 @@ class CDecisionTreeClassifier(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         # Compute this after instantiations since feature_names are [] otherwise
-        self.param6 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
-                                                        None)   # max_features
+        # self.param6 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
+        #                                                 None)   # max_features
         self.param6_name = 'max_features'
         self.tuned_params = {'criterion': CDecisionTreeClassifier.param1, 'splitter': CDecisionTreeClassifier.param2,
                              'max_depth': CDecisionTreeClassifier.param3, 'min_samples_split': CDecisionTreeClassifier.param4,
-                             'min_samples_leaf': CDecisionTreeClassifier.param5, 'max_features': self.param6,
+                             'min_samples_leaf': CDecisionTreeClassifier.param5,
                              }
 
     clf = DecisionTreeClassifier()
@@ -203,10 +203,10 @@ class CRandomForest(CClassifier):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier()
 
-        self.param2 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
-                                                        'auto')  # max_features
+        # self.param2 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
+        #                                                 'auto')  # max_features
         self.param2_name = 'max_features'
-        self.tuned_params = {'max_depth': CRandomForest.param1, 'max_features': self.param2,
+        self.tuned_params = {'max_depth': CRandomForest.param1,
                              'min_samples_split': CRandomForest.param3, 'min_samples_leaf': CRandomForest.param4}
 
 

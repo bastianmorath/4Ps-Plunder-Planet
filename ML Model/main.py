@@ -23,6 +23,7 @@ import LSTM
 # TODO: Add :type in docstrings where necessary
 # TODO: In RandomSearchCV, also try out standard parameters!
 
+_num_iter = 1000
 
 def main(args):
     start = time.time()
@@ -79,7 +80,6 @@ def main(args):
 
     if args.optimize_clf:
         print("\n################# Hyperparameter optimization #################\n")
-        _num_iter = 1
         if args.optimize_clf == "all":
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False,
