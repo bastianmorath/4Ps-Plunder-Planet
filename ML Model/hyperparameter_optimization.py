@@ -58,7 +58,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, v
 
     c_classifier = classifiers.get_cclassifier_with_name(clf_name, X, y)
 
-    print('Doing RandomSearchCV for ' + clf_name + '...')
+    print('Doing RandomSearchCV with n_iter=' + str(num_iter) + ' for ' + clf_name + '...')
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
         if synthesized_data.test_data_enabled:

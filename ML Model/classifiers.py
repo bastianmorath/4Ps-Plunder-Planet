@@ -20,7 +20,12 @@ import features_factory as f_factory
 
 EPSILON = 0.0001
 
-names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
+# names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
+names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
+
+length_param_list = 1000
+# Note: Whenever there is 'auto' or None as an option, I add it 'length_param_list/3' times to the hyperparameter list,
+# such that the likelhoode of drawing this is very high (because the default parameters often give good performance)
 
 
 def get_cclassifier_with_name(clf_name, X, y):
@@ -48,6 +53,16 @@ def get_cclassifier_with_name(clf_name, X, y):
     return list_clf[0]
 
 
+def get_list_with_distr_and_opt_param(distr, param):
+    """
+
+    :param dist:
+    :param param:
+    :return:
+    """
+    return ([param] * int(length_param_list/2)) + list(distr.rvs(size=length_param_list))
+
+
 class CClassifier(object):
     def __init__(self, X, y):
 
@@ -59,7 +74,7 @@ class CSVM(CClassifier):
     name = 'SVM'
     param1 = sp_randint(1, 100)  # C
     param1_name = 'C'
-    param2 = uniform(EPSILON, 10)  # gamma
+    param2 = get_list_with_distr_and_opt_param(uniform(EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
     tuned_params = {'C': param1, 'gamma': param2}
 
@@ -118,9 +133,9 @@ class CGradientBoostingClassifier(CClassifier):
     param2_name = 'learning_rate'
     param3 = sp_randint(1, 10000)  # n_estimators
     param3_name = 'n_estimators'
-    param4 = sp_randint(1, 5)  # max_depth
+    param4 = sp_randint(1, 100)  # max_depth
     param4_name = 'max_depth'
-    param5 = uniform(EPSILON, 1)  # min_samples_split
+    param5 = sp_randint(2, 20)  # min_samples_split
     param5_name = 'min_samples_split'
     param6 = sp_randint(1, 5)  # min_samples_leaf
     param6_name = 'min_samples_leaf'
@@ -152,17 +167,18 @@ class CDecisionTreeClassifier(CClassifier):
     param1_name = 'criterion'
     param2 = ['best', 'random']  # splitter
     param2_name = 'splitter'
-    param3 = sp_randint(1, 5)  # max_depth
+    param3 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)   # max_depth
     param3_name = 'max_depth'
-    param4 = uniform(EPSILON, 1)  # min_samples_split
+    param4 = sp_randint(2, 20)  # min_samples_split
     param4_name = 'min_samples_split'
-    param5 = sp_randint(1, 5)  # min_samples_leaf
+    param5 = sp_randint(1, 20)  # min_samples_leaf
     param5_name = 'min_samples_leaf'
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         # Compute this after instantiations since feature_names are [] otherwise
-        self.param6 = sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names))  # max_features
+        self.param6 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
+                                                        None)   # max_features
         self.param6_name = 'max_features'
         self.tuned_params = {'criterion': CDecisionTreeClassifier.param1, 'splitter': CDecisionTreeClassifier.param2,
                              'max_depth': CDecisionTreeClassifier.param3, 'min_samples_split': CDecisionTreeClassifier.param4,
@@ -175,7 +191,7 @@ class CDecisionTreeClassifier(CClassifier):
 class CRandomForest(CClassifier):
     name = 'Random Forest'
 
-    param1 = [3, None]  # max_depth
+    param1 = get_list_with_distr_and_opt_param(sp_randint(1, 30), None)  # max_depth
     param1_name = 'max_depth'
 
     param3 = uniform(EPSILON, 1)  # min_samples_split
@@ -187,7 +203,8 @@ class CRandomForest(CClassifier):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier()
 
-        self.param2 = len(f_factory.feature_names) - 5, len(f_factory.feature_names)  # max_features
+        self.param2 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
+                                                        'auto')  # max_features
         self.param2_name = 'max_features'
         self.tuned_params = {'max_depth': CRandomForest.param1, 'max_features': self.param2,
                              'min_samples_split': CRandomForest.param3, 'min_samples_leaf': CRandomForest.param4}
@@ -221,3 +238,5 @@ class CNaiveBayes(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = GaussianNB()
+
+

@@ -200,10 +200,11 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     np.set_printoptions(suppress=True)
 
     matrix.dropna(inplace=True)  # First max(hw, cw, gradient_w) seconds did not get computed since inaccurate -> Delete
+
     # Create feature matrix from df
     X = matrix.values
     scaler = MinMaxScaler(feature_range=(0, 1))
-    # X = scaler.fit_transform(X)  # Rescale between 0 and 1
+    X = scaler.fit_transform(X)  # Rescale between 0 and 1
     plots.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')

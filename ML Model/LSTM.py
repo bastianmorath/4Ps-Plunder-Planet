@@ -15,7 +15,7 @@ import tensorflow as tf
 import model_factory
 import setup_dataframes as sd
 
-_nepochs = 500
+_nepochs = 1000
 _maxlen = 0
 
 
@@ -24,13 +24,14 @@ _maxlen = 0
 # TODO: Try softmax pred_classes
 # TODO: https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
 
+
 def get_trained_lstm_classifier(X, y, padding=True):
     """
     Reshapes feature matrix X, applies LSTM and returns the performance of the neural network
 
     :param X: List of non-reshaped/original feature matrices (one per logfile)
     :param y: labels
-
+    :param padding: Whether we should pad or not pad but batch_size=1
     :return: neural network
     """
 
@@ -40,7 +41,6 @@ def get_trained_lstm_classifier(X, y, padding=True):
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
 
     X_train_reshaped, y_train_reshaped = get_reshaped_feature_matrix(X_train_list, y_train_list, padding)
-    X_test_reshaped, y_test_reshaped = get_reshaped_feature_matrix(X_test_list, y_test_list, padding)
 
     X_lstm = array(X_train_reshaped)
     y_lstm = array(y_train_reshaped)
@@ -106,28 +106,32 @@ def generate_lstm_classifier(X_reshaped, y_reshaped):
 
     # Metrics are NOT used in training phase (only loss function is tried to minimized)
     # _metrics = [auc_roc,  recall, specificity, precision]
-    _metrics=[auc_roc]
+    _metrics = [auc_roc]
     my_callbacks = [EarlyStopping(monitor='auc_roc', patience=500, verbose=1, mode='max')]
 
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(mask_value=-99, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
     model.add(Dropout(0.2))
-    model.add(LSTM(256, return_sequences=True))
+    model.add(LSTM(128, return_sequences=True))
     model.add(Dropout(0.2))
-
     model.add(Dense(64, activation='relu'))
     model.add(Dropout(0.2))
-
+    model.add(Dense(16, activation='relu'))
+    model.add(Dropout(0.2))
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(1, activation='sigmoid')))
-    loss = WeightedBinaryCrossEntropy(0.2)  # TODO: Maybe 0.8?
+
+    loss = WeightedBinaryCrossEntropy(0.1)  # TODO: Maybe 0.8?
+
     model.compile(loss=loss, optimizer='adam', metrics=_metrics)
+
     # shuffle=True takes entire samples and shuffles those
+    # TODO: Use validation_data or validation_split? Maybe validation_split doesn't take entire samples?
     model.fit(X_reshaped, y_reshaped, epochs=_nepochs, batch_size=75,
               verbose=1, shuffle=False, callbacks=my_callbacks, validation_split=1/12.)
-    # TODO: Use validation_data or validation_split? Maybe validation_split doesn't take entire samples?
+
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
     print(model.summary())

@@ -15,8 +15,10 @@
 #         done
 #     done
 # done
+declare -a arr=('SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes')
 
-for clf_idx in `seq 0 6`
+
+for clf_idx in "${arr[@]}"
 do
-    bsub -W 240:00 python "$PWD"/hyperparameter_optimization.py $clf_idx 200
+    bsub  python "$PWD"/main.py -o '$clf_name'
 done

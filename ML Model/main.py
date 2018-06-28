@@ -53,7 +53,8 @@ def main(args):
                 verbose=True,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                feature_selection=f_factory.use_reduced_features,  # TODO: Remove f_selection argument as it is stored as local variable anyways
+                # TODO: Remove f_selection argument as it is stored as local variable anyways
+                feature_selection=f_factory.use_reduced_features,
                 use_boxcox=False,
             )
 
@@ -64,7 +65,7 @@ def main(args):
 
     if args.scores_without_tuning:
         print("\n################# Calculating performance without hyperparameter tuning #################\n")
-        model_factory.calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True)
+        model_factory.calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False)
 
     if args.test_windows:
         print("\n################# Window optimization #################\n")
@@ -78,19 +79,22 @@ def main(args):
 
     if args.optimize_clf:
         print("\n################# Hyperparameter optimization #################\n")
+        _num_iter = 1
         if args.optimize_clf == "all":
             model_factory. \
-                calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False, num_iter=5)
+                calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False,
+                                                     num_iter=_num_iter)
 
         else:
             clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                X, y, clf_name=args.optimize_clf, num_iter=5  # TODO: Increase num_iter
+                X, y, clf_name=args.optimize_clf, num_iter=_num_iter  # TODO: Increase num_iter
             )
-            _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params)
-            print(rep)
+            print('(n_iter in RandomizedSearchCV=' + str(_num_iter) + ')')
+            _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params,
+                                                               verbose=True, do_write_to_file=False)
 
     if args.leave_one_out:
-        # TODO: Add old plot where logfile_left_out is used into report
+        # TODO: Add old plot (where logfile_left_out is used) into report
         print("\n################# Leave one out #################\n")
         leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
