@@ -32,25 +32,21 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     :param reduced_features: Whether we should use all features or do feature selection first
 
     """
-    names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Naive Bayes']
 
-    clfs = [classifiers.CSVM(X, y).clf,
-            classifiers.CLinearSVM(X, y).clf,
-            classifiers.CNearestNeighbors(X, y).clf,
-            classifiers.CQuadraticDiscriminantAnalysis(X, y).clf,
-            classifiers.CNaiveBayes(X, y).clf
-            ]
+    clf_names = classifiers.names
+
+    clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
 
     # Get scores for scenario 1 (normal crossvalidation)
     print('\n***** Scenario 1 (normal crossvalidation) *****\n')
-    auc_scores_scenario_1 = model_factory.analyse_performance(clfs, names, X, y, create_barchart=False,
+    auc_scores_scenario_1 = model_factory.analyse_performance(clf_list, clf_names, X, y, create_barchart=False,
                                                      create_roc_curves=False, write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
     print('\n***** Scenario 2  (Leave one user out in training phase) ***** \n')
     auc_scores_scenario_2 = []
     auc_stds_scenario_2 = []
-    for name, classifier in zip(names, clfs):
+    for name, classifier in zip(clf_names, clf_list):
         print('Calculating performance of %s with doing LeaveOneOutCV ...' % name)
 
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
@@ -71,7 +67,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
 
-    _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
+    _plot_scores_normal_cv_vs_leaveoneout_cv(clf_names, auc_scores_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2)
 
 
@@ -175,7 +171,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
     plt.ylabel('roc_auc')
     plt.title('clf_performance_with_user_left_out_vs_normal')
     plt.xticks(index + bar_width/2, names, rotation='vertical')
-    ax.set_ylim([0, 0.8])
+    ax.set_ylim([0, 1.0])
     plt.legend(prop={'size': 6})
 
     def autolabel(rects):

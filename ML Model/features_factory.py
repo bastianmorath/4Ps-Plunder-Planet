@@ -199,37 +199,41 @@ def get_timedelta_last_obst_feature():
     """ Returns the  normalized timedelta to the previous obstacle
 
     """
-    hr_df_list = []  # list that contains a dataframe with feature for each logfile
+    timedeltas_df_list = []  # list that contains a dataframe with feature for each logfile
     computed_timedeltas = []
 
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
-            last_obstacles_df = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
+            last_obstacles_df = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
+                                                                 (df['Logtype'] == 'EVENT_CRASH'))]
             if last_obstacles_df.empty:
                 return 0
 
             timedelta = row['Time'] - last_obstacles_df.iloc[-1]['Time']
-
-            # print(last_obstacles_df.iloc[-3:])
+            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >#, it's most likely e.g 33 seconds, so I
+            # clamp to c.a. the average
+            if timedelta > 3:
+                timedelta = 2
+            if timedelta < 1:
+                timedelta = 1
             # AdaBoost: 2 is best
             # Decision Tree: No normalization is best
             # Random Forest: 1 is best
-            last_n_obst = min(len(computed_timedeltas), 1)
+            last_n_obst = min(len(computed_timedeltas), 2)
             if len(computed_timedeltas) > 0:
                 normalized = np.mean(computed_timedeltas[-last_n_obst:]) / timedelta
             else:
                 normalized = timedelta
 
-            # print(row['crash'], normalized,  timedelta)
-
-            # If timedelta is too big, I cap it at 3, s.t. plots are nicer
-            normalized = normalized if normalized < 3 else 3
             computed_timedeltas.append(timedelta)
-            return timedelta
+            print(row['crash'], round(normalized, 2),  round(timedelta, 2))
+
+            return 1 / normalized # Invert scale
 
     for list_idx, df in enumerate(sd.df_list):
-        hr_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
-    return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=['timedelta_last_obst'])
+        timedeltas_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
+
+    return pd.DataFrame(list(itertools.chain.from_iterable(timedeltas_df_list)), columns=['timedelta_last_obst'])
 
 
 def get_standard_feature(feature, data_name):

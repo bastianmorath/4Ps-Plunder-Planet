@@ -172,9 +172,13 @@ def plot_feature_distributions(X):
     for idx, feature in enumerate(f_names):
         x = X[:, idx]
         plt.figure()
-        plt.hist(x)
-        plt.title(feature)
+        if feature == 'timedelta_last_obst':
+            print(x)
+            plt.hist(x, bins=np.arange(0.03, 0.07 + 0.005, 0.005))
+        else:
+            plt.hist(x)
 
+        plt.title(feature)
         plt.tight_layout()
         filename = feature + '.pdf'
         save_plot(plt, 'Features/Feature_distributions/', filename)
@@ -196,16 +200,18 @@ def plot_mean_value_of_feature_at_crash(X, y):
     rows_without_crash = [val for (idx, val) in enumerate(X) if y[idx] == 0]
     # Iterate over all features and plot corresponding plot
     for i in range(0, len(X[0])):
-        mean_with_obstacles = np.mean([l[i] for l in rows_with_crash])
-        mean_without_obstacles = np.mean([l[i] for l in rows_without_crash])
-        std_with_obstacles = np.std([l[i] for l in rows_with_crash])
-        std_without_obstacles = np.std([l[i] for l in rows_without_crash])
+        mean_when_crash = np.mean([l[i] for l in rows_with_crash])
+        mean_when_no_crash = np.mean([l[i] for l in rows_without_crash])
+        std_when_crash = np.std([l[i] for l in rows_with_crash])
+        std_when_no_crash = np.std([l[i] for l in rows_without_crash])
+
 
         _, _ = plt.subplots()
 
-        plt.bar(0,  mean_without_obstacles, width=0.5, yerr=std_without_obstacles, label='No crash')
-        plt.bar(1,  mean_with_obstacles, width=0.5, yerr=std_with_obstacles, label='Crash')
-        plt.legend()
+        plt.bar(1,  mean_when_no_crash, width=0.5, yerr=std_when_crash)
+        plt.bar(2,  mean_when_crash, width=0.5, yerr=std_when_no_crash)
+        plt.ylim(0)
+        plt.xticks([1, 2], ['No crash', 'Crash'])
 
         plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
 
@@ -225,22 +231,21 @@ def plot_feature(X, i):
 
     # df_num_resampled = resample_dataframe(samples, resolution)
     # first dataframe only
-    for i in range(0, len(f_factory.feature_names)):
-        feature_name = f_factory.feature_names[i]
-        for idx, df in enumerate(sd.df_list):
-            times = sd.obstacle_df_list[idx]['Time']
-            start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
-            samples = list(X[start:start+len(times), i])
-            _, ax1 = plt.subplots()
+    feature_name = f_factory.feature_names[i]
+    for idx, df in enumerate(sd.df_list):
+        times = sd.obstacle_df_list[idx]['Time']
+        start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
+        samples = list(X[start:start+len(times), i])
+        _, ax1 = plt.subplots()
 
-            ax1.plot(times, samples, c=red_color)
-            ax1.set_xlabel('Playing time [s]')
-            ax1.set_ylabel(feature_name, color=blue_color)
-            plt.title('Feature ' + feature_name + ' for user ' + str(idx))
-            ax1.tick_params('y', colors=blue_color)
+        ax1.plot(times, samples, c=red_color)
+        ax1.set_xlabel('Playing time [s]')
+        ax1.set_ylabel(feature_name, color=blue_color)
+        plt.title('Feature ' + feature_name + ' for user ' + str(idx))
+        ax1.tick_params('y', colors=blue_color)
 
-            filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
-            save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
+        filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
+        save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
 
 
 """
