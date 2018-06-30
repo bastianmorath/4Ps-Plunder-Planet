@@ -173,7 +173,6 @@ def plot_feature_distributions(X):
         x = X[:, idx]
         plt.figure()
         if feature == 'timedelta_last_obst':
-            print(x)
             plt.hist(x, bins=np.arange(0.03, 0.07 + 0.005, 0.005))
         else:
             plt.hist(x)

@@ -187,7 +187,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     # Create feature matrix from df
     X = matrix.values
     scaler = MinMaxScaler(feature_range=(0, 1))
-    X = scaler.fit_transform(X)  # Rescale between 0 and 1
+    # X = scaler.fit_transform(X)  # Rescale between 0 and 1
     plots.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')
@@ -207,32 +207,32 @@ def get_timedelta_last_obst_feature():
             last_obstacles_df = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
                                                                  (df['Logtype'] == 'EVENT_CRASH'))]
             if last_obstacles_df.empty:
-                return 0
+                computed_timedeltas.append(2.2)
+                return 1
 
             timedelta = row['Time'] - last_obstacles_df.iloc[-1]['Time']
-            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >#, it's most likely e.g 33 seconds, so I
+            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
             # clamp to c.a. the average
-            if timedelta > 3:
+            if timedelta > 3 or timedelta < 1:
                 timedelta = 2
-            if timedelta < 1:
-                timedelta = 1
             # AdaBoost: 2 is best
             # Decision Tree: No normalization is best
             # Random Forest: 1 is best
             last_n_obst = min(len(computed_timedeltas), 2)
             if len(computed_timedeltas) > 0:
-                normalized = np.mean(computed_timedeltas[-last_n_obst:]) / timedelta
+                normalized = timedelta / np.mean(computed_timedeltas[-last_n_obst:])
+                # print(normalized, np.mean(computed_timedeltas[-last_n_obst:]), timedelta)
             else:
-                normalized = timedelta
+                normalized = 1
 
             computed_timedeltas.append(timedelta)
-            print(row['crash'], round(normalized, 2),  round(timedelta, 2))
+            # print(row['crash'], round(normalized, 2),  round(timedelta, 2))
 
-            return 1 / normalized # Invert scale
+            return timedelta
 
     for list_idx, df in enumerate(sd.df_list):
         timedeltas_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
-
+        computed_timedeltas = []
     return pd.DataFrame(list(itertools.chain.from_iterable(timedeltas_df_list)), columns=['timedelta_last_obst'])
 
 

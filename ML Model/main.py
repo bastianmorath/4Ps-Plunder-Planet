@@ -17,6 +17,7 @@ import hyperparameter_optimization
 import model_factory
 import leave_one_out_cv
 import LSTM
+import classifiers
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
@@ -32,33 +33,40 @@ def try_timedeltas_and_crash():
     for idx, df in enumerate(setup_dataframes.obstacle_df_list):
         timedelta_crash = []
         timedelta_no_crash = []
-        for i in range(1, len(df.index)):
-            row = df.iloc[i]
-            previous_obstacle = df.iloc[i-1]
-            timedelta = row['Time'] - previous_obstacle['Time']
+        computed_timedeltas = []
+        for i in range(0, len(df.index)):
+            current_obstacle_row = df.iloc[i]
+            previous_obstacle_row = df.iloc[i-1] if i > 0 else current_obstacle_row
+            timedelta = current_obstacle_row['Time'] - previous_obstacle_row['Time']
 
-            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >#, it's most likely e.g 33 seconds, so I
+            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
             # clamp to c.a. the average
-            if timedelta > 3:
+            if timedelta > 3 or timedelta < 1:
                 timedelta = 2
-            if timedelta < 1:
-                timedelta = 1
 
-            if row['crash']:
-                timedelta_crash.append(timedelta)
+            # Normalization (since timedelta over time decreases slightly)
+            if len(computed_timedeltas) >= 1:
+                normalized = timedelta / computed_timedeltas[-1]
             else:
-                timedelta_no_crash.append(timedelta)
+                normalized = 1
+
+            if current_obstacle_row['crash']:
+                timedelta_crash.append(normalized)
+            else:
+                timedelta_no_crash.append(normalized)
+
+            computed_timedeltas.append(timedelta)
 
         # Evaluation
         mean_when_crash = np.mean(timedelta_crash)
         mean_when_no_crash = np.mean(timedelta_no_crash)
         std_when_crash = np.std(timedelta_crash)
         std_when_no_crash = np.std(timedelta_no_crash)
-        print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
+        '''print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
               str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
-              idx, setup_dataframes.names_logfiles[idx])
+              idx, setup_dataframes.names_logfiles[idx])'''
         _, _ = plt.subplots()
-        plt.ylim(0, 4)
+        plt.ylim(0, 1.4)
         plt.ylabel('Feature value')
         plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_no_crash)
         plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_crash, label='Crash')
@@ -103,16 +111,12 @@ def main(args):
                 feature_selection=f_factory.use_reduced_features,
                 use_boxcox=False,
             )
-    try_timedeltas_and_crash()
+    # try_timedeltas_and_crash()
 
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
 
         setup_dataframes.print_keynumbers_logfiles()
-
-    if args.scores_without_tuning:
-        print("\n################# Calculating performance without hyperparameter tuning #################\n")
-        model_factory.calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False)
 
     if args.test_windows:
         print("\n################# Window optimization #################\n")
@@ -124,20 +128,28 @@ def main(args):
             write_to_file=True,
         )
 
-    if args.optimize_clf:
-        print("\n################# Hyperparameter optimization #################\n")
-        if args.optimize_clf == "all":
-            model_factory. \
-                calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=False,
-                                                     num_iter=_num_iter)
-
+    if args.performance_without_tuning or args.performance_with_tuning:
+        if args.performance_with_tuning:
+            print("\n################# Calculating performance with hyperparameter tuning #################\n")
         else:
-            clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                X, y, clf_name=args.optimize_clf, num_iter=_num_iter  # TODO: Increase num_iter
-            )
-            print('(n_iter in RandomizedSearchCV=' + str(_num_iter) + ')')
-            _, _, _, _, _, rep = model_factory.get_performance(clf, args.optimize_clf, X, y, tuned_params,
-                                                               verbose=True, do_write_to_file=False)
+            print("\n################# Calculating performance without hyperparameter tuning #################\n")
+
+        if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
+            model_factory. \
+                calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
+                                                     reduced_clfs=False, num_iter=_num_iter)
+        else:
+            if args.performance_with_tuning:
+                clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
+                    X, y, clf_name=args.performance_with_tuning, num_iter=_num_iter
+                )
+                print('(n_iter in RandomizedSearchCV=' + str(_num_iter) + ')')
+                _, _, _, _, _, _ = model_factory.get_performance(clf, args.performance_with_tuning, X, y, tuned_params,
+                                                                 verbose=True, do_write_to_file=False)
+            else:
+                model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y).clf
+                _, _, _, _, _, _ = model_factory.get_performance(model, args.performance_without_tuning, X, y,
+                                                                 verbose=True, do_write_to_file=False)
 
     if args.leave_one_out:
         # TODO: Add old plot (where logfile_left_out is used) into report
@@ -196,10 +208,20 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-w",
-        "--scores_without_tuning",
-        action="store_true",
-        help="Calculates the performance of SVM, LinearSVM, NearestNeighbor, DecisionTree and Naive Bayes"
-             " and plots it in a barchart. Also creates ROC curves",
+        "--performance_without_tuning",
+        type=str,
+        help="Outputs detailed scores of the given classifier without doing hyperparameter tuning."
+             " Set clf_name='all' if you want to test all classifiers",
+        metavar='clf_name',
+    )
+
+    parser.add_argument(
+        "-o",
+        "--performance_with_tuning",
+        type=str,
+        help="Optimizes the given classifier with RandomSearchCV and outputs detailed scores."
+             " Set clf_name='all' if you want to test all classifiers",
+        metavar='clf_name',
     )
 
     parser.add_argument(
@@ -213,14 +235,7 @@ if __name__ == "__main__":
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
 
-    parser.add_argument(
-        "-o",
-        "--optimize_clf",  # TODO SVM works really slow?
-        type=str,
-        help="Optimizes the given classifier with RandomSearchCV and outputs detailed scores."
-             " Set clf_name='all' if you want to test all classifiers",
-        metavar='clf_name',
-    )
+
 
     parser.add_argument(
         "-l",
