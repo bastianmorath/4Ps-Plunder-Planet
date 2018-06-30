@@ -194,7 +194,7 @@ class CRandomForest(CClassifier):
     param1 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)  # max_depth
     param1_name = 'max_depth'
 
-    param3 = uniform(EPSILON, 1)  # min_samples_split
+    param3 = sp_randint(2, 20)  # min_samples_split
     param3_name = 'min_samples_split'
     param4 = sp_randint(1, 11)  # min_samples_leaf
     param4_name = 'min_samples_leaf'

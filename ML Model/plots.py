@@ -578,12 +578,11 @@ def crashes_per_obstacle_arrangement():
 
 
 def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
-    """
+    """Plots for each logfile the mean and std of timedelta_last_obst at each obstacle  and if a crash or not happened
 
     :return:
     """
-    import numpy as np
-    import matplotlib.pyplot as plt
+    print("\n################# Plotting timedelta values at crash/vs non-crash #################\n")
     for idx, df in enumerate(sd.obstacle_df_list):
         timedelta_crash = []
         timedelta_no_crash = []

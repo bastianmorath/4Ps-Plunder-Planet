@@ -1,0 +1,33 @@
+Using TensorFlow backend.
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomSearchCV with n_iter=3000 for Decision Tree...
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.989 (std: 0.005)
+		Parameters: {'criterion': 'entropy', 'max_depth': 27, 'min_samples_leaf': 3, 'min_samples_split': 14, 'splitter': 'best'}
+	Model with rank: 2
+		Mean validation score: 0.989 (std: 0.005)
+		Parameters: {'criterion': 'entropy', 'max_depth': None, 'min_samples_leaf': 3, 'min_samples_split': 9, 'splitter': 'best'}
+	Model with rank: 3
+		Mean validation score: 0.989 (std: 0.005)
+		Parameters: {'criterion': 'entropy', 'max_depth': None, 'min_samples_leaf': 3, 'min_samples_split': 10, 'splitter': 'best'}
+
+(n_iter in RandomizedSearchCV=3000)
+Calculating performance of Decision Tree...
+
+******** Scores for Decision Tree (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'criterion': 'entropy', 'splitter': 'best', 'max_depth': 27, 'min_samples_split': 14, 'min_samples_leaf': 3},
+	roc_auc: 0.985, recall: 0.981, specificity: 0.990, precision: 0.955 
+
+	Confusion matrix: 	 [4922   52] 
+				 [  22 1108]
+
+
+
+Time elapsed: 186.62070751190186

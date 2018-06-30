@@ -65,8 +65,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
-    if clf_name == 'Decision Tree':
-        plot_graph_of_decision_classifier(model, X, y)
+    # if clf_name == 'Decision Tree':
+        # plot_graph_of_decision_classifier(model, X, y)
 
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
@@ -329,7 +329,7 @@ def plot_graph_of_decision_classifier(model, X, y):
 
     # Set class_weight to balanced, such that the graph makes more sense to interpret.
     # I do not do this when actually predicting values  because the performance is better
-    params_sdecicion_tree = {"class_weight": "balanced"}
+    params_sdecicion_tree = {"class_weight": "balanced", "max_depth": 4}
     model.set_params(**params_sdecicion_tree)
     model.fit(X, y)
     tree.export_graphviz(

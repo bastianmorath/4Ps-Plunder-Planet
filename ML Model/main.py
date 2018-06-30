@@ -22,9 +22,8 @@ import classifiers
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
-# TODO: In RandomSearchCV, also try out standard parameters!
 
-_num_iter = 300
+_num_iter = 20
 
 
 def main(args):
@@ -61,7 +60,7 @@ def main(args):
                 use_boxcox=False,
             )
 
-    plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+    # plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
 
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
