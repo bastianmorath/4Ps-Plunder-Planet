@@ -185,7 +185,7 @@ class CDecisionTreeClassifier(CClassifier):
                              'min_samples_leaf': CDecisionTreeClassifier.param5,
                              }
 
-    clf = DecisionTreeClassifier()
+    clf = DecisionTreeClassifier(class_weight='balanced')
 
 
 class CRandomForest(CClassifier):

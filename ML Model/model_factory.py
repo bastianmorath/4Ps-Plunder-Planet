@@ -4,12 +4,13 @@
 from __future__ import division  # s.t. division uses float result
 
 # matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from sklearn import metrics
+import graphviz
+from graphviz import Source
+from sklearn import metrics, tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, confusion_matrix, roc_curve)
@@ -61,9 +62,24 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
 
     # Compute performance scores
     y_pred = cross_val_predict(model, X, y, cv=5)
+
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
+    if clf_name == 'Decision Tree':
+        model.fit(X, y)
+        dot_data = tree.export_graphviz(
+            model,
+            out_file='decision_tree_graph',
+            feature_names=f_factory.feature_names,
+            class_names=['crash', 'no crash'],
+            filled=True,
+            rounded=True,
+            proportion=True,
+            special_characters=True,
+        )
+        graphviz.render('dot', 'pdf', 'decision_tree_graph')
+
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
     roc_auc = metrics.roc_auc_score(y, y_pred)
