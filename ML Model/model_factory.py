@@ -9,7 +9,6 @@ import numpy as np
 import os
 
 import graphviz
-from graphviz import Source
 from sklearn import metrics, tree
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
@@ -67,18 +66,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
 
     precision = metrics.precision_score(y, y_pred)
     if clf_name == 'Decision Tree':
-        model.fit(X, y)
-        dot_data = tree.export_graphviz(
-            model,
-            out_file='decision_tree_graph',
-            feature_names=f_factory.feature_names,
-            class_names=['crash', 'no crash'],
-            filled=True,
-            rounded=True,
-            proportion=True,
-            special_characters=True,
-        )
-        graphviz.render('dot', 'pdf', 'decision_tree_graph')
+        plot_graph_of_decision_classifier(model, X, y)
 
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
@@ -329,6 +317,38 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     auc_scores = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters)
 
     return auc_scores
+
+
+def plot_graph_of_decision_classifier(model, X, y):
+    """Stores the Decision Classifier Tree in a graph and plots a barchart of the feature_importances
+
+    :param model: FittedDd dcision Classifier instance
+    :param X: Feature matrix
+    :param y: labels
+    """
+
+    # Set class_weight to balanced, such that the graph makes more sense to interpret.
+    # I do not do this when actually predicting values  because the performance is better
+    params_sdecicion_tree = {"class_weight": "balanced"}
+    model.set_params(**params_sdecicion_tree)
+    model.fit(X, y)
+    tree.export_graphviz(
+        model,
+        out_file='decision_tree_graph',
+        feature_names=f_factory.feature_names,
+        class_names=['no crash', 'crash'],
+        filled=True,
+        rounded=True,
+        proportion=True,
+        special_characters=True,
+    )
+    graphviz.render('dot', 'pdf', 'decision_tree_graph')
+    sorted_importances = sorted(model.feature_importances_, reverse=True)
+    sorted_feature_names = [x for _, x in
+                            sorted(zip(model.feature_importances_, f_factory.feature_names), reverse=True)]
+    plots.plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
+                        sorted_feature_names, sorted_importances,
+                        'Importance', 'feature_importances')
 
 
 def plot_barchart_scores(names, roc_auc_scores, title, filename):

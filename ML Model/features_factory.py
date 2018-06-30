@@ -151,7 +151,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['mean_points'] = get_standard_feature('mean', 'Points')
         matrix['std_points'] = get_standard_feature('std', 'Points')
 
-        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature()
+        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
@@ -195,7 +195,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     return X, y
 
 
-def get_timedelta_last_obst_feature():
+def get_timedelta_last_obst_feature(do_normalize=False):
     """ Returns the  normalized timedelta to the previous obstacle
 
     """
@@ -226,9 +226,8 @@ def get_timedelta_last_obst_feature():
                 normalized = 1
 
             computed_timedeltas.append(timedelta)
-            # print(row['crash'], round(normalized, 2),  round(timedelta, 2))
 
-            return timedelta
+            return normalized if do_normalize else timedelta
 
     for list_idx, df in enumerate(sd.df_list):
         timedeltas_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))

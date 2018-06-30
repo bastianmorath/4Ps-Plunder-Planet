@@ -176,28 +176,30 @@ class CDecisionTreeClassifier(CClassifier):
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        # Compute this after instantiations since feature_names are [] otherwise
-        # self.param6 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
+        # Compute this after instantiations since feature_names is [] otherwise
+        # self.param6 = get_list_with_distr_and_opt_param(sp_randint(1, len(f_factory.feature_names)),
         #                                                 None)   # max_features
         self.param6_name = 'max_features'
         self.tuned_params = {'criterion': CDecisionTreeClassifier.param1, 'splitter': CDecisionTreeClassifier.param2,
                              'max_depth': CDecisionTreeClassifier.param3, 'min_samples_split': CDecisionTreeClassifier.param4,
-                             'min_samples_leaf': CDecisionTreeClassifier.param5,
+                             'min_samples_leaf': CDecisionTreeClassifier.param5
                              }
 
-    clf = DecisionTreeClassifier(class_weight='balanced')
+    clf = DecisionTreeClassifier()
 
 
 class CRandomForest(CClassifier):
     name = 'Random Forest'
 
-    param1 = get_list_with_distr_and_opt_param(sp_randint(1, 30), None)  # max_depth
+    param1 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)  # max_depth
     param1_name = 'max_depth'
 
     param3 = uniform(EPSILON, 1)  # min_samples_split
     param3_name = 'min_samples_split'
     param4 = sp_randint(1, 11)  # min_samples_leaf
     param4_name = 'min_samples_leaf'
+    param5 = ['gini', 'entropy']  # criterion
+    param5_name = 'criterion'
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -205,9 +207,10 @@ class CRandomForest(CClassifier):
 
         # self.param2 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
         #                                                 'auto')  # max_features
-        self.param2_name = 'max_features'
+        # self.param2_name = 'max_features'
         self.tuned_params = {'max_depth': CRandomForest.param1,
-                             'min_samples_split': CRandomForest.param3, 'min_samples_leaf': CRandomForest.param4}
+                             'min_samples_split': CRandomForest.param3, 'min_samples_leaf': CRandomForest.param4,
+                             'criterion': CRandomForest.param5}
 
 
 class CAdaBoost(CClassifier):

@@ -24,58 +24,7 @@ import classifiers
 # TODO: Add :type in docstrings where necessary
 # TODO: In RandomSearchCV, also try out standard parameters!
 
-_num_iter = 500
-
-
-def try_timedeltas_and_crash():
-    import numpy as np
-    import matplotlib.pyplot as plt
-    for idx, df in enumerate(setup_dataframes.obstacle_df_list):
-        timedelta_crash = []
-        timedelta_no_crash = []
-        computed_timedeltas = []
-        for i in range(0, len(df.index)):
-            current_obstacle_row = df.iloc[i]
-            previous_obstacle_row = df.iloc[i-1] if i > 0 else current_obstacle_row
-            timedelta = current_obstacle_row['Time'] - previous_obstacle_row['Time']
-
-            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
-            # clamp to c.a. the average
-            if timedelta > 3 or timedelta < 1:
-                timedelta = 2
-
-            # Normalization (since timedelta over time decreases slightly)
-            if len(computed_timedeltas) >= 1:
-                normalized = timedelta / computed_timedeltas[-1]
-            else:
-                normalized = 1
-
-            if current_obstacle_row['crash']:
-                timedelta_crash.append(normalized)
-            else:
-                timedelta_no_crash.append(normalized)
-
-            computed_timedeltas.append(timedelta)
-
-        # Evaluation
-        mean_when_crash = np.mean(timedelta_crash)
-        mean_when_no_crash = np.mean(timedelta_no_crash)
-        std_when_crash = np.std(timedelta_crash)
-        std_when_no_crash = np.std(timedelta_no_crash)
-        '''print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
-              str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
-              idx, setup_dataframes.names_logfiles[idx])'''
-        _, _ = plt.subplots()
-        plt.ylim(0, 1.4)
-        plt.ylabel('Feature value')
-        plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_no_crash)
-        plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_crash, label='Crash')
-        plt.xticks([1, 2], ['No crash', 'Crash'])
-
-        plt.title('Average timedelta value for logfile ' + str(idx) + ' when crash or not crash')
-
-        filename = str(idx) + '_crash.pdf'
-        plots.save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)
+_num_iter = 300
 
 
 def main(args):
@@ -111,7 +60,8 @@ def main(args):
                 feature_selection=f_factory.use_reduced_features,
                 use_boxcox=False,
             )
-    # try_timedeltas_and_crash()
+
+    plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
 
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
