@@ -2,7 +2,9 @@
 This module is responsible to for the LSTM network
 
 """
+from functools import partial
 
+import keras
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
 from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, Dropout
@@ -10,12 +12,17 @@ from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
 from numpy import array
 from sklearn import metrics
+from keras import optimizers
+import matplotlib.pyplot as plt
+import numpy as np
+
 import itertools
 import tensorflow as tf
 import model_factory
 import setup_dataframes as sd
+import plots
 
-_nepochs = 400
+_nepochs = 150
 _maxlen = 0
 
 
@@ -34,10 +41,17 @@ def get_trained_lstm_classifier(X, y, padding=True):
     :param padding: Whether we should pad or not pad but batch_size=1
     :return: neural network
     """
+    '''
+    import numpy as np
+    y_pred_test = K.variable(np.array([[0] * 100]))
+    y_pred_true = K.variable(np.array([([1] * 50) + ([0]*50)]))
+    WBC = WeightedBinaryCrossEntropy(0.5)
+    a = WBC.weighted_binary_crossentropy(y_pred_true, y_pred_test)
+    '''
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=3)
-
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
+    
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
 
     X_train_reshaped, y_train_reshaped = get_reshaped_feature_matrix(X_train_list, y_train_list, padding)
@@ -75,8 +89,8 @@ def get_reshaped_feature_matrix(new_X, new_y, padding=True):
     print('Maxlen (=Max. #obstacles of logfiles) is ' + str(_maxlen) + ', minlen is ' + str(minlen))
     # Since values of feature matrix are between -1 and +1, I pad not with 0, but with e.g. -99
     if padding:
-        new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64', value=-99)
-        new_y = sequence.pad_sequences(new_y, maxlen=_maxlen, padding='post', dtype='float64', value=-99)
+        new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
+        new_y = sequence.pad_sequences(new_y, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
 
         X_reshaped = array(new_X).reshape(len(new_X), _maxlen, new_X[0].shape[1])
         y_reshaped = array(new_y).reshape(len(new_y), _maxlen, 1)
@@ -111,32 +125,53 @@ def generate_lstm_classifier(X_reshaped, y_reshaped):
 
     print('Compiling lstm network...')
     model = Sequential()
-    model.add(Masking(mask_value=-99, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    model.add(Dropout(0.2))
-    model.add(LSTM(128, return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(32, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(16, activation='relu'))
-    model.add(Dropout(0.2))
+    model.add(Masking(mask_value=0.5, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
+    model.add(LSTM(10, return_sequences=True, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
+    model.add(Dense(10, activation='relu'))
+
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
-    model.add(TimeDistributed(Dense(1, activation='sigmoid')))
+    model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    loss = WeightedBinaryCrossEntropy(0.2)  # TODO: Maybe 0.8?
-
-    model.compile(loss=loss, optimizer='adam', metrics=_metrics)
+    loss = WeightedBinaryCrossEntropy(0.3)  # TODO: Maybe 0.8?
+    adam = optimizers.adam(lr=0.001, decay=1e-5)
+    w_array = np.ones((2, 2))
+    w_array[0, 1] = 0.5
+    w_array[1, 0] = 2
+    # ncce = partial(w_categorical_crossentropy, weights=w_array)
+    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 6})  # TODO: Maybe 0.8?
+    model.compile(loss=loss, optimizer=adam, metrics=_metrics)
 
     # shuffle=True takes entire samples and shuffles those
     # TODO: Use validation_data or validation_split? Maybe validation_split doesn't take entire samples?
-    model.fit(X_reshaped, y_reshaped, epochs=_nepochs, batch_size=75,
-              verbose=1, shuffle=False, callbacks=my_callbacks, validation_split=1/12.)
+
+    one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
+    history = model.fit(X_reshaped, one_hot_labels, epochs=_nepochs, batch_size=32,
+                        verbose=1, shuffle=False, callbacks=my_callbacks)
 
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
     print(model.summary())
+
+    # Plot
+    # summarize history for auc_roc
+    '''
+    plt.plot(history.history['auc_roc'])
+    plt.plot(history.history['val_auc_roc'])
+    plt.title('model auc_roc')
+    plt.ylabel('auc_roc')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plots.save_plot(plt, 'Performance/LSTM/', 'LSTM auc_roc')
+    '''
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    # plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plots.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
 
     return model
 
@@ -148,8 +183,8 @@ def generate_lstm_classifier(X_reshaped, y_reshaped):
 
 def calculate_performance(X_test_list, y_test_list, lstm_model):
     """
-    Iterates over all featurematrices (one per logfile), pads it to max_len (since lstm got trained on that length,
-    then opredicts labels, and discards the padded ones
+    Iterates over all featurematrices (one per logfile), pads it to max_len (since lstm got trained on that length),
+    then predicts labels, and discards the padded ones
     :param X_splitted:
     :param lstm_model:
     :return:
@@ -158,30 +193,16 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
     for X in X_test_list:
         # We need to predict on maxlen, and can then take the first len(X_original) values
         length_old = len(X)
-        X = X.reshape(1, X.shape[0], X.shape[1])
-        X_padded = sequence.pad_sequences(X, maxlen=_maxlen, padding='post', dtype='float64', value=-99)
-        predictions = lstm_model.predict_proba(X_padded, batch_size=1, verbose=0).ravel()[:length_old]
-        predictions_truncated = predictions  # Remove predictions for padded values
-
-        y_pred_list.append([int(round(x)) for x in predictions_truncated])
-
-
-        """
-        c = Counter(result)
-        pred = []
-        for v, times in c.items():
-            if v < 0.5:
-                pred.extend([0] * times)
-            else:
-                pred.extend([1] * times)
-        c2 = Counter(pred)
-
-        print(c2)
-        """
+        X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
+        X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
+        print(X_padded)
+        predictions = lstm_model.predict_classes(X_padded, batch_size=1, verbose=0).ravel()
+        y_pred_list.append(predictions[:length_old])  # Remove predictions for padded values
 
     y_pred = list(itertools.chain.from_iterable(y_pred_list))
     y_true = list(itertools.chain.from_iterable(y_test_list))
-
+    #for a, b in zip(y_pred, y_true):
+    #    print(a, b)
     conf_mat = confusion_matrix(y_true, y_pred)
     _precision = metrics.precision_score(y_true, y_pred)
     _recall = metrics.recall_score(y_true, y_pred)
@@ -309,3 +330,29 @@ class WeightedBinaryCrossEntropy(object):
 
         cost = tf.nn.weighted_cross_entropy_with_logits(y_true, y_pred, self.weights)
         return K.mean(cost * self.pos_ratio, axis=-1)
+
+class WeightedCategoricalCrossEntropy(object):
+
+  def __init__(self, weights):
+    nb_cl = len(weights)
+    self.weights = np.ones((nb_cl, nb_cl))
+    for class_idx, class_weight in weights.items():
+      self.weights[0][class_idx] = class_weight
+      self.weights[class_idx][0] = class_weight
+    self.__name__ = 'w_categorical_crossentropy'
+
+  def __call__(self, y_true, y_pred):
+    return self.w_categorical_crossentropy(y_true, y_pred)
+
+  def w_categorical_crossentropy(self, y_true, y_pred):
+    nb_cl = len(self.weights)
+    final_mask = K.zeros_like(y_pred[..., 0])
+    y_pred_max = K.max(y_pred, axis=-1)
+    y_pred_max = K.expand_dims(y_pred_max, axis=-1)
+    y_pred_max_mat = K.equal(y_pred, y_pred_max)
+    for c_p, c_t in itertools.product(range(nb_cl), range(nb_cl)):
+        w = K.cast(self.weights[c_t, c_p], K.floatx())
+        y_p = K.cast(y_pred_max_mat[..., c_p], K.floatx())
+        y_t = K.cast(y_true[..., c_t], K.floatx())
+        final_mask += w * y_p * y_t
+    return K.categorical_crossentropy(y_pred, y_true) * final_mask

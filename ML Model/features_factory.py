@@ -187,7 +187,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     # Create feature matrix from df
     X = matrix.values
     scaler = MinMaxScaler(feature_range=(0, 1))
-    # X = scaler.fit_transform(X)  # Rescale between 0 and 1
+    X = scaler.fit_transform(X)  # Rescale between 0 and 1
     plots.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')
@@ -221,9 +221,10 @@ def get_timedelta_last_obst_feature(do_normalize=False):
             last_n_obst = min(len(computed_timedeltas), 2)
             if len(computed_timedeltas) > 0:
                 normalized = timedelta / np.mean(computed_timedeltas[-last_n_obst:])
-                # print(normalized, np.mean(computed_timedeltas[-last_n_obst:]), timedelta)
             else:
                 normalized = 1
+
+            # print(normalized, np.mean(computed_timedeltas[-last_n_obst:]), timedelta)
 
             computed_timedeltas.append(timedelta)
 

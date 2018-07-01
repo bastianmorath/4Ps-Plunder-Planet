@@ -36,9 +36,9 @@ def main(args):
 
         print('Creating synthesized data...')
         synthesized_data.test_data_enabled = True
-        synthesized_data.init_with_testdata_events_random_hr_const()
-        # test_data.init_with_testdata_events_const_hr_const()
-        # test_data.init_with_testdata_events_random_hr_continuous()
+        # synthesized_data.init_with_testdata_events_random_hr_const()
+        synthesized_data.init_with_testdata_events_const_hr_const()
+        # synthesized_data.init_with_testdata_events_random_hr_continuous()
         X, y = f_factory.get_feature_matrix_and_label(
             verbose=args.verbose, use_cached_feature_matrix=False, save_as_pickle_file=False,
             feature_selection=f_factory.use_reduced_features

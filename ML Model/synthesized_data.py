@@ -33,10 +33,11 @@ def init_with_testdata_events_const_hr_const():
     """
 
     for i in range(0, num_dataframes):
-        times = range(0, 400)
-        logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'CONTINUOUS', 'EVENT_CRASH'] * 100
-        heartrates = [20, 20, 30, 20] * 100
-        points = [20, 20, 30, 20] * 100
+        length_dataframe = 400 + i*40
+        times = range(0, length_dataframe)
+        logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'CONTINUOUS', 'EVENT_CRASH'] * int(length_dataframe/4)
+        heartrates = [20, 20, 30, 20] * int(length_dataframe/4)
+        points = [20, 20, 30, 20] * int(length_dataframe/4)
         timedeltas = [pd.to_timedelta(t, unit='S') for t in times]
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
