@@ -138,9 +138,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     else:
         if _verbose:
             print('Creating feature matrix...')
-
-        # TODO: Ugly....
-
+        '''
         matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
         matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
         matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
@@ -150,7 +148,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
         matrix['mean_points'] = get_standard_feature('mean', 'Points')
         matrix['std_points'] = get_standard_feature('std', 'Points')
-
+        '''
         matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
@@ -196,7 +194,10 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
 
 def get_timedelta_last_obst_feature(do_normalize=False):
-    """ Returns the  normalized timedelta to the previous obstacle
+    """ Returns the timedelta to the previous obstacle
+
+    :param do_normalize: Normalize the timedelta with previous timedelta (bc. it varies slightly within and across
+                         logfiles)
 
     """
     timedeltas_df_list = []  # list that contains a dataframe with feature for each logfile
@@ -204,13 +205,13 @@ def get_timedelta_last_obst_feature(do_normalize=False):
 
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
-            last_obstacles_df = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
+            last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
                                                                  (df['Logtype'] == 'EVENT_CRASH'))]
-            if last_obstacles_df.empty:
+            if last_obstacles.empty:
                 computed_timedeltas.append(2.2)
                 return 1
 
-            timedelta = row['Time'] - last_obstacles_df.iloc[-1]['Time']
+            timedelta = row['Time'] - last_obstacles.iloc[-1]['Time']
             # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
             # clamp to c.a. the average
             if timedelta > 3 or timedelta < 1:

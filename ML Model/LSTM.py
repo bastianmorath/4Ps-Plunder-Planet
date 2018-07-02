@@ -8,6 +8,7 @@ import keras
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
 from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, Dropout
+from keras.optimizers import SGD
 from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
 from numpy import array
@@ -22,7 +23,7 @@ import model_factory
 import setup_dataframes as sd
 import plots
 
-_nepochs = 150
+_nepochs = 400
 _maxlen = 0
 
 
@@ -41,13 +42,13 @@ def get_trained_lstm_classifier(X, y, padding=True):
     :param padding: Whether we should pad or not pad but batch_size=1
     :return: neural network
     """
-    '''
+
     import numpy as np
     y_pred_test = K.variable(np.array([[0] * 100]))
     y_pred_true = K.variable(np.array([([1] * 50) + ([0]*50)]))
-    WBC = WeightedBinaryCrossEntropy(0.5)
-    a = WBC.weighted_binary_crossentropy(y_pred_true, y_pred_test)
-    '''
+    # WBC = WeightedBinaryCrossEntropy(0.5)
+    # a = WBC.weighted_binary_crossentropy(y_pred_true, y_pred_test)
+
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
@@ -87,10 +88,11 @@ def get_reshaped_feature_matrix(new_X, new_y, padding=True):
     minlen = min(len(fm) for fm in new_X)
 
     print('Maxlen (=Max. #obstacles of logfiles) is ' + str(_maxlen) + ', minlen is ' + str(minlen))
-    # Since values of feature matrix are between -1 and +1, I pad not with 0, but with e.g. -99
+    # I pad with 0s (Even though there are features that also are 0, it never occurs that ALL features of one timestep
+    # are all 0, so those won't be masked later :)
     if padding:
-        new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
-        new_y = sequence.pad_sequences(new_y, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
+        new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64')
+        new_y = sequence.pad_sequences(new_y, maxlen=_maxlen, padding='post', dtype='float64')
 
         X_reshaped = array(new_X).reshape(len(new_X), _maxlen, new_X[0].shape[1])
         y_reshaped = array(new_y).reshape(len(new_y), _maxlen, 1)
@@ -120,35 +122,37 @@ def generate_lstm_classifier(X_reshaped, y_reshaped):
 
     # Metrics are NOT used in training phase (only loss function is tried to minimized)
     # _metrics = [auc_roc,  recall, specificity, precision]
-    _metrics = [auc_roc]
+    _metrics = [auc_roc, recall, precision]
     my_callbacks = [EarlyStopping(monitor='auc_roc', patience=500, verbose=1, mode='max')]
 
     print('Compiling lstm network...')
     model = Sequential()
-    model.add(Masking(mask_value=0.5, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    model.add(LSTM(10, return_sequences=True, input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    model.add(Dense(10, activation='relu'))
+    model.add(Masking(input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
+    model.add(LSTM(32, return_sequences=True))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    loss = WeightedBinaryCrossEntropy(0.3)  # TODO: Maybe 0.8?
-    adam = optimizers.adam(lr=0.001, decay=1e-5)
-    w_array = np.ones((2, 2))
-    w_array[0, 1] = 0.5
-    w_array[1, 0] = 2
+    # loss = WeightedBinaryCrossEntropy(0.3)  # TODO: Maybe 0.8?
+    # w_array = np.ones((2, 2))
+    # w_array[0, 1] = 0.5
+    # w_array[1, 0] = 2
     # ncce = partial(w_categorical_crossentropy, weights=w_array)
-    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 6})  # TODO: Maybe 0.8?
-    model.compile(loss=loss, optimizer=adam, metrics=_metrics)
+
+    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 3})  # TODO: Maybe 0.8?
+    adam = optimizers.adam(lr=0.01, decay=0.0001)
+    sgd = SGD(lr=0.01)
+    model.compile(loss=loss, optimizer=adam, metrics=['accuracy'])
 
     # shuffle=True takes entire samples and shuffles those
     # TODO: Use validation_data or validation_split? Maybe validation_split doesn't take entire samples?
 
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
-    history = model.fit(X_reshaped, one_hot_labels, epochs=_nepochs, batch_size=32,
-                        verbose=1, shuffle=False, callbacks=my_callbacks)
-
+    # history = model.fit(X_reshaped, one_hot_labels, epochs=_nepochs, batch_size=32,
+    #                     verbose=1, shuffle=False, callbacks=my_callbacks)
+    history = model.fit(X_reshaped, one_hot_labels, epochs=_nepochs, batch_size=100,
+        verbose=1, shuffle=False, callbacks=my_callbacks)
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
     print(model.summary())
@@ -195,8 +199,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
-        print(X_padded)
-        predictions = lstm_model.predict_classes(X_padded, batch_size=1, verbose=0).ravel()
+        predictions = lstm_model.predict_classes(X_padded, batch_size=10, verbose=0).ravel()
         y_pred_list.append(predictions[:length_old])  # Remove predictions for padded values
 
     y_pred = list(itertools.chain.from_iterable(y_pred_list))
@@ -259,10 +262,21 @@ def precision(y_true, y_pred):
     Computes the precision, a metric for multi-label classification of
     how many selected items are relevant.
     """
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    _precision = true_positives / (predicted_positives + K.epsilon())
-    return _precision
+    # any tensorflow metric
+    value, update_op = tf.metrics.precision(y_true, y_pred)
+
+    # find all variables created for this metric
+    metric_vars = [i for i in tf.local_variables() if 'precision' in i.name.split('/')[1]]
+
+    # Add metric variables to GLOBAL_VARIABLES collection.
+    # They will be initialized for new session.
+    for v in metric_vars:
+        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+
+    # force to update metric values
+    with tf.control_dependencies([update_op]):
+        value = tf.identity(value)
+        return value
 
 
 def recall(y_true, y_pred):
@@ -273,16 +287,26 @@ def recall(y_true, y_pred):
     Computes the recall, a metric for multi-label classification of
     how many relevant items are selected.
     """
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-    _recall = true_positives / (possible_positives + K.epsilon())
-    return _recall
+    # any tensorflow metric
+    value, update_op = tf.metrics.recall(y_true, y_pred)
 
+    # find all variables created for this metric
+    metric_vars = [i for i in tf.local_variables() if 'recall' in i.name.split('/')[1]]
 
+    # Add metric variables to GLOBAL_VARIABLES collection.
+    # They will be initialized for new session.
+    for v in metric_vars:
+        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+
+    # force to update metric values
+    with tf.control_dependencies([update_op]):
+        value = tf.identity(value)
+        return value
+
+'''
 def specificity(y_true, y_pred):
-    true_negatives = K.sum(K.round(K.clip((1-y_true) * (1-y_pred), 0, 1)))
-    possible_negatives = K.sum(K.round(K.clip(1-y_true, 0, 1)))
-    return true_negatives / (possible_negatives + K.epsilon())
+    
+'''
 
 
 def auc_roc(y_true, y_pred):

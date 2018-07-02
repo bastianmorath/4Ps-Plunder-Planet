@@ -2,8 +2,10 @@
 This module is responsible for plotting various things
 
 """
+import graphviz
 import matplotlib
 from matplotlib.ticker import MaxNLocator
+from sklearn import tree
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -129,6 +131,41 @@ Plots concerned with features
 
 """
 
+
+def plot_graph_of_decision_classifier(model, X, y):
+    """Stores the Decision Classifier Tree in a graph and plots a barchart of the feature_importances
+
+    :param model: Fitted decision Classifier instance
+    :param X: Feature matrix
+    :param y: labels
+
+    """
+
+    # Set class_weight to balanced, such that the graph makes more sense to interpret.
+    # I do not do this when actually predicting values  because the performance is better
+    params_sdecicion_tree = {"class_weight": "balanced", "max_depth": 4}
+    model.set_params(**params_sdecicion_tree)
+    model.fit(X, y)
+
+    sorted_importances = sorted(model.feature_importances_, reverse=True)
+    sorted_feature_names = [x for _, x in
+                            sorted(zip(model.feature_importances_, f_factory.feature_names), reverse=True)]
+
+    plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
+                        sorted_feature_names, sorted_importances,
+                        'Importance', 'feature_importances')
+
+    tree.export_graphviz(
+        model,
+        out_file='decision_tree_graph',
+        feature_names=f_factory.feature_names,
+        class_names=['no crash', 'crash'],
+        filled=True,
+        rounded=True,
+        proportion=True,
+        special_characters=True,
+    )
+    graphviz.render('dot', 'pdf', 'decision_tree_graph')
 
 def plot_correlation_matrix(X):
     """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
