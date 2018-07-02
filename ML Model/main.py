@@ -8,7 +8,6 @@ from __future__ import division, print_function  # s.t. division uses float resu
 import time
 import argparse
 
-from sklearn.model_selection import cross_validate
 
 import setup_dataframes
 import plots
@@ -26,72 +25,6 @@ import classifiers
 # TODO: Add :type in docstrings where necessary
 
 _num_iter = 50
-
-
-def test_clf_with_timedelta_only():
-    print("\n################# Testing classifier using timedelta feature only #################\n")
-
-    import numpy as np
-    import random
-
-    df_list = random.sample(setup_dataframes.df_list, len(setup_dataframes.df_list))
-    df_list = setup_dataframes.df_list
-    # Compute y_true for each logfile
-    y_list = []
-    for df in df_list:
-        y_true = []
-        for _, row in df.iterrows():
-            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
-                y_true.append(1 if row['Logtype'] == 'EVENT_CRASH' else 0)
-        y_list.append(y_true)
-
-    # compute feature matrix for each logfile
-    X_matrices = []
-    for df in df_list:
-        X = []
-        for _, row in df.iterrows():
-            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
-                last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
-                                                                     (df['Logtype'] == 'EVENT_CRASH'))]
-                if last_obstacles.empty:
-                    X.append(2)
-                else:
-                    X.append(row['Time'] - last_obstacles.iloc[-1]['Time'])
-
-        X_matrices.append(X)
-
-    x_train = np.hstack(X_matrices).reshape(-1, 1)  # reshape bc. only one feature
-    y_train = np.hstack(y_list).reshape(-1, 1)
-
-    clf = classifiers.get_cclassifier_with_name('Decision Tree', x_train, y_train).clf
-    score_dict = cross_validate(clf, x_train, y_train, scoring='roc_auc', cv=10)
-    print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
-
-    ''' Timedeltas correctly computed
-    timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_last_obst']
-    # print(sklearn.metrics.accuracy_score(timedeltas, x_train))
-    for a, b in zip(timedeltas, x_train):
-        print(a, b)
-    
-    from sklearn.model_selection import cross_val_score
-
-    # Compute performance scores
-    from sklearn.model_selection import cross_val_predict
-    from sklearn import metrics
-    y_pred = cross_val_predict(clf, x_train, y_train, cv=10)
-    y = y_train
-    from sklearn.metrics import confusion_matrix
-    conf_mat = confusion_matrix(y, y_pred)
-
-    precision = metrics.precision_score(y, y_pred)
-    # if clf_name == 'Decision Tree':
-    #         plots.plot_graph_of_decision_classifier(model, X, y)
-
-    recall = metrics.recall_score(y, y_pred)
-    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    roc_auc = metrics.roc_auc_score(y, y_pred)
-    print(roc_auc, recall, specificity, precision)
-    '''
 
 
 def main(args):
@@ -128,7 +61,7 @@ def main(args):
                 use_boxcox=False,
             )
 
-    test_clf_with_timedelta_only()
+    # model_factory.test_clf_with_timedelta_only()
     # plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
 
     if args.print_keynumbers_logfiles:

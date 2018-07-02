@@ -1,0 +1,80 @@
+
+******** Scores for SVM (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'C': 1.0, 'gamma': 'auto'},
+	roc_auc: 0.900, recall: 0.931, specificity: 0.869, precision: 0.617 
+
+	Confusion matrix: 	 [4320  654] 
+				 [  78 1052]
+
+
+
+******** Scores for Linear SVM (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'C': 1.0, 'penalty': 'l2'},
+	roc_auc: 0.879, recall: 0.876, specificity: 0.882, precision: 0.628 
+
+	Confusion matrix: 	 [4387  587] 
+				 [140 990]
+
+
+
+******** Scores for Nearest Neighbor (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'n_neighbors': 5, 'metric': 'minkowski'},
+	roc_auc: 0.922, recall: 0.870, specificity: 0.974, precision: 0.886 
+
+	Confusion matrix: 	 [4847  127] 
+				 [147 983]
+
+
+
+******** Scores for QDA (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'reg_param': 0.0, 'tol': 0.0001},
+	roc_auc: 0.654, recall: 0.368, specificity: 0.939, precision: 0.580 
+
+	Confusion matrix: 	 [4673  301] 
+				 [714 416]
+
+
+
+******** Scores for Decision Tree (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'criterion': 'gini', 'splitter': 'best', 'max_depth': 4, 'min_samples_split': 2, 'min_samples_leaf': 1},
+	roc_auc: 0.937, recall: 0.894, specificity: 0.979, precision: 0.907 
+
+	Confusion matrix: 	 [4871  103] 
+				 [ 120 1010]
+
+
+
+******** Scores for Random Forest (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1, 'criterion': 'gini'},
+	roc_auc: 0.934, recall: 0.888, specificity: 0.980, precision: 0.909 
+
+	Confusion matrix: 	 [4874  100] 
+				 [ 127 1003]
+
+
+
+******** Scores for Ada Boost (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'n_estimators': 50, 'learning_rate': 1.0, 'algorithm': 'SAMME.R'},
+	roc_auc: 0.865, recall: 0.763, specificity: 0.968, precision: 0.843 
+
+	Confusion matrix: 	 [4813  161] 
+				 [268 862]
+
+
+
+******** Scores for Naive Bayes (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {},
+	roc_auc: 0.556, recall: 0.127, specificity: 0.986, precision: 0.667 
+
+	Confusion matrix: 	 [4902   72] 
+				 [986 144]
+
+

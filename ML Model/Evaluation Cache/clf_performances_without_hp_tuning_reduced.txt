@@ -1,0 +1,80 @@
+
+******** Scores for SVM (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'C': 1.0, 'gamma': 'auto'},
+	roc_auc: 0.607, recall: 0.359, specificity: 0.854, precision: 0.358 
+
+	Confusion matrix: 	 [4247  727] 
+				 [724 406]
+
+
+
+******** Scores for Linear SVM (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'C': 1.0, 'penalty': 'l2'},
+	roc_auc: 0.633, recall: 0.565, specificity: 0.700, precision: 0.300 
+
+	Confusion matrix: 	 [3481 1493] 
+				 [491 639]
+
+
+
+******** Scores for Nearest Neighbor (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'n_neighbors': 5, 'metric': 'minkowski'},
+	roc_auc: 0.548, recall: 0.199, specificity: 0.897, precision: 0.304 
+
+	Confusion matrix: 	 [4460  514] 
+				 [905 225]
+
+
+
+******** Scores for QDA (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'reg_param': 0.0, 'tol': 0.0001},
+	roc_auc: 0.589, recall: 0.288, specificity: 0.890, precision: 0.372 
+
+	Confusion matrix: 	 [4426  548] 
+				 [805 325]
+
+
+
+******** Scores for Decision Tree (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'criterion': 'gini', 'splitter': 'best', 'max_depth': 4, 'min_samples_split': 2, 'min_samples_leaf': 1},
+	roc_auc: 0.968, recall: 0.965, specificity: 0.971, precision: 0.882 
+
+	Confusion matrix: 	 [4828  146] 
+				 [  39 1091]
+
+
+
+******** Scores for Random Forest (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1, 'criterion': 'gini'},
+	roc_auc: 0.875, recall: 0.792, specificity: 0.958, precision: 0.809 
+
+	Confusion matrix: 	 [4763  211] 
+				 [235 895]
+
+
+
+******** Scores for Ada Boost (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {'n_estimators': 50, 'learning_rate': 1.0, 'algorithm': 'SAMME.R'},
+	roc_auc: 0.735, recall: 0.491, specificity: 0.978, precision: 0.836 
+
+	Confusion matrix: 	 [4865  109] 
+				 [575 555]
+
+
+
+******** Scores for Naive Bayes (Windows:  3, 3, 3) ******** 
+
+	Hyperparameters: {},
+	roc_auc: 0.559, recall: 0.187, specificity: 0.931, precision: 0.380 
+
+	Confusion matrix: 	 [4630  344] 
+				 [919 211]
+
+

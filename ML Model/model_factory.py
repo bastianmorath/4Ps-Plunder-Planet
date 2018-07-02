@@ -7,12 +7,13 @@ from __future__ import division  # s.t. division uses float result
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import random
 
 from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, confusion_matrix, roc_curve)
-from sklearn.model_selection import (cross_val_predict, train_test_split)
+from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate)
 
 from sklearn.calibration import CalibratedClassifierCV
 
@@ -31,7 +32,8 @@ def get_tuned_params_dict(model, tuned_params_keys):
 
     :param model: Model, such that we can extract the parameters from
     :param tuned_params_keys: Parameters that we tuned in RandomSearchCV
-    :return: Dictionary with tuned paraemters and its values
+
+    :return: Dictionary with tuned parameters and its values
     """
 
     values = [model.get_params()[x] for x in tuned_params_keys]
@@ -49,7 +51,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     :param y: labels
     :param tuned_params_keys: keys of parameters that got tuned (in classifiers.py) (optional)
     :param verbose: Whether a detailed score should be printed out (optional)
-    :param do_write_to_file: Write summary of performance in a file (optional)
+    :param do_write_to_file: Write summary of performance into a file (optional)
 
     :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
     """
@@ -64,8 +66,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     conf_mat = confusion_matrix(y, y_pred)
 
     precision = metrics.precision_score(y, y_pred)
-    # if clf_name == 'Decision Tree':
-#         plots.plot_graph_of_decision_classifier(model, X, y)
+    if clf_name == 'Decision Tree':
+        plots.plot_graph_of_decision_classifier(model, X, y)
 
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
@@ -235,7 +237,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
 
 
 def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=False,
-                                         create_barchart=True, create_roc_curves=True, write_to_file=True):
+                        create_barchart=True, create_roc_curves=True, write_to_file=True):
     """Given a list of classifiers, computes performance (roc_auc, recall, specificity, precision, confusion matrix),
        writes it into a file and plots roc_auc scores of the classifiers in a barchart.
 
@@ -247,7 +249,7 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomSearchCV) -> To simplify printing scores
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_roc_curves: Create roc_curves
-
+    :param write_to_file: Write summary of performance into a file (optional)
     """
 
     scores = []
@@ -318,9 +320,6 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     return auc_scores
 
 
-
-
-
 def plot_barchart_scores(names, roc_auc_scores, title, filename):
     """Plots the roc_auc scores of each classifier into a barchart
 
@@ -338,6 +337,74 @@ def plot_barchart_scores(names, roc_auc_scores, title, filename):
                         lbl='auc_score',
                         filename=filename
                         )
+
+
+def test_clf_with_timedelta_only():
+    """
+    (Debugging purposes only). Calculates timedelta feature wihtout using anyother features. Since this also gives
+    a good score, the timedelta_feature really is a good predictor!
+
+    """
+
+    print("\n################# Testing classifier using timedelta feature only #################\n")
+
+    df_list = random.sample(setup_dataframes.df_list, len(setup_dataframes.df_list))
+    # Compute y_true for each logfile
+    y_list = []
+    for df in df_list:
+        y_true = []
+        for _, row in df.iterrows():
+            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
+                y_true.append(1 if row['Logtype'] == 'EVENT_CRASH' else 0)
+        y_list.append(y_true)
+
+    # compute feature matrix for each logfile
+    X_matrices = []
+    for df in df_list:
+        X = []
+        for _, row in df.iterrows():
+            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
+                last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
+                                                                  (df['Logtype'] == 'EVENT_CRASH'))]
+                if last_obstacles.empty:
+                    X.append(2)
+                else:
+                    X.append(row['Time'] - last_obstacles.iloc[-1]['Time'])
+
+        X_matrices.append(X)
+
+    x_train = np.hstack(X_matrices).reshape(-1, 1)  # reshape bc. only one feature
+    y_train = np.hstack(y_list).reshape(-1, 1)
+
+    clf = classifiers.get_cclassifier_with_name('Decision Tree', x_train, y_train).clf
+    score_dict = cross_validate(clf, x_train, y_train, scoring='roc_auc', cv=10)
+    print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
+
+    ''' Timedeltas correctly computed
+    timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_last_obst']
+    # print(sklearn.metrics.accuracy_score(timedeltas, x_train))
+    for a, b in zip(timedeltas, x_train):
+        print(a, b)
+
+    from sklearn.model_selection import cross_val_score
+
+    # Compute performance scores
+    from sklearn.model_selection import cross_val_predict
+    from sklearn import metrics
+    y_pred = cross_val_predict(clf, x_train, y_train, cv=10)
+    y = y_train
+    from sklearn.metrics import confusion_matrix
+    conf_mat = confusion_matrix(y, y_pred)
+
+    precision = metrics.precision_score(y, y_pred)
+    # if clf_name == 'Decision Tree':
+    #         plots.plot_graph_of_decision_classifier(model, X, y)
+
+    recall = metrics.recall_score(y, y_pred)
+    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+    roc_auc = metrics.roc_auc_score(y, y_pred)
+    print(roc_auc, recall, specificity, precision)
+    '''
 
 
 def write_scores_to_file(names, roc_scores, recall_scores, specifity_scores, precision_scores, tuned_params, conf_mats, filename):

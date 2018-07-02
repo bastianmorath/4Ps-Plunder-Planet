@@ -117,9 +117,11 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['_verbose'] = verbose
 
     if feature_selection:
-        globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope',
-                                      'hr_gradient_changes', '%crashes', 'points_gradient_changes', 'mean_points',
-                                      'std_points', 'timedelta_last_obst']
+
+        # globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope',
+        # 'hr_gradient_changes', '%crashes', 'points_gradient_changes', 'mean_points',
+        #  'std_points', 'timedelta_last_obst']
+        globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_last_obst']
     else:
         globals()['feature_names'] = ['mean_hr', 'std_hr', 'max_minus_min_hr', 'lin_regression_hr_slope',
                                       'hr_gradient_changes', '%crashes', 'points_gradient_changes', 'mean_points',
@@ -144,12 +146,16 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
         matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
         matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
+        
         matrix['%crashes'] = get_percentage_crashes_feature()
+        
         matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
         matrix['mean_points'] = get_standard_feature('mean', 'Points')
         matrix['std_points'] = get_standard_feature('std', 'Points')
         '''
-        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=False)
+        matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
+
+        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=True)
 
         if not use_reduced_features:
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
@@ -186,7 +192,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     X = matrix.values
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
-    plots.plot_correlation_matrix(matrix)
+    # plots.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')
 
@@ -219,7 +225,7 @@ def get_timedelta_last_obst_feature(do_normalize=False):
             # AdaBoost: 2 is best
             # Decision Tree: No normalization is best
             # Random Forest: 1 is best
-            last_n_obst = min(len(computed_timedeltas), 2)
+            last_n_obst = min(len(computed_timedeltas), 1)
             if len(computed_timedeltas) > 0:
                 normalized = timedelta / np.mean(computed_timedeltas[-last_n_obst:])
             else:
