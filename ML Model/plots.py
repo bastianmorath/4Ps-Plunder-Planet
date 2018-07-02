@@ -6,6 +6,7 @@ import graphviz
 import matplotlib
 from matplotlib.ticker import MaxNLocator
 from sklearn import tree
+from sklearn.preprocessing import MinMaxScaler
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -99,7 +100,8 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    ax.set_ylim([0, min(max(values) + 0.15, 1.0)])
+    # ax.set_ylim([0, min(max(values) + 0.15, 1.2)])
+    ax.set_ylim([0, max(values) + 0.15])
 
     plt.xticks(index, x_tick_labels, rotation='vertical')
     plt.legend()
@@ -209,7 +211,7 @@ def plot_feature_distributions(X):
         x = X[:, idx]
         plt.figure()
         if feature == 'timedelta_last_obst':
-            plt.hist(x, bins=np.arange(0.03, 0.07 + 0.005, 0.005))
+            plt.hist(x, bins=np.arange(np.mean(x) - 2 * np.std(x), np.mean(x) + 2* np.std(x), 0.005))
         else:
             plt.hist(x)
 
@@ -447,13 +449,14 @@ def plot_hr_or_points_corr_with_difficulty(to_compare):
                       str(sd.names_logfiles[idx]) + '.pdf')
 
 
-
 '''Returns a list which says how many times the obstacle has size {0,1,2,3,4}  for each difficulty level {1,2,3} in the form
     [0, 0, 0, 0, 0, 0, 143, 0, 581, 25, 0, 2659, 0, 299, 5589]
     # occurences where obstacle had size 0 in Diff=LOW, ... , 
     # occurences where obstacle had size 4 in Diff=LOW,
     # occurences where obstacle had size 0 in Diff=MEDIUM,...]
 '''
+
+
 def get_number_of_obstacles_per_difficulty():
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
     conc_num = transform_df_to_numbers(conc_dataframes) # Transform Difficulties into integers
@@ -653,21 +656,27 @@ def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
 
             computed_timedeltas.append(timedelta)
 
+        # Rescale values
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaler.fit(np.array(timedelta_crash + timedelta_no_crash).reshape(-1, 1))
+        timedelta_crash = scaler.transform(np.array(timedelta_crash).reshape(-1, 1))  # Rescale between 0 and 1
+        timedelta_no_crash = scaler.transform(np.array(timedelta_no_crash).reshape(-1, 1))  # Rescale between 0 and 1
+
         # Evaluation
         mean_when_crash = np.mean(timedelta_crash)
         mean_when_no_crash = np.mean(timedelta_no_crash)
         std_when_crash = np.std(timedelta_crash)
         std_when_no_crash = np.std(timedelta_no_crash)
-        print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
-              str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
-              idx, sd.names_logfiles[idx])
+        # print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
+        #      str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
+        #      idx, sd.names_logfiles[idx])
         _, _ = plt.subplots()
-        plt.ylim(0, 1.4)
+        plt.ylim(0, 0.8)
         plt.ylabel('Feature value')
         plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_no_crash)
         plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_crash, label='Crash')
         plt.xticks([1, 2], ['No crash', 'Crash'])
-
+        # print(idx, sd.names_logfiles[idx])
         plt.title('Average timedelta value for logfile ' + str(idx) + ' when crash or not crash')
 
         filename = str(idx) + '_crash.pdf'

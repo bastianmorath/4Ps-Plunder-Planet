@@ -24,7 +24,7 @@ import classifiers
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 
-_num_iter = 50
+_num_iter = 30
 
 
 def main(args):

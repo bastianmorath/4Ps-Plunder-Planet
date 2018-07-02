@@ -172,8 +172,8 @@ def refactor_crashes():
             new_name += '_Kinect'
         else:
             new_name += '_FBMC'
-
-        if not (new_df['Heartrate'] == -1).all():
+        hr_list = new_df['Heartrate']
+        if not (((hr_list == -1).all()) or (hr_list[1:] == hr_list[:-1])):  # If -1 or const
             new_name += '_hr'
 
         if (new_df['Points'] == 0).all():

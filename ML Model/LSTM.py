@@ -49,7 +49,6 @@ def get_trained_lstm_classifier(X, y, padding=True):
     # WBC = WeightedBinaryCrossEntropy(0.5)
     # a = WBC.weighted_binary_crossentropy(y_pred_true, y_pred_test)
 
-
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
     

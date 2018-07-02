@@ -105,13 +105,12 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
         specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
         precision = metrics.precision_score(y_test, y_pred)
         auc = metrics.roc_auc_score(y_test, y_pred)
-
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
         left_out_group_indices = sorted(set(range(0, len(df_obstacles_concatenated))) - set(train_index))
         group = df_obstacles_concatenated.loc[[left_out_group_indices[0]]]
         user_id = group['userID'].item()
-
+        # print(auc, recall, precision, specificity)
         scores_and_ids.append((auc, recall, specificity, precision, user_id))
 
     # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
@@ -125,7 +124,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
 
     names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
     aucs = [a[0] for a in scores_and_ids]
-
+    
     auc_mean = np.mean(aucs)
     auc_std = np.std(aucs)
 
@@ -151,7 +150,6 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
     :param auc_stds_scenario_2:
     :return:
     """
-    print(names)
     fix, ax = plt.subplots()
     bar_width = 0.3
     opacity = 0.4
@@ -171,7 +169,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
     plt.ylabel('roc_auc')
     plt.title('clf_performance_with_user_left_out_vs_normal')
     plt.xticks(index + bar_width/2, names, rotation='vertical')
-    ax.set_ylim([0, 1.0])
+    ax.set_ylim([0, 1.2])
     plt.legend(prop={'size': 6})
 
     def autolabel(rects):

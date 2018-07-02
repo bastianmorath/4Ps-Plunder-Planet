@@ -140,6 +140,8 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     else:
         if _verbose:
             print('Creating feature matrix...')
+
+        # TODO: Decide which features to use
         '''
         matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
         matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
@@ -155,7 +157,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         '''
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
 
-        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=True)
+        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
@@ -202,8 +204,11 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 def get_timedelta_last_obst_feature(do_normalize=False):
     """ Returns the timedelta to the previous obstacle
 
+    NOTE: Significantly improves SVM/Linear SVM (from ca. auc=0.6 to 0.9) and Ada Boost (from auc=0.73 to 0.87
     :param do_normalize: Normalize the timedelta with previous timedelta (bc. it varies slightly within and across
                          logfiles)
+
+
 
     """
     timedeltas_df_list = []  # list that contains a dataframe with feature for each logfile
@@ -222,10 +227,10 @@ def get_timedelta_last_obst_feature(do_normalize=False):
             # clamp to c.a. the average
             if timedelta > 3 or timedelta < 1:
                 timedelta = 2
-            # AdaBoost: 2 is best
-            # Decision Tree: No normalization is best
+
+            # AdaBoost: 2 or 3 is best
             # Random Forest: 1 is best
-            last_n_obst = min(len(computed_timedeltas), 1)
+            last_n_obst = min(len(computed_timedeltas), 3)
             if len(computed_timedeltas) > 0:
                 normalized = timedelta / np.mean(computed_timedeltas[-last_n_obst:])
             else:
@@ -240,6 +245,7 @@ def get_timedelta_last_obst_feature(do_normalize=False):
     for list_idx, df in enumerate(sd.df_list):
         timedeltas_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
         computed_timedeltas = []
+
     return pd.DataFrame(list(itertools.chain.from_iterable(timedeltas_df_list)), columns=['timedelta_last_obst'])
 
 

@@ -234,7 +234,7 @@ def remove_movement_tutorials():
             tutorial_mask = dataframe['Gamemode'] == 'MOVEMENTTUTORIAL'
             tutorial_entries = dataframe[tutorial_mask]
             tutorial_endtime = tutorial_entries['Time'].max()
-            dataframe['Time'] = dataframe['Time'].apply(lambda x: x - tutorial_endtime) # Adjust time by removing time of tutorial
+            dataframe['Time'] = dataframe['Time'].apply(lambda x: x - tutorial_endtime)  # Adjust time by removing time of tutorial
 
             dataframe_list_with_tutorials_removed.append(dataframe[~tutorial_mask].reset_index(drop=True))
         else:
