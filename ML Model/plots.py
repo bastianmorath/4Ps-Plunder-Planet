@@ -160,7 +160,7 @@ def plot_graph_of_decision_classifier(model, X, y):
 
     plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
                         sorted_feature_names, sorted_importances,
-                        'Importance', 'feature_importances.pdf')
+                        'Importance', '../Features/feature_importances_decision_tree.pdf')
 
     tree.export_graphviz(
         model,
