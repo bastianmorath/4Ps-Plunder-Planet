@@ -124,7 +124,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
 
     names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
     aucs = [a[0] for a in scores_and_ids]
-    
+
     auc_mean = np.mean(aucs)
     auc_std = np.std(aucs)
 

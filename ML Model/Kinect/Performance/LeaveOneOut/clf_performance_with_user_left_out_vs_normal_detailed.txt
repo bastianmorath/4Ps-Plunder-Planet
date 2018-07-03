@@ -1,0 +1,473 @@
+
+
+Performance scores when doing LeaveOneGroupOut with SVM
+
+ Performance: Auc = 0.611 (+-0.065, max: 0.728), Recall = 0.392 (+-0.113, max: 0.602), Specificity= 0.829 (+-0.072, max: 0.908), Precision = 0.360 (+-0.090, max: 0.500)
+	 Confusion matrix: 
+		[[4090  715]
+		 [ 627  425]]
+	Correctly classified data: 77.09% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.561, Recall = 0.359, Specificity= 0.764, Precision = 0.337
+MH:		 Auc= 0.621, Recall = 0.387, Specificity= 0.854, Precision = 0.361
+MK:		 Auc= 0.721, Recall = 0.534, Specificity= 0.908, Precision = 0.429
+MR:		 Auc= 0.568, Recall = 0.282, Specificity= 0.854, Precision = 0.276
+NK:		 Auc= 0.612, Recall = 0.337, Specificity= 0.887, Precision = 0.315
+PG:		 Auc= 0.728, Recall = 0.602, Specificity= 0.854, Precision = 0.500
+TW:		 Auc= 0.560, Recall = 0.479, Specificity= 0.641, Precision = 0.474
+Un:		 Auc= 0.630, Recall = 0.382, Specificity= 0.878, Precision = 0.358
+EK:		 Auc= 0.651, Recall = 0.467, Specificity= 0.835, Precision = 0.441
+FM:		 Auc= 0.538, Recall = 0.217, Specificity= 0.859, Precision = 0.200
+Is:		 Auc= 0.527, Recall = 0.268, Specificity= 0.787, Precision = 0.264
+
+Performance scores when doing LeaveOneGroupOut with Linear SVM
+
+ Performance: Auc = 0.623 (+-0.063, max: 0.743), Recall = 0.473 (+-0.211, max: 0.746), Specificity= 0.773 (+-0.104, max: 1.000), Precision = 0.371 (+-0.215, max: 1.000)
+	 Confusion matrix: 
+		[[3647 1158]
+		 [ 552  500]]
+	Correctly classified data: 70.8% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.653, Recall = 0.603, Specificity= 0.704, Precision = 0.405
+MH:		 Auc= 0.670, Recall = 0.649, Specificity= 0.692, Precision = 0.309
+MK:		 Auc= 0.596, Recall = 0.548, Specificity= 0.645, Precision = 0.166
+MR:		 Auc= 0.581, Recall = 0.340, Specificity= 0.821, Precision = 0.273
+NK:		 Auc= 0.620, Recall = 0.422, Specificity= 0.819, Precision = 0.263
+PG:		 Auc= 0.667, Recall = 0.719, Specificity= 0.616, Precision = 0.312
+TW:		 Auc= 0.505, Recall = 0.010, Specificity= 1.000, Precision = 1.000
+Un:		 Auc= 0.640, Recall = 0.483, Specificity= 0.796, Precision = 0.297
+EK:		 Auc= 0.638, Recall = 0.467, Specificity= 0.808, Precision = 0.405
+FM:		 Auc= 0.538, Recall = 0.217, Specificity= 0.859, Precision = 0.200
+Is:		 Auc= 0.743, Recall = 0.746, Specificity= 0.739, Precision = 0.449
+
+Performance scores when doing LeaveOneGroupOut with Nearest Neighbor
+
+ Performance: Auc = 0.988 (+-0.012, max: 1.000), Recall = 0.978 (+-0.024, max: 1.000), Specificity= 0.998 (+-0.002, max: 1.000), Precision = 0.989 (+-0.010, max: 1.000)
+	 Confusion matrix: 
+		[[4793   12]
+		 [  24 1028]]
+	Correctly classified data: 99.39% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 1.000, Recall = 1.000, Specificity= 1.000, Precision = 1.000
+MH:		 Auc= 0.984, Recall = 0.973, Specificity= 0.994, Precision = 0.973
+MK:		 Auc= 0.992, Recall = 0.986, Specificity= 0.998, Precision = 0.986
+MR:		 Auc= 0.992, Recall = 0.990, Specificity= 0.994, Precision = 0.971
+NK:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+PG:		 Auc= 0.996, Recall = 0.992, Specificity= 1.000, Precision = 1.000
+TW:		 Auc= 0.953, Recall = 0.906, Specificity= 1.000, Precision = 1.000
+Un:		 Auc= 0.981, Recall = 0.966, Specificity= 0.996, Precision = 0.977
+EK:		 Auc= 0.988, Recall = 0.978, Specificity= 0.998, Precision = 0.993
+FM:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+Is:		 Auc= 0.993, Recall = 0.986, Specificity= 1.000, Precision = 1.000
+
+Performance scores when doing LeaveOneGroupOut with QDA
+
+ Performance: Auc = 0.587 (+-0.047, max: 0.654), Recall = 0.306 (+-0.117, max: 0.445), Specificity= 0.869 (+-0.057, max: 1.000), Precision = 0.304 (+-0.116, max: 0.439)
+	 Confusion matrix: 
+		[[4176  629]
+		 [ 719  333]]
+	Correctly classified data: 76.98% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.570, Recall = 0.359, Specificity= 0.781, Precision = 0.354
+MH:		 Auc= 0.617, Recall = 0.369, Specificity= 0.864, Precision = 0.366
+MK:		 Auc= 0.607, Recall = 0.301, Specificity= 0.912, Precision = 0.306
+MR:		 Auc= 0.570, Recall = 0.282, Specificity= 0.858, Precision = 0.282
+NK:		 Auc= 0.618, Recall = 0.337, Specificity= 0.899, Precision = 0.337
+PG:		 Auc= 0.654, Recall = 0.445, Specificity= 0.862, Precision = 0.438
+TW:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+Un:		 Auc= 0.612, Recall = 0.337, Specificity= 0.886, Precision = 0.345
+EK:		 Auc= 0.643, Recall = 0.445, Specificity= 0.841, Precision = 0.439
+FM:		 Auc= 0.543, Recall = 0.217, Specificity= 0.869, Precision = 0.212
+Is:		 Auc= 0.527, Recall = 0.268, Specificity= 0.787, Precision = 0.264
+
+Performance scores when doing LeaveOneGroupOut with Decision Tree
+
+ Performance: Auc = 0.901 (+-0.112, max: 0.966), Recall = 0.902 (+-0.141, max: 0.977), Specificity= 0.900 (+-0.087, max: 0.959), Precision = 0.712 (+-0.102, max: 0.869)
+	 Confusion matrix: 
+		[[4436  369]
+		 [ 102  950]]
+	Correctly classified data: 91.96% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.934, Recall = 0.962, Specificity= 0.906, Precision = 0.773
+MH:		 Auc= 0.929, Recall = 0.946, Specificity= 0.912, Precision = 0.695
+MK:		 Auc= 0.963, Recall = 0.973, Specificity= 0.954, Precision = 0.732
+MR:		 Auc= 0.933, Recall = 0.913, Specificity= 0.954, Precision = 0.797
+NK:		 Auc= 0.966, Recall = 0.976, Specificity= 0.956, Precision = 0.771
+PG:		 Auc= 0.952, Recall = 0.977, Specificity= 0.928, Precision = 0.767
+TW:		 Auc= 0.555, Recall = 0.469, Specificity= 0.641, Precision = 0.469
+Un:		 Auc= 0.891, Recall = 0.854, Specificity= 0.928, Precision = 0.679
+EK:		 Auc= 0.965, Recall = 0.971, Specificity= 0.959, Precision = 0.869
+FM:		 Auc= 0.920, Recall = 0.928, Specificity= 0.912, Precision = 0.631
+Is:		 Auc= 0.905, Recall = 0.958, Specificity= 0.851, Precision = 0.648
+
+Performance scores when doing LeaveOneGroupOut with Random Forest
+
+ Performance: Auc = 0.988 (+-0.012, max: 1.000), Recall = 0.978 (+-0.024, max: 1.000), Specificity= 0.998 (+-0.002, max: 1.000), Precision = 0.991 (+-0.009, max: 1.000)
+	 Confusion matrix: 
+		[[4794   11]
+		 [  25 1027]]
+	Correctly classified data: 99.39% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 1.000, Recall = 1.000, Specificity= 1.000, Precision = 1.000
+MH:		 Auc= 0.984, Recall = 0.973, Specificity= 0.994, Precision = 0.973
+MK:		 Auc= 0.992, Recall = 0.986, Specificity= 0.998, Precision = 0.986
+MR:		 Auc= 0.993, Recall = 0.990, Specificity= 0.996, Precision = 0.981
+NK:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+PG:		 Auc= 0.996, Recall = 0.992, Specificity= 1.000, Precision = 1.000
+TW:		 Auc= 0.953, Recall = 0.906, Specificity= 1.000, Precision = 1.000
+Un:		 Auc= 0.982, Recall = 0.966, Specificity= 0.998, Precision = 0.989
+EK:		 Auc= 0.988, Recall = 0.978, Specificity= 0.998, Precision = 0.993
+FM:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+Is:		 Auc= 0.993, Recall = 0.986, Specificity= 1.000, Precision = 1.000
+
+Performance scores when doing LeaveOneGroupOut with Ada Boost
+
+ Performance: Auc = 0.763 (+-0.098, max: 0.938), Recall = 0.570 (+-0.146, max: 0.887), Specificity= 0.956 (+-0.100, max: 0.996), Precision = 0.860 (+-0.146, max: 0.973)
+	 Confusion matrix: 
+		[[4699  106]
+		 [ 463  589]]
+	Correctly classified data: 90.29% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.801, Recall = 0.615, Specificity= 0.987, Precision = 0.941
+MH:		 Auc= 0.746, Recall = 0.505, Specificity= 0.987, Precision = 0.889
+MK:		 Auc= 0.880, Recall = 0.767, Specificity= 0.993, Precision = 0.933
+MR:		 Auc= 0.790, Recall = 0.592, Specificity= 0.988, Precision = 0.910
+NK:		 Auc= 0.751, Recall = 0.506, Specificity= 0.996, Precision = 0.955
+PG:		 Auc= 0.789, Recall = 0.586, Specificity= 0.992, Precision = 0.949
+TW:		 Auc= 0.555, Recall = 0.469, Specificity= 0.641, Precision = 0.469
+Un:		 Auc= 0.739, Recall = 0.506, Specificity= 0.972, Precision = 0.763
+EK:		 Auc= 0.761, Recall = 0.526, Specificity= 0.996, Precision = 0.973
+FM:		 Auc= 0.647, Recall = 0.313, Specificity= 0.980, Precision = 0.722
+Is:		 Auc= 0.938, Recall = 0.887, Specificity= 0.988, Precision = 0.955
+
+Performance scores when doing LeaveOneGroupOut with Naive Bayes
+
+ Performance: Auc = 0.586 (+-0.050, max: 0.655), Recall = 0.290 (+-0.119, max: 0.445), Specificity= 0.882 (+-0.056, max: 1.000), Precision = 0.318 (+-0.130, max: 0.477)
+	 Confusion matrix: 
+		[[4247  558]
+		 [ 733  319]]
+	Correctly classified data: 77.96% (vs. null accuracy: 82.04%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.564, Recall = 0.333, Specificity= 0.794, Precision = 0.351
+MH:		 Auc= 0.633, Recall = 0.369, Specificity= 0.897, Precision = 0.432
+MK:		 Auc= 0.577, Recall = 0.233, Specificity= 0.920, Precision = 0.274
+MR:		 Auc= 0.569, Recall = 0.272, Specificity= 0.866, Precision = 0.286
+NK:		 Auc= 0.623, Recall = 0.325, Specificity= 0.921, Precision = 0.386
+PG:		 Auc= 0.655, Recall = 0.445, Specificity= 0.866, Precision = 0.445
+TW:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+Un:		 Auc= 0.609, Recall = 0.303, Specificity= 0.914, Precision = 0.386
+EK:		 Auc= 0.654, Recall = 0.445, Specificity= 0.863, Precision = 0.477
+FM:		 Auc= 0.532, Recall = 0.193, Specificity= 0.871, Precision = 0.195
+Is:		 Auc= 0.531, Recall = 0.268, Specificity= 0.795, Precision = 0.271
+
+Performance scores when doing LeaveOneGroupOut with SVM
+
+ Performance: Auc = 0.754 (+-0.046, max: 0.820), Recall = 0.786 (+-0.133, max: 0.915), Specificity= 0.721 (+-0.105, max: 0.859), Precision = 0.386 (+-0.083, max: 0.548)
+	 Confusion matrix: 
+		[[3423 1240]
+		 [ 200  756]]
+	Correctly classified data: 74.37% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.786, Recall = 0.897, Specificity= 0.674, Precision = 0.479
+MH:		 Auc= 0.733, Recall = 0.793, Specificity= 0.672, Precision = 0.340
+MK:		 Auc= 0.732, Recall = 0.822, Specificity= 0.641, Precision = 0.228
+MR:		 Auc= 0.778, Recall = 0.738, Specificity= 0.818, Precision = 0.444
+NK:		 Auc= 0.787, Recall = 0.759, Specificity= 0.815, Precision = 0.387
+PG:		 Auc= 0.764, Recall = 0.914, Specificity= 0.614, Precision = 0.364
+Un:		 Auc= 0.770, Recall = 0.753, Specificity= 0.786, Precision = 0.385
+EK:		 Auc= 0.820, Recall = 0.832, Specificity= 0.808, Precision = 0.548
+FM:		 Auc= 0.646, Recall = 0.434, Specificity= 0.859, Precision = 0.333
+Is:		 Auc= 0.721, Recall = 0.915, Specificity= 0.526, Precision = 0.355
+
+Performance scores when doing LeaveOneGroupOut with Linear SVM
+
+ Performance: Auc = 0.619 (+-0.039, max: 0.671), Recall = 0.509 (+-0.165, max: 0.746), Specificity= 0.730 (+-0.106, max: 0.871), Precision = 0.291 (+-0.072, max: 0.410)
+	 Confusion matrix: 
+		[[3459 1204]
+		 [ 466  490]]
+	Correctly classified data: 70.28% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.638, Recall = 0.590, Specificity= 0.687, Precision = 0.387
+MH:		 Auc= 0.655, Recall = 0.631, Specificity= 0.680, Precision = 0.295
+MK:		 Auc= 0.590, Recall = 0.534, Specificity= 0.645, Precision = 0.163
+MR:		 Auc= 0.580, Recall = 0.330, Specificity= 0.829, Precision = 0.276
+NK:		 Auc= 0.619, Recall = 0.422, Specificity= 0.815, Precision = 0.259
+PG:		 Auc= 0.671, Recall = 0.727, Specificity= 0.616, Precision = 0.314
+Un:		 Auc= 0.628, Recall = 0.449, Specificity= 0.806, Precision = 0.292
+EK:		 Auc= 0.640, Recall = 0.467, Specificity= 0.812, Precision = 0.410
+FM:		 Auc= 0.532, Recall = 0.193, Specificity= 0.871, Precision = 0.195
+Is:		 Auc= 0.640, Recall = 0.746, Specificity= 0.534, Precision = 0.314
+
+Performance scores when doing LeaveOneGroupOut with Nearest Neighbor
+
+ Performance: Auc = 0.987 (+-0.015, max: 0.996), Recall = 0.976 (+-0.030, max: 0.992), Specificity= 0.998 (+-0.002, max: 1.000), Precision = 0.987 (+-0.011, max: 1.000)
+	 Confusion matrix: 
+		[[4651   12]
+		 [  23  933]]
+	Correctly classified data: 99.38% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.994, Recall = 0.987, Specificity= 1.000, Precision = 1.000
+MH:		 Auc= 0.984, Recall = 0.973, Specificity= 0.994, Precision = 0.973
+MK:		 Auc= 0.992, Recall = 0.986, Specificity= 0.998, Precision = 0.986
+MR:		 Auc= 0.992, Recall = 0.990, Specificity= 0.994, Precision = 0.971
+NK:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+PG:		 Auc= 0.996, Recall = 0.992, Specificity= 1.000, Precision = 1.000
+Un:		 Auc= 0.942, Recall = 0.888, Specificity= 0.996, Precision = 0.975
+EK:		 Auc= 0.988, Recall = 0.978, Specificity= 0.998, Precision = 0.993
+FM:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+Is:		 Auc= 0.993, Recall = 0.986, Specificity= 1.000, Precision = 1.000
+
+Performance scores when doing LeaveOneGroupOut with QDA
+
+ Performance: Auc = 0.594 (+-0.034, max: 0.650), Recall = 0.302 (+-0.072, max: 0.430), Specificity= 0.885 (+-0.048, max: 0.945), Precision = 0.369 (+-0.061, max: 0.471)
+	 Confusion matrix: 
+		[[4176  487]
+		 [ 654  302]]
+	Correctly classified data: 79.69% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.566, Recall = 0.333, Specificity= 0.798, Precision = 0.356
+MH:		 Auc= 0.626, Recall = 0.351, Specificity= 0.900, Precision = 0.429
+MK:		 Auc= 0.578, Recall = 0.233, Specificity= 0.924, Precision = 0.283
+MR:		 Auc= 0.580, Recall = 0.272, Specificity= 0.889, Precision = 0.326
+NK:		 Auc= 0.597, Recall = 0.265, Specificity= 0.928, Precision = 0.361
+PG:		 Auc= 0.650, Recall = 0.430, Specificity= 0.869, Precision = 0.444
+Un:		 Auc= 0.596, Recall = 0.270, Specificity= 0.922, Precision = 0.381
+EK:		 Auc= 0.640, Recall = 0.409, Specificity= 0.871, Precision = 0.471
+FM:		 Auc= 0.569, Recall = 0.193, Specificity= 0.945, Precision = 0.364
+Is:		 Auc= 0.535, Recall = 0.268, Specificity= 0.803, Precision = 0.279
+
+Performance scores when doing LeaveOneGroupOut with Decision Tree
+
+ Performance: Auc = 0.935 (+-0.025, max: 0.966), Recall = 0.946 (+-0.037, max: 0.977), Specificity= 0.925 (+-0.031, max: 0.959), Precision = 0.735 (+-0.069, max: 0.869)
+	 Confusion matrix: 
+		[[4342  321]
+		 [  51  905]]
+	Correctly classified data: 93.38% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.934, Recall = 0.962, Specificity= 0.906, Precision = 0.773
+MH:		 Auc= 0.928, Recall = 0.946, Specificity= 0.910, Precision = 0.691
+MK:		 Auc= 0.963, Recall = 0.973, Specificity= 0.954, Precision = 0.732
+MR:		 Auc= 0.932, Recall = 0.913, Specificity= 0.952, Precision = 0.790
+NK:		 Auc= 0.966, Recall = 0.976, Specificity= 0.956, Precision = 0.771
+PG:		 Auc= 0.951, Recall = 0.977, Specificity= 0.926, Precision = 0.762
+Un:		 Auc= 0.891, Recall = 0.854, Specificity= 0.928, Precision = 0.679
+EK:		 Auc= 0.965, Recall = 0.971, Specificity= 0.959, Precision = 0.869
+FM:		 Auc= 0.920, Recall = 0.928, Specificity= 0.912, Precision = 0.631
+Is:		 Auc= 0.905, Recall = 0.958, Specificity= 0.851, Precision = 0.648
+
+Performance scores when doing LeaveOneGroupOut with Random Forest
+
+ Performance: Auc = 0.989 (+-0.009, max: 0.998), Recall = 0.981 (+-0.018, max: 1.000), Specificity= 0.997 (+-0.002, max: 1.000), Precision = 0.985 (+-0.011, max: 1.000)
+	 Confusion matrix: 
+		[[4649   14]
+		 [  21  935]]
+	Correctly classified data: 99.38% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.998, Recall = 1.000, Specificity= 0.996, Precision = 0.987
+MH:		 Auc= 0.978, Recall = 0.964, Specificity= 0.992, Precision = 0.964
+MK:		 Auc= 0.991, Recall = 0.986, Specificity= 0.996, Precision = 0.973
+MR:		 Auc= 0.992, Recall = 0.990, Specificity= 0.994, Precision = 0.971
+NK:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+PG:		 Auc= 0.996, Recall = 0.992, Specificity= 1.000, Precision = 1.000
+Un:		 Auc= 0.965, Recall = 0.933, Specificity= 0.998, Precision = 0.988
+EK:		 Auc= 0.988, Recall = 0.978, Specificity= 0.998, Precision = 0.993
+FM:		 Auc= 0.993, Recall = 0.988, Specificity= 0.998, Precision = 0.988
+Is:		 Auc= 0.993, Recall = 0.986, Specificity= 1.000, Precision = 1.000
+
+Performance scores when doing LeaveOneGroupOut with Ada Boost
+
+ Performance: Auc = 0.822 (+-0.084, max: 0.938), Recall = 0.662 (+-0.153, max: 0.887), Specificity= 0.981 (+-0.023, max: 0.996), Precision = 0.876 (+-0.160, max: 0.976)
+	 Confusion matrix: 
+		[[4574   89]
+		 [ 330  626]]
+	Correctly classified data: 92.54% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.904, Recall = 0.821, Specificity= 0.987, Precision = 0.955
+MH:		 Auc= 0.746, Recall = 0.505, Specificity= 0.987, Precision = 0.889
+MK:		 Auc= 0.887, Recall = 0.781, Specificity= 0.993, Precision = 0.934
+MR:		 Auc= 0.789, Recall = 0.592, Specificity= 0.987, Precision = 0.897
+NK:		 Auc= 0.799, Recall = 0.602, Specificity= 0.996, Precision = 0.962
+PG:		 Auc= 0.902, Recall = 0.812, Specificity= 0.992, Precision = 0.963
+Un:		 Auc= 0.812, Recall = 0.652, Specificity= 0.972, Precision = 0.806
+EK:		 Auc= 0.797, Recall = 0.599, Specificity= 0.996, Precision = 0.976
+FM:		 Auc= 0.645, Recall = 0.373, Specificity= 0.916, Precision = 0.419
+Is:		 Auc= 0.938, Recall = 0.887, Specificity= 0.988, Precision = 0.955
+
+Performance scores when doing LeaveOneGroupOut with Naive Bayes
+
+ Performance: Auc = 0.589 (+-0.037, max: 0.652), Recall = 0.290 (+-0.083, max: 0.430), Specificity= 0.887 (+-0.049, max: 0.953), Precision = 0.362 (+-0.065, max: 0.471)
+	 Confusion matrix: 
+		[[4185  478]
+		 [ 665  291]]
+	Correctly classified data: 79.66% (vs. null accuracy: 82.99%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.559, Recall = 0.321, Specificity= 0.798, Precision = 0.347
+MH:		 Auc= 0.618, Recall = 0.333, Specificity= 0.902, Precision = 0.420
+MK:		 Auc= 0.578, Recall = 0.233, Specificity= 0.924, Precision = 0.283
+MR:		 Auc= 0.567, Recall = 0.243, Specificity= 0.891, Precision = 0.305
+NK:		 Auc= 0.597, Recall = 0.265, Specificity= 0.928, Precision = 0.361
+PG:		 Auc= 0.652, Recall = 0.430, Specificity= 0.875, Precision = 0.455
+Un:		 Auc= 0.596, Recall = 0.270, Specificity= 0.922, Precision = 0.381
+EK:		 Auc= 0.640, Recall = 0.409, Specificity= 0.871, Precision = 0.471
+FM:		 Auc= 0.543, Recall = 0.133, Specificity= 0.953, Precision = 0.314
+Is:		 Auc= 0.535, Recall = 0.268, Specificity= 0.803, Precision = 0.279
+
+Performance scores when doing LeaveOneGroupOut with SVM
+
+ Performance: Auc = 0.575 (+-0.049, max: 0.683), Recall = 0.391 (+-0.088, max: 0.529), Specificity= 0.758 (+-0.087, max: 0.878), Precision = 0.389 (+-0.089, max: 0.529)
+	 Confusion matrix: 
+		[[2042  607]
+		 [ 602  409]]
+	Correctly classified data: 66.97% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.595, Recall = 0.380, Specificity= 0.810, Precision = 0.380
+MK:		 Auc= 0.683, Recall = 0.529, Specificity= 0.838, Precision = 0.529
+MR:		 Auc= 0.547, Recall = 0.455, Specificity= 0.639, Precision = 0.452
+NK:		 Auc= 0.580, Recall = 0.282, Specificity= 0.878, Precision = 0.282
+PG:		 Auc= 0.512, Recall = 0.274, Specificity= 0.750, Precision = 0.267
+TW:		 Auc= 0.555, Recall = 0.495, Specificity= 0.615, Precision = 0.495
+EK:		 Auc= 0.588, Recall = 0.377, Specificity= 0.799, Precision = 0.371
+FM:		 Auc= 0.536, Recall = 0.338, Specificity= 0.733, Precision = 0.338
+
+Performance scores when doing LeaveOneGroupOut with Linear SVM
+
+ Performance: Auc = 0.574 (+-0.049, max: 0.683), Recall = 0.391 (+-0.088, max: 0.529), Specificity= 0.756 (+-0.088, max: 0.874), Precision = 0.388 (+-0.090, max: 0.529)
+	 Confusion matrix: 
+		[[2038  611]
+		 [ 602  409]]
+	Correctly classified data: 66.86% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.595, Recall = 0.380, Specificity= 0.810, Precision = 0.380
+MK:		 Auc= 0.683, Recall = 0.529, Specificity= 0.838, Precision = 0.529
+MR:		 Auc= 0.547, Recall = 0.455, Specificity= 0.639, Precision = 0.452
+NK:		 Auc= 0.578, Recall = 0.282, Specificity= 0.874, Precision = 0.276
+PG:		 Auc= 0.512, Recall = 0.274, Specificity= 0.750, Precision = 0.267
+TW:		 Auc= 0.551, Recall = 0.495, Specificity= 0.608, Precision = 0.490
+EK:		 Auc= 0.588, Recall = 0.377, Specificity= 0.799, Precision = 0.371
+FM:		 Auc= 0.536, Recall = 0.338, Specificity= 0.733, Precision = 0.338
+
+Performance scores when doing LeaveOneGroupOut with Nearest Neighbor
+
+ Performance: Auc = 0.976 (+-0.019, max: 0.995), Recall = 0.959 (+-0.041, max: 0.989), Specificity= 0.994 (+-0.007, max: 1.000), Precision = 0.980 (+-0.021, max: 1.000)
+	 Confusion matrix: 
+		[[2633   16]
+		 [  48  963]]
+	Correctly classified data: 98.25% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.980, Recall = 0.969, Specificity= 0.990, Precision = 0.969
+MK:		 Auc= 0.986, Recall = 0.971, Specificity= 1.000, Precision = 1.000
+MR:		 Auc= 0.995, Recall = 0.989, Specificity= 1.000, Precision = 1.000
+NK:		 Auc= 0.969, Recall = 0.941, Specificity= 0.996, Precision = 0.976
+PG:		 Auc= 0.982, Recall = 0.986, Specificity= 0.977, Precision = 0.935
+TW:		 Auc= 0.929, Recall = 0.859, Specificity= 1.000, Precision = 1.000
+EK:		 Auc= 0.983, Recall = 0.969, Specificity= 0.998, Precision = 0.992
+FM:		 Auc= 0.987, Recall = 0.986, Specificity= 0.988, Precision = 0.972
+
+Performance scores when doing LeaveOneGroupOut with QDA
+
+ Performance: Auc = 0.502 (+-0.019, max: 0.544), Recall = 0.033 (+-0.058, max: 0.137), Specificity= 0.970 (+-0.064, max: 1.000), Precision = 0.067 (+-0.122, max: 0.344)
+	 Confusion matrix: 
+		[[2585   64]
+		 [ 990   21]]
+	Correctly classified data: 71.2% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+MK:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+MR:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+NK:		 Auc= 0.544, Recall = 0.129, Specificity= 0.958, Precision = 0.344
+PG:		 Auc= 0.471, Recall = 0.137, Specificity= 0.805, Precision = 0.189
+TW:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+EK:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+FM:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+
+Performance scores when doing LeaveOneGroupOut with Decision Tree
+
+ Performance: Auc = 0.758 (+-0.091, max: 0.893), Recall = 0.680 (+-0.162, max: 0.906), Specificity= 0.835 (+-0.088, max: 0.950), Precision = 0.622 (+-0.125, max: 0.888)
+	 Confusion matrix: 
+		[[2224  425]
+		 [ 375  636]]
+	Correctly classified data: 78.14% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.769, Recall = 0.713, Specificity= 0.824, Precision = 0.554
+MK:		 Auc= 0.829, Recall = 0.814, Specificity= 0.843, Precision = 0.640
+MR:		 Auc= 0.570, Recall = 0.487, Specificity= 0.653, Precision = 0.479
+NK:		 Auc= 0.893, Recall = 0.906, Specificity= 0.880, Precision = 0.562
+PG:		 Auc= 0.818, Recall = 0.849, Specificity= 0.786, Precision = 0.569
+TW:		 Auc= 0.735, Recall = 0.520, Specificity= 0.950, Precision = 0.888
+EK:		 Auc= 0.752, Recall = 0.692, Specificity= 0.811, Precision = 0.536
+FM:		 Auc= 0.698, Recall = 0.460, Specificity= 0.936, Precision = 0.744
+
+Performance scores when doing LeaveOneGroupOut with Random Forest
+
+ Performance: Auc = 0.981 (+-0.010, max: 0.995), Recall = 0.968 (+-0.020, max: 0.989), Specificity= 0.995 (+-0.005, max: 1.000), Precision = 0.983 (+-0.014, max: 1.000)
+	 Confusion matrix: 
+		[[2633   16]
+		 [  35  976]]
+	Correctly classified data: 98.61% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.981, Recall = 0.969, Specificity= 0.993, Precision = 0.977
+MK:		 Auc= 0.986, Recall = 0.971, Specificity= 1.000, Precision = 1.000
+MR:		 Auc= 0.995, Recall = 0.989, Specificity= 1.000, Precision = 1.000
+NK:		 Auc= 0.973, Recall = 0.953, Specificity= 0.994, Precision = 0.964
+PG:		 Auc= 0.989, Recall = 0.986, Specificity= 0.991, Precision = 0.973
+TW:		 Auc= 0.960, Recall = 0.924, Specificity= 0.996, Precision = 0.995
+EK:		 Auc= 0.980, Recall = 0.962, Specificity= 0.998, Precision = 0.992
+FM:		 Auc= 0.986, Recall = 0.986, Specificity= 0.986, Precision = 0.965
+
+Performance scores when doing LeaveOneGroupOut with Ada Boost
+
+ Performance: Auc = 0.712 (+-0.105, max: 0.895), Recall = 0.427 (+-0.212, max: 0.799), Specificity= 0.996 (+-0.004, max: 1.000), Precision = 0.976 (+-0.021, max: 1.000)
+	 Confusion matrix: 
+		[[2638   11]
+		 [ 616  395]]
+	Correctly classified data: 82.87% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.818, Recall = 0.643, Specificity= 0.993, Precision = 0.965
+MK:		 Auc= 0.736, Recall = 0.471, Specificity= 1.000, Precision = 1.000
+MR:		 Auc= 0.580, Recall = 0.160, Specificity= 1.000, Precision = 1.000
+NK:		 Auc= 0.717, Recall = 0.435, Specificity= 0.998, Precision = 0.974
+PG:		 Auc= 0.715, Recall = 0.438, Specificity= 0.991, Precision = 0.941
+TW:		 Auc= 0.558, Recall = 0.116, Specificity= 1.000, Precision = 1.000
+EK:		 Auc= 0.675, Recall = 0.354, Specificity= 0.995, Precision = 0.958
+FM:		 Auc= 0.895, Recall = 0.799, Specificity= 0.991, Precision = 0.974
+
+Performance scores when doing LeaveOneGroupOut with Naive Bayes
+
+ Performance: Auc = 0.491 (+-0.021, max: 0.500), Recall = 0.027 (+-0.048, max: 0.128), Specificity= 0.955 (+-0.078, max: 1.000), Precision = 0.065 (+-0.128, max: 0.381)
+	 Confusion matrix: 
+		[[2534  115]
+		 [ 975   36]]
+	Correctly classified data: 70.22% (vs. null accuracy: 72.38%)
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+MH:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+MK:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+MR:		 Auc= 0.496, Recall = 0.128, Specificity= 0.863, Precision = 0.381
+NK:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+PG:		 Auc= 0.495, Recall = 0.000, Specificity= 0.991, Precision = 0.000
+TW:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+EK:		 Auc= 0.500, Recall = 0.000, Specificity= 1.000, Precision = 0.000
+FM:		 Auc= 0.436, Recall = 0.086, Specificity= 0.786, Precision = 0.140

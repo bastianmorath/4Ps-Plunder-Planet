@@ -2,17 +2,22 @@
 This module is responsible for plotting various things
 
 """
-import graphviz
 import matplotlib
+matplotlib.use('Agg')
+
+import graphviz
 from matplotlib.ticker import MaxNLocator
-from sklearn import tree
+from sklearn import tree, neighbors
 from sklearn.preprocessing import MinMaxScaler
 
-matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import os
+import seaborn as sb
 
 import seaborn as sns
 import setup_dataframes as sd
@@ -155,7 +160,7 @@ def plot_graph_of_decision_classifier(model, X, y):
 
     plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
                         sorted_feature_names, sorted_importances,
-                        'Importance', 'feature_importances')
+                        'Importance', 'feature_importances.pdf')
 
     tree.export_graphviz(
         model,
@@ -168,6 +173,7 @@ def plot_graph_of_decision_classifier(model, X, y):
         special_characters=True,
     )
     graphviz.render('dot', 'pdf', 'decision_tree_graph')
+
 
 def plot_correlation_matrix(X):
     """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
@@ -283,6 +289,85 @@ def plot_feature(X, i):
 
         filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
         save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
+
+
+def plot_corr_knn_distr(X, y):
+    """
+    Creates 3 plots using seaborn
+    1. Correlations between different features and classlabels
+    2. Features and labels in a scatter plot and the histogram on top
+    3. NearestNeighborClassifier decision boundaries
+
+    IMPORTANT: It might be best if only the feature matrix of ONE logfile is passed
+    :param X: Feature matrix
+    :param y: labels
+
+    """
+
+    def get_i_th_feature_matrix_and_labels(i):
+        feature_matrices = []
+        label_lists = []
+        obstacles_so_far = 0
+        for df in sd.obstacle_df_list:
+            num_obstacles = len(df.index)
+            feature_matrices.append(X.take(range(obstacles_so_far, obstacles_so_far + num_obstacles), axis=0))
+            label_lists.append(y[obstacles_so_far:obstacles_so_far + num_obstacles])
+            obstacles_so_far += num_obstacles
+
+        return feature_matrices[i], label_lists[i]
+
+    X, y = get_i_th_feature_matrix_and_labels(0)
+
+    print('Ploting correlations and knn boundaries')
+
+    # Plot correlations between different features and classlabels
+    dat2 = pd.DataFrame({'class': y})
+    dat1 = pd.DataFrame({'last_obst_crash': X[:, 0], 'timedelta_last_obst': X[:, 1]})
+
+    matrix_df = dat1.join(dat2)
+    sb.pairplot(matrix_df, hue='class')
+    save_plot(plt, 'Features/', 'correlation.pdf')
+
+    # Plot features and labels in a scatter plot and the histogram on top
+    g = sns.jointplot(X[:, 0], X[:, 1])
+    g.ax_joint.cla()
+    plt.sca(g.ax_joint)
+    colors = [red_color if i == 1 else green_color for i in y]
+    plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
+    plt.xticks([0, 1])
+    plt.xlabel(['no', 'yes'])
+    plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
+    plt.ylabel("timedelta_last_obst")
+    plt.xlabel("last_obstacle_crash")
+    green_patch = mpatches.Patch(color=green_color, label='no crash')
+    red_patch = mpatches.Patch(color=red_color, label='crash')
+
+    plt.legend(handles=[red_patch, green_patch])
+    save_plot(plt, 'Features/', 'correlation_distr.pdf')
+
+    # Plot NearestNeighborClassifier decision boundaries
+    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
+    h = .02
+    clf = neighbors.KNeighborsClassifier()
+    clf.fit(X, y)
+
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+        np.arange(y_min, y_max, h))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+
+    Z = Z.reshape(xx.shape)
+    plt.figure()
+    plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
+
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.title("3-Class classification (k = %i)"
+              % clf.n_neighbors)
+    save_plot(plt, 'Features/', 'KNN_boundaries.pdf')
 
 
 """
@@ -560,7 +645,6 @@ def plot_crashes_vs_size_of_obstacle():
             sizeOfObstacle = row['numObstacles']
             num_crashes_per_size[sizeOfObstacle] += 1
 
-
     percentage_of_crashes = [0 if (x == 0 or y == 0) else x / y *100.0 for x, y in
                              zip(num_crashes_per_size, num_obstacles_per_size)]
 
@@ -659,8 +743,8 @@ def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         # Rescale values
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaler.fit(np.array(timedelta_crash + timedelta_no_crash).reshape(-1, 1))
-        timedelta_crash = scaler.transform(np.array(timedelta_crash).reshape(-1, 1))  # Rescale between 0 and 1
-        timedelta_no_crash = scaler.transform(np.array(timedelta_no_crash).reshape(-1, 1))  # Rescale between 0 and 1
+        # timedelta_crash = scaler.transform(np.array(timedelta_crash).reshape(-1, 1))  # Rescale between 0 and 1
+        # timedelta_no_crash = scaler.transform(np.array(timedelta_no_crash).reshape(-1, 1))  # Rescale between 0 and 1
 
         # Evaluation
         mean_when_crash = np.mean(timedelta_crash)
@@ -670,8 +754,9 @@ def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         # print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
         #      str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
         #      idx, sd.names_logfiles[idx])
+
         _, _ = plt.subplots()
-        plt.ylim(0, 0.8)
+        plt.ylim(0, 1.2)
         plt.ylabel('Feature value')
         plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_no_crash)
         plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_crash, label='Crash')
@@ -681,3 +766,6 @@ def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
 
         filename = str(idx) + '_crash.pdf'
         save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)
+
+
+

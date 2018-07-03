@@ -63,7 +63,6 @@ def main(args):
 
     # model_factory.test_clf_with_timedelta_only()
     # plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
-
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
 
@@ -111,7 +110,7 @@ def main(args):
 
     if args.get_trained_lstm:
         print("\n################# Get trained LSTM #################\n")
-        LSTM.get_trained_lstm_classifier(X, y)
+        LSTM.get_trained_lstm_classifier(X, y, n_epochs=args.get_trained_lstm[0])
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")
@@ -126,6 +125,7 @@ def main(args):
 
 
 def plot_features(X, y):
+    plots.plot_corr_knn_distr(X, y)
 
     plots.plot_feature_distributions(X)
 
@@ -140,7 +140,7 @@ def plot_logfiles():
     if not args.do_not_normalize_heartrate:
         print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
     plots.crashes_per_obstacle_arrangement()
-    plots.plot_crashes_vs_size_of_obstacle()
+    # plots.plot_crashes_vs_size_of_obstacle()
     plots.plot_hr_vs_difficulty_scatter_plot()
     plots.print_obstacle_information()
     plots.plot_difficulty_vs_size_obstacle_scatter_plot()
@@ -186,8 +186,6 @@ if __name__ == "__main__":
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
 
-
-
     parser.add_argument(
         "-l",
         "--leave_one_out",
@@ -199,8 +197,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--get_trained_lstm",
-        action="store_true",
-        help="Get a trained LSTM classifier",
+        type=int,
+        nargs=1,
+        help="Train an LSTM newtwork with n_epochs",
+        metavar='n_epochs',
     )
 
     parser.add_argument(

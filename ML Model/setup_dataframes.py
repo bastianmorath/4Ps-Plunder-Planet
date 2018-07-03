@@ -58,7 +58,9 @@ def setup(fewer_data=False, normalize_heartrate=True):
         refactoring.refactor_crashes()
 
     all_names = [
-        f for f in sorted(os.listdir(abs_path_logfiles)) if re.search(r".log", f)
+        f
+        for f in sorted(os.listdir(abs_path_logfiles))
+        if re.search(r".{0,}_hr.{0,}.log", f)
     ]
 
     kinect_names_hr = [
@@ -80,7 +82,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
 
     if fewer_data:
         # globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
-        globals()["names_logfiles"] = ['TW_FBMC_hr_1.log', 'Is_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
+        globals()["names_logfiles"] = ['Is_FBMC_hr_1.log']
 
     column_names = [
         "Time",
@@ -211,7 +213,11 @@ def normalize_heartrate_of_logfiles():
             baseline = dataframe[dataframe["Time"] < tutorial_endtime]["Heartrate"].min() # Use MINIMUM of tutorial 
             if baseline == -1:
                 print('ERROR: No Heartrate data!!!')
+                baseline = 120
 
+            if baseline == 0:
+                print('ERROR: Heartrate data corrupted!!!')
+                baseline = dataframe[dataframe["Time"] < tutorial_endtime]["Heartrate"].mean()
             dataframe["Heartrate"] = dataframe["Heartrate"] / baseline
 
             normalized_df_list.append(dataframe)
@@ -234,7 +240,8 @@ def remove_movement_tutorials():
             tutorial_mask = dataframe['Gamemode'] == 'MOVEMENTTUTORIAL'
             tutorial_entries = dataframe[tutorial_mask]
             tutorial_endtime = tutorial_entries['Time'].max()
-            dataframe['Time'] = dataframe['Time'].apply(lambda x: x - tutorial_endtime)  # Adjust time by removing time of tutorial
+            # Adjust time by removing time of tutorial
+            dataframe['Time'] = dataframe['Time'].apply(lambda x: x - tutorial_endtime)
 
             dataframe_list_with_tutorials_removed.append(dataframe[~tutorial_mask].reset_index(drop=True))
         else:
