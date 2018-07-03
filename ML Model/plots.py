@@ -196,7 +196,7 @@ def plot_correlation_matrix(X):
     sns.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
 
-    plt.tight_layout()
+    # plt.tight_layout()
     if f_factory.use_reduced_features:
         save_plot(plt, 'Features/', 'correlation_matrix_reduced_features.pdf')
 
@@ -294,29 +294,14 @@ def plot_feature(X, i):
 def plot_corr_knn_distr(X, y):
     """
     Creates 3 plots using seaborn
-    1. Correlations between different features and classlabels
+    1. Correlations between different features and class labels
     2. Features and labels in a scatter plot and the histogram on top
     3. NearestNeighborClassifier decision boundaries
 
-    IMPORTANT: It might be best if only the feature matrix of ONE logfile is passed
     :param X: Feature matrix
     :param y: labels
 
     """
-
-    def get_i_th_feature_matrix_and_labels(i):
-        feature_matrices = []
-        label_lists = []
-        obstacles_so_far = 0
-        for df in sd.obstacle_df_list:
-            num_obstacles = len(df.index)
-            feature_matrices.append(X.take(range(obstacles_so_far, obstacles_so_far + num_obstacles), axis=0))
-            label_lists.append(y[obstacles_so_far:obstacles_so_far + num_obstacles])
-            obstacles_so_far += num_obstacles
-
-        return feature_matrices[i], label_lists[i]
-
-    X, y = get_i_th_feature_matrix_and_labels(0)
 
     print('Ploting correlations and knn boundaries')
 
@@ -328,22 +313,47 @@ def plot_corr_knn_distr(X, y):
     sb.pairplot(matrix_df, hue='class')
     save_plot(plt, 'Features/', 'correlation.pdf')
 
-    # Plot features and labels in a scatter plot and the histogram on top
-    g = sns.jointplot(X[:, 0], X[:, 1])
-    g.ax_joint.cla()
-    plt.sca(g.ax_joint)
-    colors = [red_color if i == 1 else green_color for i in y]
-    plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
-    plt.xticks([0, 1])
-    plt.xlabel(['no', 'yes'])
-    plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
-    plt.ylabel("timedelta_last_obst")
-    plt.xlabel("last_obstacle_crash")
-    green_patch = mpatches.Patch(color=green_color, label='no crash')
-    red_patch = mpatches.Patch(color=red_color, label='crash')
+    # Split up feature matrix into one matrix for each logfile
+    feature_matrices = []
+    label_lists = []
+    obstacles_so_far = 0
+    for df in sd.obstacle_df_list:
+        num_obstacles = len(df.index)
+        feature_matrices.append(X.take(range(obstacles_so_far, obstacles_so_far + num_obstacles), axis=0))
+        label_lists.append(y[obstacles_so_far:obstacles_so_far + num_obstacles])
+        obstacles_so_far += num_obstacles
 
-    plt.legend(handles=[red_patch, green_patch])
-    save_plot(plt, 'Features/', 'correlation_distr.pdf')
+    X_old = X
+    y_old = y
+    # Plot features and labels in a scatter plot and the histogram on top
+    for i in range(0, len(sd.df_list)+1):
+        if i == len(sd.df_list):  # Do the plot with the entire feature matrix
+            X = X_old
+            y = y_old
+        else:
+            X = feature_matrices[i]
+            y = label_lists[i]
+
+        g = sns.jointplot(X[:, 0], X[:, 1])
+        g.ax_joint.cla()
+        plt.sca(g.ax_joint)
+        colors = [red_color if i == 1 else green_color for i in y]
+        plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
+        plt.xticks([0, 1])
+        plt.xlabel(['no', 'yes'])
+        plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
+        plt.ylabel("timedelta_last_obst")
+        plt.xlabel("last_obstacle_crash")
+        green_patch = mpatches.Patch(color=green_color, label='no crash')
+        red_patch = mpatches.Patch(color=red_color, label='crash')
+
+        plt.legend(handles=[red_patch, green_patch])
+
+        if i == len(sd.df_list):
+            save_plot(plt, 'Features/Correlations/', 'correlation_distr_all.pdf')
+
+        else:
+            save_plot(plt, 'Features/Correlations/', 'correlation_distr' + str(i) + '.pdf')
 
     # Plot NearestNeighborClassifier decision boundaries
     cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])

@@ -62,7 +62,8 @@ def main(args):
             )
 
     # model_factory.test_clf_with_timedelta_only()
-    # plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+    plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
 
