@@ -19,7 +19,7 @@ import seaborn as sb
 import seaborn as sns
 import setup_dataframes as sd
 import features_factory as f_factory
-import helper_plots as hp
+import plots_helpers as hp
 
 
 green_color = '#AEBD38'

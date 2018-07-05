@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import (LeaveOneGroupOut, cross_val_predict)
 
 
-import feature_plots
+import plots_features
 import setup_dataframes as sd
 import features_factory as f_factory
 import classifiers
@@ -140,7 +140,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
     if plot_auc_score_per_user:
         title = r'Auc scores per user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, auc_mean, auc_std)
         filename = 'LeaveOneOut/performance_per_user_' + clf_name + '.pdf'
-        feature_plots.plot_barchart(title, 'Users', 'Auc score', names, aucs, 'auc_score', filename, verbose=False)
+        plots_features.plot_barchart(title, 'Users', 'Auc score', names, aucs, 'auc_score', filename, verbose=False)
 
     y_pred = cross_val_predict(model, X, y, cv=logo.split(X, y, groups_ids))
 
@@ -168,7 +168,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
 
     r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
                  alpha=opacity,
-                 color=feature_plots.blue_color,
+                 color=plots_features.blue_color,
                  label='roc_auc normal CV',
                  yerr=auc_stds_scenario_1,
                  error_kw={'elinewidth': 0.8}
@@ -176,7 +176,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
 
     r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
                  alpha=opacity,
-                 color=feature_plots.red_color,
+                 color=plots_features.red_color,
                  label='roc_auc LeaveOneGroupOut CV',
                  yerr=auc_stds_scenario_2,
                  error_kw={'elinewidth': 0.8},
@@ -203,7 +203,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
 
     plt.tight_layout()
 
-    feature_plots.save_plot(plt, 'Performance/LeaveOneOut/', 'clf_performance_with_user_left_out_vs_normal.pdf')
+    plots_features.save_plot(plt, 'Performance/LeaveOneOut/', 'clf_performance_with_user_left_out_vs_normal.pdf')
 
 
 def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):

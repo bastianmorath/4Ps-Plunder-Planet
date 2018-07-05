@@ -21,7 +21,7 @@ import tensorflow as tf
 
 import model_factory
 import setup_dataframes as sd
-import feature_plots
+import plots_features
 
 _maxlen = 0
 
@@ -143,7 +143,7 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
     plt.ylabel('roc_auc')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    feature_plots.save_plot(plt, 'Performance/LSTM/', 'LSTM roc_auc')
+    plots_features.save_plot(plt, 'Performance/LSTM/', 'LSTM roc_auc')
 
     # summarize history for loss
     plt.plot(history.history['loss'])
@@ -152,7 +152,7 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    feature_plots.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
+    plots_features.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
 
     return model
 

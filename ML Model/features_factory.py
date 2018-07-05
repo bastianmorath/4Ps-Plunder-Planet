@@ -14,7 +14,7 @@ import itertools
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 import setup_dataframes as sd
-import feature_plots
+import plots_features
 import synthesized_data
 
 """INITIALIZATION"""
@@ -188,7 +188,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     scaler = MinMaxScaler(feature_range=(0, 1))
     X = scaler.fit_transform(X)  # Rescale between 0 and 1
 
-    feature_plots.plot_correlation_matrix(matrix)
+    plots_features.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')
 

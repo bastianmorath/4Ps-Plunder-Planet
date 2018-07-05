@@ -19,7 +19,7 @@ from sklearn.calibration import CalibratedClassifierCV
 
 import features_factory as f_factory
 import setup_dataframes as sd
-import feature_plots
+import plots_features
 import classifiers
 import setup_dataframes
 import hyperparameter_optimization
@@ -61,7 +61,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     if verbose:
         print('Calculating performance of %s...' % clf_name)
 
-    sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
     # Compute performance scores
     y_pred = cross_val_predict(model, X, y, cv=5)
@@ -84,7 +83,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     roc_auc_std = roc_aucs_.std()
 
     if clf_name == 'Decision Tree':
-        feature_plots.plot_graph_of_decision_classifier(model, X, y)
+        plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
@@ -150,7 +149,7 @@ def feature_selection(X, y, verbose=False):
     plt.xlim([-1, X.shape[1]])
     plt.tight_layout()
 
-    feature_plots.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
+    plots_features.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
 
     return X_new, y
 
@@ -222,7 +221,7 @@ def plot_roc_curve(classifier, X, y, filename, title='ROC'):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
-    feature_plots.save_plot(plt, 'Performance/Roc Curves/', filename)
+    plots_features.save_plot(plt, 'Performance/Roc Curves/', filename)
 
 
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):
@@ -352,7 +351,7 @@ def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filen
     :param filename: name of the file
     """
 
-    feature_plots.plot_barchart(title=title,
+    plots_features.plot_barchart(title=title,
                         xlabel='Classifier',
                         ylabel='Performance',
                         x_tick_labels=names,

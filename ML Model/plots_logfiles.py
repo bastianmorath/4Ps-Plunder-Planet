@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import setup_dataframes as sd
 import features_factory as f_factory
-import helper_plots as hp
+import plots_helpers as hp
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
@@ -20,8 +20,49 @@ Plots concerned with logfiles
 """
 
 
+def plot_heartrate_and_events():
+    print("Plotting heartrate and events...")
+    resolution = 3
+
+    for idx, df in enumerate(sd.df_list):
+        if not (df['Heartrate'] == -1).all():
+
+            df_num_resampled = hp.resample_dataframe(df, resolution)
+            df_num_resampled = df
+            # Plot Heartrate
+            _, ax1 = plt.subplots()
+            ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color, linewidth=1.0)
+            ax1.set_xlabel('Playing time [s]')
+            ax1.set_ylabel('Heartrate', color=blue_color)
+            ax1.tick_params('y', colors=blue_color)
+
+            # Plot crashes
+            times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
+            heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
+                                 for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
+
+            # for xc, yc in zip(times_crashes, heartrate_crashes):
+            plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.')
+
+            # Plot Brokenships
+            times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'BROKENSHIP']
+            hr_max = df['Heartrate'].max()
+            hr_min = df['Heartrate'].min()
+            for xc in times_repairing:
+                plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1)
+
+            # Plot worms appearing
+            times_worms = [row['Time'] for _, row in df.iterrows()
+                           if (row['obstacle'] == 'FARBOTTOMLEFT') or (row['obstacle'] == 'FARBOTTOMRIGHT')]
+            heartrate_worms = [df[df['Time'] == time].iloc[0]['Heartrate'] for time in times_worms]
+            # plt.scatter(times_worms, heartrate_worms, c='g', marker='o', s=15)
+
+            filename = 'hr_and_events_' + sd.names_logfiles[idx] + '.pdf'
+            hp.save_plot(plt, 'Logfiles/Heartrate_Events/', filename)
+
+
 def plot_hr_of_dataframes():
-    """Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
+    """Generates one heartrate plot for each dataframes (Used to compare normalized hr to original hr)
         Only works for real data at the moment, because of name_logfile not existing if synthesized_data...
 
     :return:

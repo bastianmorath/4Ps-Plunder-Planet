@@ -10,7 +10,7 @@ import argparse
 
 
 import setup_dataframes
-import feature_plots
+import plots_features
 import synthesized_data
 import features_factory as f_factory
 import window_optimization
@@ -19,8 +19,8 @@ import model_factory
 import leave_one_group_out_cv
 import LSTM
 import classifiers
-import feature_plots as fp
-import logfile_plots as lp
+import plots_features as fp
+import plots_logfiles as lp
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
@@ -63,6 +63,8 @@ def main(args):
                 feature_selection=f_factory.use_reduced_features,
                 use_boxcox=False,
             )
+
+    setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
     # model_factory.test_clf_with_timedelta_only()
 
@@ -131,6 +133,7 @@ def main(args):
 
 
 def plot_features(X, y):
+
     fp.plot_corr_knn_distr(X, y)
     fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     fp.plot_feature_distributions(X)
@@ -143,6 +146,7 @@ def plot_features(X, y):
 def plot_logfiles():
     if not args.do_not_normalize_heartrate:
         print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
+    lp.plot_heartrate_and_events()
     lp.crashes_per_obstacle_arrangement()
     # plots.plot_crashes_vs_size_of_obstacle()
     lp.plot_hr_vs_difficulty_scatter_plot()
