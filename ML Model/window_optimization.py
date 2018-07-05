@@ -1,5 +1,5 @@
 
-"""This is the main file to find the best window-sizes. For this, we do RandomSearchCV for the SVM
+"""This is the main file to find the best window-sizes. For this, we do RandomizedSearchCV for the SVM
     classifier and find the roc_auc for different windowsizes.
 
     ...

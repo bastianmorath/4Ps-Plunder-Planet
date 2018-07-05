@@ -5,7 +5,7 @@ Feature matrix and labels created!
 
 ################# Calculating performance with hyperparameter tuning #################
 
-Doing RandomSearchCV with n_iter=3000 for Decision Tree...
+Doing RandomizedSearchCV with n_iter=3000 for Decision Tree...
 ******** Scores of best 3 hyperparameter configurations ********
 	Model with rank: 1
 		Mean validation score: 0.989 (std: 0.005)

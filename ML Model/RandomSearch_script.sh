@@ -1,6 +1,6 @@
 
 # This script tries out different window sizes and sends a job to the Euler-cluster which
-# does RandomSearchCV for all classifiers
+# does RandomizedSearchCV for all classifiers
 
 # for gradient_w in 2 5 10 30
 # do

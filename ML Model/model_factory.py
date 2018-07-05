@@ -19,7 +19,7 @@ from sklearn.calibration import CalibratedClassifierCV
 
 import features_factory as f_factory
 import setup_dataframes as sd
-import plots
+import feature_plots
 import classifiers
 import setup_dataframes
 import hyperparameter_optimization
@@ -31,7 +31,7 @@ def get_tuned_params_dict(model, tuned_params_keys):
     Used for printing out scores
 
     :param model: Model, such that we can extract the parameters from
-    :param tuned_params_keys: Parameters that we tuned in RandomSearchCV
+    :param tuned_params_keys: Parameters that we tuned in RandomizedSearchCV
 
     :return: Dictionary with tuned parameters and its values
     """
@@ -82,9 +82,9 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     precision_std = precisions_.std()
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
-    # print(roc_auc_mean, metrics.roc_auc_score(y, y_pred))
+
     if clf_name == 'Decision Tree':
-        plots.plot_graph_of_decision_classifier(model, X, y)
+        feature_plots.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
@@ -150,7 +150,7 @@ def feature_selection(X, y, verbose=False):
     plt.xlim([-1, X.shape[1]])
     plt.tight_layout()
 
-    plots.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
+    feature_plots.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
 
     return X_new, y
 
@@ -222,7 +222,7 @@ def plot_roc_curve(classifier, X, y, filename, title='ROC'):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
-    plots.save_plot(plt, 'Performance/Roc Curves/', filename)
+    feature_plots.save_plot(plt, 'Performance/Roc Curves/', filename)
 
 
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):
@@ -259,7 +259,7 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     :param clf_names: names of the classifiers
     :param X: feature matrix
     :param y: labels
-    :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomSearchCV) -> To simplify printing scores
+    :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomizedSearchCV) -> To simplify printing scores
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_roc_curves: Create roc_curves
     :param write_to_file: Write summary of performance into a file (optional)
@@ -319,7 +319,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     :param y:
     :param tune_hyperparameters:
     :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
-    :param num_iter: if tune_hyperparameters==True, then how many iterations should be done in RandomSearchCV
+    :param num_iter: if tune_hyperparameters==True, then how many iterations should be done in RandomizedSearchCV
 
     :return list of roc_auc means, list of roc_auc_stds
     """
@@ -352,7 +352,7 @@ def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filen
     :param filename: name of the file
     """
 
-    plots.plot_barchart(title=title,
+    feature_plots.plot_barchart(title=title,
                         xlabel='Classifier',
                         ylabel='Performance',
                         x_tick_labels=names,

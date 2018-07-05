@@ -10,7 +10,7 @@ import argparse
 
 
 import setup_dataframes
-import plots
+import feature_plots
 import synthesized_data
 import features_factory as f_factory
 import window_optimization
@@ -19,17 +19,19 @@ import model_factory
 import leave_one_group_out_cv
 import LSTM
 import classifiers
+import feature_plots as fp
+import logfile_plots as lp
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 
-_num_iter = 1
+_num_iter = 10 # NUmber of iterations when doing hyperparameter tuning with RandomizedSearchCV
 
 
 def main(args):
     start = time.time()
-    f_factory.use_reduced_features = not args.no_feature_selection
+    f_factory.use_reduced_features = not args.all_features
 
     assert (not (args.use_synthesized_data and args.leave_one_group_out)), \
         'Can\'t do leave_one_group_out with synthesized data'
@@ -129,39 +131,39 @@ def main(args):
 
 
 def plot_features(X, y):
-    plots.plot_corr_knn_distr(X, y)
-    plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
-    plots.plot_feature_distributions(X)
-    plots.plot_heartrate_histogram()
-    plots.plot_mean_value_of_feature_at_crash(X, y)
+    fp.plot_corr_knn_distr(X, y)
+    fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+    fp.plot_feature_distributions(X)
+    fp.plot_mean_value_of_feature_at_crash(X, y)
 
     for i in range(0, len(f_factory.feature_names)):
-        plots.plot_feature(X, i)
+        fp.plot_feature(X, i)
 
 
 def plot_logfiles():
     if not args.do_not_normalize_heartrate:
         print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
-    plots.crashes_per_obstacle_arrangement()
+    lp.crashes_per_obstacle_arrangement()
     # plots.plot_crashes_vs_size_of_obstacle()
-    plots.plot_hr_vs_difficulty_scatter_plot()
-    plots.print_obstacle_information()
-    plots.plot_difficulty_vs_size_obstacle_scatter_plot()
-    plots.plot_hr_or_points_corr_with_difficulty('Heartrate')
-    plots.plot_hr_or_points_corr_with_difficulty('Points')
-    plots.plot_heartrate_change()
-    plots.plot_mean_and_std_hr_boxplot()
-    plots.plot_hr_of_dataframes()
-    plots.plot_average_hr_over_all_logfiles()
+    lp.plot_hr_vs_difficulty_scatter_plot()
+    lp.print_obstacle_information()
+    lp.plot_difficulty_vs_size_obstacle_scatter_plot()
+    lp.plot_hr_or_points_corr_with_difficulty('Heartrate')
+    lp.plot_hr_or_points_corr_with_difficulty('Points')
+    lp.plot_heartrate_change()
+    lp.plot_mean_and_std_hr_boxplot()
+    lp.plot_hr_of_dataframes()
+    lp.plot_average_hr_over_all_logfiles()
+    lp.plot_heartrate_histogram()
 
 
 if __name__ == "__main__":
-    # Add user-friendly command-line interface to enter windows and RandomSearchCV parameters etc.
+    # Add user-friendly command-line interface to enter windows and RandomizedSearchCV parameters etc.
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "-w",
+        "-p",
         "--performance_without_tuning",
         type=str,
         help="Outputs detailed scores of the given classifier without doing hyperparameter tuning."
@@ -170,16 +172,16 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-o",
+        "-t",
         "--performance_with_tuning",
         type=str,
-        help="Optimizes the given classifier with RandomSearchCV and outputs detailed scores."
+        help="Optimizes the given classifier with RandomizedSearchCV and outputs detailed scores."
              " Set clf_name='all' if you want to test all classifiers",
         metavar='clf_name',
     )
 
     parser.add_argument(
-        "-t",
+        "-w",
         "--test_windows",
         type=int,
         nargs=3,
@@ -190,7 +192,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-l",
+        "-g",
         "--leave_one_group_out",
         action="store_true",
         help="Plot performance when leaving out a logfile "
@@ -222,7 +224,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-p",
+        "-l",
         "--generate_plots_about_logfiles",
         action="store_true",
         help="Generates different plots from the logfiles (Look at main.py for details) and stores it "
@@ -231,21 +233,21 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-s",
-        "--no_feature_selection",
+        "-a",
+        "--all_features",
         action='store_true',
-        help="Do not do feature selection with cross_correlation matrix"
+        help="Do not do feature selection with cross_correlation matrix, but use all features instead"
     )
 
     parser.add_argument(
-        "-d",
+        "-s",
         "--use_synthesized_data",
         action="store_true",
         help="Use synthesized data. Might not work with everything."  # TODO
     )
 
     parser.add_argument(
-        "-n",
+        "-d",
         "--do_not_normalize_heartrate",
         action="store_true",
         help="Do not normalize heartrate (e.g. if you want plots or values with real heartrate)",

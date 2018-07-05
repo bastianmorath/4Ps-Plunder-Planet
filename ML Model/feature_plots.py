@@ -1,0 +1,339 @@
+"""
+This module is responsible for plotting various things
+
+"""
+import matplotlib
+matplotlib.use('Agg')
+
+import graphviz
+from sklearn import tree, neighbors
+from sklearn.preprocessing import MinMaxScaler
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.colors import ListedColormap
+import numpy as np
+import pandas as pd
+import seaborn as sb
+
+import seaborn as sns
+import setup_dataframes as sd
+import features_factory as f_factory
+import helper_plots as hp
+
+
+green_color = '#AEBD38'
+blue_color = '#68829E'
+red_color = '#A62A2A'
+
+"""
+Plots concerned with features
+
+"""
+
+
+def plot_graph_of_decision_classifier(model, X, y):
+    """Stores the Decision Classifier Tree in a graph and plots a barchart of the feature_importances
+
+    :param model: Fitted decision Classifier instance
+    :param X: Feature matrix
+    :param y: labels
+
+    """
+
+    # Set class_weight to balanced, such that the graph makes more sense to interpret.
+    # I do not do this when actually predicting values  because the performance is better
+    params_sdecicion_tree = {"class_weight": "balanced", "max_depth": 4}
+    model.set_params(**params_sdecicion_tree)
+    model.fit(X, y)
+
+    sorted_importances = sorted(model.feature_importances_, reverse=True)
+    sorted_feature_names = [x for _, x in
+                            sorted(zip(model.feature_importances_, f_factory.feature_names), reverse=True)]
+
+    hp.plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
+                        sorted_feature_names, sorted_importances,
+                        'Importance', 'feature_importances.pdf')
+
+    tree.export_graphviz(
+        model,
+        out_file='decision_tree_graph',
+        feature_names=f_factory.feature_names,
+        class_names=['no crash', 'crash'],
+        filled=True,
+        rounded=True,
+        proportion=True,
+        special_characters=True,
+    )
+    graphviz.render('dot', 'pdf', 'decision_tree_graph')
+
+
+def plot_correlation_matrix(X):
+    """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
+
+        Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
+
+    :param X: feature matrix
+    """
+
+    corr = X.corr()
+    sns.set(style="white")
+    # Generate a mask for the upper triangle
+    mask = np.zeros_like(corr, dtype=np.bool)
+    mask[np.triu_indices_from(mask)] = True
+    # Set up the matplotlib figure
+    plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
+    # Generate a custom diverging colormap
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
+                square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
+
+    # plt.tight_layout()
+    if f_factory.use_reduced_features:
+        hp.save_plot(plt, 'Features/', 'correlation_matrix_reduced_features.pdf')
+
+    else:
+        hp.save_plot(plt, 'Features/', 'correlation_matrix_all_features.pdf')
+
+
+def plot_feature_distributions(X):
+    """Plots the distribution of the features in separate plots
+
+    :param X: Feature matrix
+    """
+
+    print("Plotting histogram of each feature...")
+
+    f_names = f_factory.feature_names
+    for idx, feature in enumerate(f_names):
+        x = X[:, idx]
+        plt.figure()
+        if feature == 'timedelta_to_last_obst':
+            plt.hist(x, bins=np.arange(np.mean(x) - 2 * np.std(x), np.mean(x) + 2* np.std(x), 0.005))
+        else:
+            plt.hist(x)
+
+        plt.title(feature)
+        plt.tight_layout()
+        filename = feature + '.pdf'
+        hp.save_plot(plt, 'Features/Feature_distributions/', filename)
+
+
+def plot_mean_value_of_feature_at_crash(X, y):
+    """For each feature, print the average of it when there was a crash vs. there was no crash
+
+    :param X: Feature matrix
+    :param y: labels
+
+    """
+
+    print("Plotting mean value of each feature when crash vs no crash happened...")
+
+    # TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
+
+    rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
+    rows_without_crash = [val for (idx, val) in enumerate(X) if y[idx] == 0]
+    # Iterate over all features and plot corresponding plot
+    for i in range(0, len(X[0])):
+        mean_when_crash = np.mean([l[i] for l in rows_with_crash])
+        mean_when_no_crash = np.mean([l[i] for l in rows_without_crash])
+        std_when_crash = np.std([l[i] for l in rows_with_crash])
+        std_when_no_crash = np.std([l[i] for l in rows_without_crash])
+
+
+        _, _ = plt.subplots()
+
+        plt.bar(1,  mean_when_no_crash, width=0.5, yerr=std_when_crash)
+        plt.bar(2,  mean_when_crash, width=0.5, yerr=std_when_no_crash)
+        plt.ylim(0)
+        plt.xticks([1, 2], ['No crash', 'Crash'])
+
+        plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
+
+        filename = str(f_factory.feature_names[i]) + '_crash.pdf'
+        hp.save_plot(plt, 'Features/Crash Correlation/', filename)
+
+
+def plot_feature(X, i):
+    """Plots the feature at position i of each logfile over time
+
+    :param X: Feature matrix
+    :param i: Feature index to plot (look at features_factoy for order)
+
+    """
+        
+    print('Plotting feature ' + f_factory.feature_names[i] + ' of each logfile over time...')
+
+    # df_num_resampled = resample_dataframe(samples, resolution)
+    # first dataframe only
+    feature_name = f_factory.feature_names[i]
+    for idx, df in enumerate(sd.df_list):
+        times = sd.obstacle_df_list[idx]['Time']
+        start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
+        samples = list(X[start:start+len(times), i])
+        _, ax1 = plt.subplots()
+
+        ax1.plot(times, samples, c=red_color)
+        ax1.set_xlabel('Playing time [s]')
+        ax1.set_ylabel(feature_name, color=blue_color)
+        plt.title('Feature ' + feature_name + ' for user ' + str(idx))
+        ax1.tick_params('y', colors=blue_color)
+
+        filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
+        hp.save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
+
+
+def plot_corr_knn_distr(X, y):
+    """
+    Creates 3 plots using seaborn
+    1. Correlations between different features and class labels
+    2. Features and labels in a scatter plot and the histogram on top
+    3. NearestNeighborClassifier decision boundaries
+
+    :param X: Feature matrix
+    :param y: labels
+
+    """
+
+    print('Plotting correlations and knn boundaries')
+    f1 = 'last_obstacle_crash'
+    f2 = 'timedelta_to_last_obst'
+    # Plot correlations between different features and classlabels
+    dat2 = pd.DataFrame({'class': y})
+    dat1 = pd.DataFrame({f1: X[:, 0], f2: X[:, 1]})
+
+    matrix_df = dat1.join(dat2)
+    sb.pairplot(matrix_df, hue='class')
+    hp.save_plot(plt, 'Features/', 'correlation.pdf')
+
+    # Split up feature matrix into one matrix for each logfile
+    feature_matrices = []
+    label_lists = []
+    obstacles_so_far = 0
+    for df in sd.obstacle_df_list:
+        num_obstacles = len(df.index)
+        feature_matrices.append(X.take(range(obstacles_so_far, obstacles_so_far + num_obstacles), axis=0))
+        label_lists.append(y[obstacles_so_far:obstacles_so_far + num_obstacles])
+        obstacles_so_far += num_obstacles
+
+    X_old = X
+    y_old = y
+    # Plot features and labels in a scatter plot and the histogram on top
+    for i in range(0, len(sd.df_list)+1):
+        if i == len(sd.df_list):  # Do the plot with the entire feature matrix
+            X = X_old
+            y = y_old
+        else:
+            X = feature_matrices[i]
+            y = label_lists[i]
+
+        g = sns.jointplot(X[:, 0], X[:, 1])
+        g.ax_joint.cla()
+        plt.sca(g.ax_joint)
+        colors = [red_color if i == 1 else green_color for i in y]
+        plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
+        plt.xticks([0, 1])
+        plt.xlabel(['no', 'yes'])
+        plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
+        plt.ylabel(f2)
+        plt.xlabel(f1)
+        green_patch = mpatches.Patch(color=green_color, label='no crash')
+        red_patch = mpatches.Patch(color=red_color, label='crash')
+
+        plt.legend(handles=[green_patch, red_patch])
+
+        if i == len(sd.df_list):
+            hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr_all.pdf')
+        else:
+            hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr' + str(i) + '.pdf')
+
+    # Plot NearestNeighborClassifier decision boundaries
+    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
+    h = .02
+    clf = neighbors.KNeighborsClassifier()
+    clf.fit(X, y)
+
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+
+    Z = Z.reshape(xx.shape)
+    plt.figure()
+    plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
+
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.title("2-Class classification (k = %i)"
+              % clf.n_neighbors)
+    hp.save_plot(plt, 'Features/', 'KNN_boundaries.pdf')
+
+
+def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
+    """Plots for each logfile the mean and std of timedelta_to_last_obst at each obstacle  and if a crash or not happened
+
+    :return:
+    """
+    for idx, df in enumerate(sd.obstacle_df_list):
+        timedelta_crash = []
+        timedelta_no_crash = []
+        computed_timedeltas = []
+        for i in range(0, len(df.index)):
+            current_obstacle_row = df.iloc[i]
+            previous_obstacle_row = df.iloc[i-1] if i > 0 else current_obstacle_row
+            timedelta = current_obstacle_row['Time'] - previous_obstacle_row['Time']
+
+            # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
+            # clamp to c.a. the average
+            if timedelta > 3 or timedelta < 1:
+                timedelta = 2
+
+            if do_normalize:
+                # Normalization (since timedelta over time decreases slightly)
+                if len(computed_timedeltas) >= 1:
+                    normalized = timedelta / computed_timedeltas[-1]
+                else:
+                    normalized = 1
+
+                if current_obstacle_row['crash']:
+                    timedelta_crash.append(normalized)
+                else:
+                    timedelta_no_crash.append(normalized)
+            else:
+                if current_obstacle_row['crash']:
+                    timedelta_crash.append(timedelta)
+                else:
+                    timedelta_no_crash.append(timedelta)
+
+            computed_timedeltas.append(timedelta)
+
+        # Rescale values
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaler.fit(np.array(timedelta_crash + timedelta_no_crash).reshape(-1, 1))
+        # timedelta_crash = scaler.transform(np.array(timedelta_crash).reshape(-1, 1))  # Rescale between 0 and 1
+        # timedelta_no_crash = scaler.transform(np.array(timedelta_no_crash).reshape(-1, 1))  # Rescale between 0 and 1
+
+        # Evaluation
+        mean_when_crash = np.mean(timedelta_crash)
+        mean_when_no_crash = np.mean(timedelta_no_crash)
+        std_when_crash = np.std(timedelta_crash)
+        std_when_no_crash = np.std(timedelta_no_crash)
+        # print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
+        #      str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
+        #      idx, sd.names_logfiles[idx])
+
+        _, _ = plt.subplots()
+        plt.ylim(0, 1.2)
+        plt.ylabel('Feature value')
+        plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_no_crash)
+        plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_crash, label='Crash')
+        plt.xticks([1, 2], ['No crash', 'Crash'])
+        # print(idx, sd.names_logfiles[idx])
+        plt.title('Average timedelta value for logfile ' + str(idx) + ' when crash or not crash')
+
+        filename = str(idx) + '_crash.pdf'
+        hp.save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)

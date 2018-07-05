@@ -1,4 +1,4 @@
-"""This module takes a classifier name and n_iter and does RandomSearchCV to find the best hyperparameters of the
+"""This module takes a classifier name and n_iter and does RandomizedSearchCV to find the best hyperparameters of the
 
 classifier with this name.
 """
@@ -16,7 +16,7 @@ import seaborn as sns
 
 import model_factory
 import classifiers
-import plots
+import feature_plots
 import features_factory as f_factory
 import synthesized_data
 
@@ -24,7 +24,7 @@ import synthesized_data
 def report(results, n_top=3):
     """Prints a  report with the scores from the n_top hyperparameter configurations with the best score
 
-    :param results: cv_results of GridSearch/RandomSearchCV
+    :param results: cv_results of GridSearch/RandomizedSearchCV
     :param n_top: Best n_top hyperparameter configurations should be displayed
 
     """
@@ -43,13 +43,13 @@ def report(results, n_top=3):
 
 
 def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
-    """This method optimizes hyperparameters with cross-validation using RandomSearchCV, optionally creates a ROC curve
+    """This method optimizes hyperparameters with cross-validation using RandomizedSearchCV, optionally creates a ROC curve
         and returns this optimized classifier and the tuned parameters
 
     :param X: Feature matrix
     :param y: labels
     :param clf_name:  Name of the classifier as given in classifiers.py
-    :param num_iter: Number of iterations the RandomSearchCV should perform
+    :param num_iter: Number of iterations the RandomizedSearchCV should perform
     :param verbose: Whether scores of top hyperparameter configurations should be printed out
 
     :return: optimized classifier, dictionary of tuned_params
@@ -58,7 +58,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, v
 
     c_classifier = classifiers.get_cclassifier_with_name(clf_name, X, y)
 
-    print('Doing RandomSearchCV with n_iter=' + str(num_iter) + ' for ' + clf_name + '...')
+    print('Doing RandomizedSearchCV with n_iter=' + str(num_iter) + ' for ' + clf_name + '...')
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
         if synthesized_data.synthesized_data_enabled:
@@ -85,7 +85,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, v
 def plot_heat_map_of_grid_search(cv_results, Classifier):
     """Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
         Problem: We can only show 2 hyperparameters
-    :param cv_results: cv_results of RandomSearchCV
+    :param cv_results: cv_results of RandomizedSearchCV
     :param Classifier: the classfier
     :return:
     """
@@ -99,4 +99,4 @@ def plot_heat_map_of_grid_search(cv_results, Classifier):
     sns.heatmap(scores, annot=True,
                 xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
     plt.title('Grid Search roc_auc Score')
-    plots.save_plot(plt, 'Gridsearch/', Classifier.name + '.pdf')
+    feature_plots.save_plot(plt, 'Gridsearch/', Classifier.name + '.pdf')
