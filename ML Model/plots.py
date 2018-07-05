@@ -98,10 +98,12 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     index = np.arange(len(x_tick_labels))
 
     r = plt.bar(index, values, bar_width,
-        alpha=opacity,
-        color=blue_color,
-        label=lbl,
-        yerr=std_err)
+                alpha=opacity,
+                color=blue_color,
+                label=lbl,
+                yerr=std_err,
+                error_kw={'elinewidth': 0.8},
+                )
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -119,7 +121,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
             height = rect.get_height()
             ax.text(rect.get_x() + rect.get_width() / 2., 1.02 * height,
                     '%0.3f' % values[i],
-                ha='center', va='bottom', size=5)
+                    ha='center', va='bottom', size=5)
 
     autolabel(r)
 
@@ -304,10 +306,11 @@ def plot_corr_knn_distr(X, y):
     """
 
     print('Plotting correlations and knn boundaries')
-
+    f1 = 'last_obstacle_crash'
+    f2 = 'timedelta_to_last_obst'
     # Plot correlations between different features and classlabels
     dat2 = pd.DataFrame({'class': y})
-    dat1 = pd.DataFrame({'%crashes': X[:, 0], 'timedelta_to_last_obst': X[:, 1]})
+    dat1 = pd.DataFrame({f1: X[:, 0], f2: X[:, 1]})
 
     matrix_df = dat1.join(dat2)
     sb.pairplot(matrix_df, hue='class')
@@ -342,8 +345,8 @@ def plot_corr_knn_distr(X, y):
         plt.xticks([0, 1])
         plt.xlabel(['no', 'yes'])
         plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
-        plt.ylabel("timedelta_to_last_obst")
-        plt.xlabel("%crashes")
+        plt.ylabel(f2)
+        plt.xlabel(f1)
         green_patch = mpatches.Patch(color=green_color, label='no crash')
         red_patch = mpatches.Patch(color=red_color, label='crash')
 
@@ -374,7 +377,7 @@ def plot_corr_knn_distr(X, y):
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
     plt.xlim(xx.min(), xx.max())
     plt.ylim(yy.min(), yy.max())
-    plt.title("3-Class classification (k = %i)"
+    plt.title("2-Class classification (k = %i)"
               % clf.n_neighbors)
     save_plot(plt, 'Features/', 'KNN_boundaries.pdf')
 
@@ -387,7 +390,7 @@ Plots concerned with logfiles
 
 def plot_hr_of_dataframes():
     """Plots heartrate of all dataframes (Used to compare normalized hr to original hr)
-        Only works for real data at the moment, because of name_logfile not existing if test_data...
+        Only works for real data at the moment, because of name_logfile not existing if synthesized_data...
 
     :return:
     """

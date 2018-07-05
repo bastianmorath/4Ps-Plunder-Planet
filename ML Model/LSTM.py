@@ -43,7 +43,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=5)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_synthesized_data(X_list, y_list, leave_out=5)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 

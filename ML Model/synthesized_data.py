@@ -23,7 +23,7 @@ length_dataframe = 1000  # How many rows should one dataframe have?
 mean_hr = 123.9  # Mean of normal distribution of heartrate
 std_hr = 16.8  # std of normal distribution of heartrate
 
-test_data_enabled = False
+synthesized_data_enabled = False
 
 
 def init_with_testdata_events_const_hr_const():
@@ -173,4 +173,4 @@ def plot_hr(dataframe, i):
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate')
 
-    plots.save_plot(plt, 'Logfiles/test_data/', 'heartrate_testdata_' + str(i) + '.pdf')
+    plots.save_plot(plt, 'Logfiles/synthesized_data/', 'heartrate_testdata_' + str(i) + '.pdf')

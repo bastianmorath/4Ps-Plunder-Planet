@@ -24,20 +24,20 @@ import classifiers
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 
-_num_iter = 30
+_num_iter = 1
 
 
 def main(args):
     start = time.time()
     f_factory.use_reduced_features = not args.no_feature_selection
 
-    assert (not (args.use_test_data and args.leave_one_group_out)), \
+    assert (not (args.use_synthesized_data and args.leave_one_group_out)), \
         'Can\'t do leave_one_group_out with synthesized data'
 
-    if args.use_test_data:
+    if args.use_synthesized_data:
 
         print('Creating synthesized data...')
-        synthesized_data.test_data_enabled = True
+        synthesized_data.synthesized_data_enabled = True
         # synthesized_data.init_with_testdata_events_random_hr_const()
         synthesized_data.init_with_testdata_events_const_hr_const()
         # synthesized_data.init_with_testdata_events_random_hr_continuous()
@@ -95,12 +95,12 @@ def main(args):
                     X, y, clf_name=args.performance_with_tuning, num_iter=_num_iter
                 )
                 print('(n_iter in RandomizedSearchCV=' + str(_num_iter) + ')')
-                _, _, _, _, _, _ = model_factory.get_performance(clf, args.performance_with_tuning, X, y, tuned_params,
-                                                                 verbose=True, do_write_to_file=False)
+                model_factory.get_performance(clf, args.performance_with_tuning, X, y, tuned_params,
+                                              verbose=True, do_write_to_file=False)
             else:
                 model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y).clf
-                _, _, _, _, _, _ = model_factory.get_performance(model, args.performance_without_tuning, X, y,
-                                                                 verbose=True, do_write_to_file=False)
+                model_factory.get_performance(model, args.performance_without_tuning, X, y,
+                                              verbose=True, do_write_to_file=False)
 
     if args.leave_one_group_out:
         # TODO: Add old plot (where logfile_left_out is used) into report
@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-d",
-        "--use_test_data",
+        "--use_synthesized_data",
         action="store_true",
         help="Use synthesized data. Might not work with everything."  # TODO
     )

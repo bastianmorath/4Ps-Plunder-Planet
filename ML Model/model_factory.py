@@ -13,7 +13,7 @@ from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (auc, confusion_matrix, roc_curve)
-from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate)
+from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate, cross_val_score)
 
 from sklearn.calibration import CalibratedClassifierCV
 
@@ -53,7 +53,9 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     :param verbose: Whether a detailed score should be printed out (optional)
     :param do_write_to_file: Write summary of performance into a file (optional)
 
-    :return: roc_auc, recall, specificity, precision, confusion_matrix and summary of those as a string
+    :return: roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std,
+            confusion_matrix and summary of those as a string
+
     """
 
     print('Calculating performance of %s...' % clf_name)
@@ -61,23 +63,35 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
     # Compute performance scores
-    y_pred = cross_val_predict(model, X, y, cv=10)
-
+    y_pred = cross_val_predict(model, X, y, cv=5)
     conf_mat = confusion_matrix(y, y_pred)
+    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
 
-    precision = metrics.precision_score(y, y_pred)
+    # Calculates one score of each fold and returns it in a list (-> Macro averaging)
+    scores = cross_validate(model, X, y, cv=5, scoring=['roc_auc', 'recall', 'precision'])
+
+    precisions_ = scores['test_precision']
+    recalls_ = scores['test_recall']
+    roc_aucs_ = scores['test_roc_auc']
+
+    precision_mean = precisions_.mean()
+    recall_mean = recalls_.mean()
+    roc_auc_mean = roc_aucs_.mean()
+    
+    precision_std = precisions_.std()
+    recall_std = recalls_.std()
+    roc_auc_std = roc_aucs_.std()
+    # print(roc_auc_mean, metrics.roc_auc_score(y, y_pred))
     if clf_name == 'Decision Tree':
         plots.plot_graph_of_decision_classifier(model, X, y)
 
-    recall = metrics.recall_score(y, y_pred)
-    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    roc_auc = metrics.roc_auc_score(y, y_pred)
-
     if tuned_params_keys is None:
-        s = create_string_from_scores(clf_name, roc_auc, recall, specificity, precision, conf_mat)
+        s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
+                                      specificity, precision_mean, precision_std, conf_mat)
     else:
         tuned_params_dict = get_tuned_params_dict(model, tuned_params_keys)
-        s = create_string_from_scores(clf_name, roc_auc, recall, specificity, precision, conf_mat, tuned_params_dict)
+        s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
+                                      specificity, precision_mean, precision_std, conf_mat, tuned_params_dict)
 
     if verbose:
         print(s)
@@ -88,7 +102,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
                     str(f_factory.gradient_w) + '.txt'
         write_to_file(s, 'Performance/', filename, 'w+')
 
-    return roc_auc, recall, specificity, precision, conf_mat, s
+    return roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std, conf_mat, s
 
 
 def feature_selection(X, y, verbose=False):
@@ -135,20 +149,18 @@ def feature_selection(X, y, verbose=False):
     plt.xlim([-1, X.shape[1]])
     plt.tight_layout()
 
-    plots.save_plot(plt, 'Features/', 'feature_importance.pdf')
+    plots.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
 
     return X_new, y
 
 
-def create_string_from_scores(clf_name, roc_auc, recall, specificity, precision, conf_mat, tuned_params_dict=None):
+def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity_mean,
+                              precision_mean, precision_std, conf_mat, tuned_params_dict=None):
     """
     Creates a formatted string from the performance scores, confusion matrix and optionally the tuned hyperparameters
 
     :param clf_name: name of the classifier
-    :param roc_auc: roc_auc score
-    :param recall: recall score
-    :param specificity: specificity score
-    :param precision: precision score
+
     :param conf_mat: confusion matrice
     :param tuned_params_dict: Dictionary containing the tuned parameters and its values
 
@@ -156,24 +168,24 @@ def create_string_from_scores(clf_name, roc_auc, recall, specificity, precision,
 
     """
     if tuned_params_dict is None:
-        s = '\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
-            '\troc_auc: %.3f, ' \
-            'recall: %.3f, ' \
+        s = '\n\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
+            '\troc_auc: %.3f (+-%.2f), ' \
+            'recall: %.3f (+-%.2f), ' \
             'specificity: %.3f, ' \
-            'precision: %.3f \n\n' \
+            'precision: %.3f (+-%.2f) \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
-            % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, roc_auc,
-               recall, specificity, precision, conf_mat[0], conf_mat[1])
+            % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, roc_auc_mean, roc_auc_std, recall_mean,
+               recall_std, specificity_mean, precision_mean, precision_std, conf_mat[0], conf_mat[1])
     else:
         s = '\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\tHyperparameters: %s,\n' \
-            '\troc_auc: %.3f, ' \
-            'recall: %.3f, ' \
+            '\troc_auc: %.3f (+-%.2f), ' \
+            'recall: %.3f (+-%.2f), ' \
             'specificity: %.3f, ' \
-            'precision: %.3f \n\n' \
-            '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
-            % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, tuned_params_dict, roc_auc,
-               recall, specificity, precision, conf_mat[0], conf_mat[1])
+            'precision: %.3f (+-%.2f) \n\n' \
+            '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n' \
+            % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, tuned_params_dict, roc_auc_mean, roc_auc_std, recall_mean,
+               recall_std, specificity_mean, precision_mean, precision_std, conf_mat[0], conf_mat[1])
 
     return s
 
@@ -250,9 +262,12 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_roc_curves: Create roc_curves
     :param write_to_file: Write summary of performance into a file (optional)
+
+    :return list of roc_aucs, list of roc_auc_stds
     """
 
-    scores = []
+    scores_mean = []
+    scores_std = []
     names = []
     tuned_params = []
     conf_mats = []
@@ -265,12 +280,14 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
         names.append(clf_name)
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
-            roc_auc, recall, specificity, precision, conf_mat, rep = get_performance(clf, clf_name, X, y)
+            roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
+                get_performance(clf, clf_name, X, y)
         else:
-            roc_auc, recall, specificity, precision, conf_mat, rep = \
+            roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
                 get_performance(clf, clf_name, X, y, tuned_parameters)
 
-        scores.append([roc_auc, recall, specificity, precision])
+        scores_mean.append([roc_auc, recall, specificity, precision])
+        scores_std.append([roc_auc_std, recall_std, precision_std])
         tuned_params.append(get_tuned_params_dict(clf, tuned_parameters))
         conf_mats.append(conf_mat)
 
@@ -282,13 +299,16 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     if create_barchart:
         title = 'Scores by classifier with hyperparameter tuning' if hyperparameters_are_tuned \
                 else 'Scores by classifier without hyperparameter tuning'
-        plot_barchart_scores(names, [s[0] for s in scores], title, filename + '.pdf')
+        plot_barchart_scores(names, [s[0] for s in scores_mean], [s[0] for s in scores_std], title, filename + '.pdf')
 
     if write_to_file:
-        write_scores_to_file(names, [s[0] for s in scores], [s[1] for s in scores], [s[2] for s in scores],
-                             [s[3] for s in scores], tuned_params, conf_mats, filename + '.txt')
+        write_scores_to_file(names, [s[0] for s in scores_mean], [s[0] for s in scores_std],  # roc_auc mean and std
+                                    [s[1] for s in scores_mean], [s[1] for s in scores_std],  # recall mean and std
+                                    [s[2] for s in scores_mean],  # Specificity
+                                    [s[3] for s in scores_mean], [s[2] for s in scores_std],  # precision mean and std
+                                    tuned_params, conf_mats, filename + '.txt')
 
-    return [s[0] for s in scores]
+    return [s[0] for s in scores_mean], [s[0] for s in scores_std]
 
 
 def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False, num_iter=20):
@@ -300,6 +320,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
     :param num_iter: if tune_hyperparameters==True, then how many iterations should be done in RandomSearchCV
 
+    :return list of roc_auc means, list of roc_auc_stds
     """
 
     if reduced_clfs:
@@ -315,16 +336,17 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
 
     # Compute performance; Write to file and plot barchart
 
-    auc_scores = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters)
+    auc_mean_scores, auc_std_scores = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters)
 
-    return auc_scores
+    return auc_mean_scores, auc_std_scores
 
 
-def plot_barchart_scores(names, roc_auc_scores, title, filename):
+def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filename):
     """Plots the roc_auc scores of each classifier into a barchart
 
     :param names: list of names of classifiers
     :param roc_auc_scores: roc_auc of each classifier
+    :param roc_auc_scores_std: standard deviations of roc_auc of each classifier
     :param title: title of the barchart
     :param filename: name of the file
     """
@@ -335,7 +357,8 @@ def plot_barchart_scores(names, roc_auc_scores, title, filename):
                         x_tick_labels=names,
                         values=roc_auc_scores,
                         lbl='auc_score',
-                        filename=filename
+                        filename=filename,
+                        std_err=roc_auc_scores_std,
                         )
 
 
@@ -407,7 +430,8 @@ def test_clf_with_timedelta_only():
     '''
 
 
-def write_scores_to_file(names, roc_scores, recall_scores, specifity_scores, precision_scores, tuned_params, conf_mats, filename):
+def write_scores_to_file(names, roc_scores, roc_scores_std, recall_scores, recall_scores_std, specifity_scores,
+                         precision_scores, precision_scores_std, tuned_params, conf_mats, filename):
     """Writes a formatted text consisting of roc, recall, specificity, precision, tuned_params and confusion matrices
         into a file
 
@@ -425,7 +449,8 @@ def write_scores_to_file(names, roc_scores, recall_scores, specifity_scores, pre
     s = ''
 
     for i, name in enumerate(names):
-        s += create_string_from_scores(name, roc_scores[i], recall_scores[i], specifity_scores[i], precision_scores[i],
+        s += create_string_from_scores(name, roc_scores[i], roc_scores_std[i], recall_scores[i], recall_scores_std[i],
+                                       specifity_scores[i], precision_scores[i], precision_scores_std[i],
                                        conf_mats[i], tuned_params[i])
 
     write_to_file(s, 'Performance/', filename, 'w+')

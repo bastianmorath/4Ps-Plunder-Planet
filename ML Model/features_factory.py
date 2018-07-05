@@ -70,7 +70,7 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
 
     file_path = path + file_name
 
-    if not use_cached_feature_matrix or sd.use_fewer_data or synthesized_data.test_data_enabled:
+    if not use_cached_feature_matrix or sd.use_fewer_data or synthesized_data.synthesized_data_enabled:
         return False, file_path
     else:
         if not Path(file_path).exists():
@@ -117,11 +117,11 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['_verbose'] = verbose
 
     if feature_selection:
-        globals()['feature_names'] = ['%crashes', 'timedelta_to_last_obst']
+        globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst']
     else:
-        globals()['feature_names'] = ['%crashes', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
+        globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
                                       'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-                                      'last_obstacle_crash','points_gradient_changes', 'mean_points', 'std_points',
+                                      '%crashes', 'points_gradient_changes', 'mean_points', 'std_points',
                                       'max_hr', 'min_hr', 'max_over_min_hr', 'max_points', 'min_points',
                                       'max_minus_min_points']
     matrix = pd.DataFrame()
@@ -138,7 +138,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         if _verbose:
             print('Creating feature matrix...')
 
-        matrix['%crashes'] = get_percentage_crashes_feature()
+        matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
         matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
@@ -148,7 +148,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
             matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
 
-            matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
+            matrix['%crashes'] = get_percentage_crashes_feature()
 
             matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
             matrix['mean_points'] = get_standard_feature('mean', 'Points')

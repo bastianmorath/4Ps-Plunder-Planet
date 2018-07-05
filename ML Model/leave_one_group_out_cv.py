@@ -39,8 +39,10 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
     # Get scores for scenario 1 (normal crossvalidation)
     print('\n***** Scenario 1 (normal crossvalidation) *****\n')
-    auc_scores_scenario_1 = model_factory.analyse_performance(clf_list, clf_names, X, y, create_barchart=False,
-                                                     create_roc_curves=False, write_to_file=False)
+    auc_scores_scenario_1, auc_stds_scenario_1 = model_factory.analyse_performance(clf_list, clf_names, X, y,
+                                                                                   create_barchart=False,
+                                                                                   create_roc_curves=False,
+                                                                                   write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
     print('\n***** Scenario 2  (Leave one user out in training phase) ***** \n')
@@ -57,21 +59,21 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
             classifier.fit(X_nb, y_nb)
 
             auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
-                                                        X_nb, y_nb, plot_auc_score_per_user, verbose=True)
+                                                        X_nb, y_nb, plot_auc_score_per_user)
         else:
             classifier.fit(X, y)
 
             auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
-                                                        X, y, plot_auc_score_per_user, verbose=True)
+                                                        X, y, plot_auc_score_per_user)
 
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
 
-    _plot_scores_normal_cv_vs_leaveoneout_cv(clf_names, auc_scores_scenario_1,
+    _plot_scores_normal_cv_vs_leaveoneout_cv(clf_names, auc_scores_scenario_1, auc_stds_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2)
 
 
-def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False, verbose=False):
+def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True):
     # TODO: Maybe sort along names (Now it's order of LeaveOneGroupOut)
     """Takes one entire user (i.e. two logfiles most of the time) out of training phase and does prediction
     on left out user. Result can be used as an indication which users are hard to predict
@@ -80,9 +82,9 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
     :param clf_name: String name of the classifier
     :param X: the feature matrix
     :param y: True labels
+    :param plot_auc_score_per_user: Generates one plot per user with scores for all classifiers
 
-    :return: auc_mean and auc_std
-
+    :return: MACRO auc_mean and auc_std
     """
 
     y = np.asarray(y)  # Used for .split() function
@@ -125,7 +127,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
     names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
     aucs = [a[0] for a in scores_and_ids]
 
-    auc_mean = np.mean(aucs)
+    auc_mean = np.mean(aucs)  # Calculating MACRO-average
     auc_std = np.std(aucs)
 
     if plot_auc_score_per_user:
@@ -140,15 +142,17 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=False
     return auc_mean, auc_std
 
 
-def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
+def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_stds_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2):
     """
+    Plots the roc_auc score and the standard deviation for each classifier for both scenarios next to each other
 
-    :param names: names of the
-    :param auc_scores_scenario_1:
-    :param auc_scores_scenario_2:
-    :param auc_stds_scenario_2:
-    :return:
+    :param names: names of the logfiles
+    :param auc_scores_scenario_1: list of roc_auc scores when doing normal cv
+    :param auc_stds_scenario_1: list of roc_auc_std scores when doing normal cv
+    :param auc_scores_scenario_2: list of roc_auc scores when doing leave_one_user_out cv
+    :param auc_stds_scenario_2: list of roc_auc_std scores when doing leave_one_user_out cv
+
     """
     fix, ax = plt.subplots()
     bar_width = 0.3
@@ -158,13 +162,18 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1,
     r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
                  alpha=opacity,
                  color=plots.blue_color,
-                 label='roc_auc normal CV'
+                 label='roc_auc normal CV',
+                 yerr=auc_stds_scenario_1,
+                 error_kw={'elinewidth': 0.8}
                  )
+    
     r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
                  alpha=opacity,
                  color=plots.red_color,
                  label='roc_auc LeaveOneGroupOut CV',
-                 yerr=auc_stds_scenario_2)
+                 yerr=auc_stds_scenario_2,
+                 error_kw={'elinewidth': 0.8},
+                 )
 
     plt.ylabel('roc_auc')
     plt.title('clf_performance_with_user_left_out_vs_normal')
@@ -195,6 +204,7 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
     the performance for each fold (i.e. in each round of CV, there was one user left out for test-set. Write down
     auc, recall, specificity and precision with std for each such user.) Also write down overall conf_matrix
     and mean-auc
+
     # TODO Prettify log
     :param scores: array for each cv fold: auc, recall, specificity, precision, user_id
     :param y: y
@@ -203,6 +213,7 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
     :param names: Names of the users
 
     """
+
     s = ''
     # Print mean score
     auc_mean = np.mean([a[0] for a in scores])
@@ -212,33 +223,12 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
 
     auc_std = np.std([a[0] for a in scores])
     recall_std = np.std([a[1] for a in scores])
-    specificity_std = np.std([a[2] for a in scores])
     precision_std = np.std([a[3] for a in scores])
 
-    auc_max = np.max([a[0] for a in scores])
-    recall_max = np.max([a[1] for a in scores])
-    specificity_max = np.max([a[2] for a in scores])
-    precision_max = np.max([a[3] for a in scores])
-    s += '\n\nPerformance scores when doing LeaveOneGroupOut with %s' % clf_name
-
-    s += '\n\n Performance: ' \
-         'Auc = %.3f (+-%.3f, max: %.3f), ' \
-         'Recall = %.3f (+-%.3f, max: %.3f), ' \
-         'Specificity= %.3f (+-%.3f, max: %.3f), ' \
-         'Precision = %.3f (+-%.3f, max: %.3f)' \
-         % (auc_mean, auc_std, auc_max,
-            recall_mean, recall_std, recall_max,
-            specificity_mean, specificity_std, specificity_max,
-            precision_mean, precision_std, precision_max)
-
     conf_mat = confusion_matrix(y, y_pred)
-    s += '\n\t Confusion matrix: \n\t\t' + str(conf_mat).replace('\n', '\n\t\t')
 
-    predicted_accuracy = round(metrics.accuracy_score(y, y_pred) * 100, 2)
-    null_accuracy = round(max(np.mean(y), 1 - np.mean(y)) * 100, 2)
-
-    s += '\n\tCorrectly classified data: ' + str(predicted_accuracy) + '% (vs. null accuracy: ' \
-         + str(null_accuracy) + '%)'
+    s = model_factory.create_string_from_scores(clf_name, auc_mean, auc_std, recall_mean, recall_std,  specificity_mean,
+                                                precision_mean, precision_std, conf_mat)
 
     # scores for each individual user left out in cross_validation
     s += '\n\nroc_auc score for each user that was left out in training set and predicted on in test_set:'
