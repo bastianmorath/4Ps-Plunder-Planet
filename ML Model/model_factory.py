@@ -9,17 +9,17 @@ import numpy as np
 import os
 import random
 
-from sklearn import metrics
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
-from sklearn.metrics import (auc, confusion_matrix, roc_curve)
-from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate, cross_val_score)
+from sklearn.metrics import (auc, confusion_matrix, roc_curve, precision_recall_curve)
+from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate)
 
 from sklearn.calibration import CalibratedClassifierCV
 
 import features_factory as f_factory
 import setup_dataframes as sd
 import plots_features
+import plots_helpers
 import classifiers
 import setup_dataframes
 import hyperparameter_optimization
@@ -40,7 +40,7 @@ def get_tuned_params_dict(model, tuned_params_keys):
     return dict(zip(tuned_params_keys, values))
 
 
-def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True, do_write_to_file=False, macro_averaging=False):
+def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True, do_write_to_file=False, create_curves=True):
     """Computes performance of the model by doing cross validation with 10 folds, using
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
         as a string (plus tuned hyperparameters optionally)
@@ -52,7 +52,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     :param tuned_params_keys: keys of parameters that got tuned (in classifiers.py) (optional)
     :param verbose: Whether a detailed score should be printed out (optional)
     :param do_write_to_file: Write summary of performance into a file (optional)
-    :param macro_averaging: Per default we do micro_averaging when computing scores.
+    :param create_curves: Create roc_curves and precision_recall curve
 
     :return: roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std,
             confusion_matrix and summary of those as a string
@@ -60,7 +60,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     """
     if verbose:
         print('Calculating performance of %s...' % clf_name)
-
 
     # Compute performance scores
     y_pred = cross_val_predict(model, X, y, cv=5)
@@ -93,8 +92,12 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
                                       specificity, precision_mean, precision_std, conf_mat, tuned_params_dict)
 
-    # if verbose:
-    #     print(s)
+    if create_curves:
+        fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys \
+            else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
+
+        plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
+        plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
         # Write result to a file
@@ -149,7 +152,7 @@ def feature_selection(X, y, verbose=False):
     plt.xlim([-1, X.shape[1]])
     plt.tight_layout()
 
-    plots_features.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
+    plots_helpers.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
 
     return X_new, y
 
@@ -221,7 +224,41 @@ def plot_roc_curve(classifier, X, y, filename, title='ROC'):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
-    plots_features.save_plot(plt, 'Performance/Roc Curves/', filename)
+    plots_helpers.save_plot(plt, 'Performance/Roc Curves/', filename)
+
+
+def plot_precision_recall_curve(classifier, X, y, filename):
+    """
+
+    :param classifier:
+    :param y_true:
+    :param y_pred:
+    :return:
+    """
+
+    # allows to add probability output to classifiers which implement decision_function()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    classifier.fit(X_train, y_train)
+
+    decision_fct = getattr(classifier, "decision_function", None)
+    if callable(decision_fct):
+        y_score = classifier.decision_function(X_test)
+        precision, recall, _ = precision_recall_curve(y_test, y_score)
+
+        plt.step(recall, precision, color='b', alpha=0.2,
+                 where='post')
+        plt.fill_between(recall, precision, step='post', alpha=0.2,
+                         color='b')
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('2-class Precision-Recall curve')
+
+        plots_helpers.save_plot(plt, 'Performance/Precision Recall Curves/', filename)
+    else:
+        print('\tThis classifier doesn\'t implement decision_function(), thus no precision_recall curve can be generated')
 
 
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):
@@ -249,7 +286,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
 
 
 def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=False,
-                        create_barchart=True, create_roc_curves=True, write_to_file=True):
+                        create_barchart=True, create_curves=True, write_to_file=True):
     """Given a list of classifiers, computes performance (roc_auc, recall, specificity, precision, confusion matrix),
        writes it into a file and plots roc_auc scores of the classifiers in a barchart.
 
@@ -260,7 +297,7 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     :param y: labels
     :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomizedSearchCV) -> To simplify printing scores
     :param create_barchart: Create a barchart consisting of the roc_auc scores
-    :param create_roc_curves: Create roc_curves
+    :param create_curves: Create roc_curves and precision_recall curve
     :param write_to_file: Write summary of performance into a file (optional)
 
     :return list of roc_aucs, list of roc_auc_stds
@@ -281,20 +318,15 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
             roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
-                get_performance(clf, clf_name, X, y)
+                get_performance(clf, clf_name, X, y, create_curves=create_curves)
         else:
             roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
-                get_performance(clf, clf_name, X, y, tuned_parameters)
+                get_performance(clf, clf_name, X, y, tuned_parameters, create_curves=create_curves)
 
         scores_mean.append([roc_auc, recall, specificity, precision])
         scores_std.append([roc_auc_std, recall_std, precision_std])
         tuned_params.append(get_tuned_params_dict(clf, tuned_parameters))
         conf_mats.append(conf_mat)
-
-        if create_roc_curves:
-            fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if hyperparameters_are_tuned \
-                 else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
-            plot_roc_curve(clf, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
 
     if create_barchart:
         title = 'Scores by classifier with hyperparameter tuning' if hyperparameters_are_tuned \
@@ -351,7 +383,7 @@ def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filen
     :param filename: name of the file
     """
 
-    plots_features.plot_barchart(title=title,
+    plots_helpers.plot_barchart(title=title,
                         xlabel='Classifier',
                         ylabel='Performance',
                         x_tick_labels=names,

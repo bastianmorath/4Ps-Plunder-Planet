@@ -56,6 +56,12 @@ def plot_heartrate_and_events():
                            if (row['obstacle'] == 'FARBOTTOMLEFT') or (row['obstacle'] == 'FARBOTTOMRIGHT')]
             heartrate_worms = [df[df['Time'] == time].iloc[0]['Heartrate'] for time in times_worms]
             # plt.scatter(times_worms, heartrate_worms, c='g', marker='o', s=15)
+            import matplotlib.patches as mpatches
+
+            green_patch = mpatches.Patch(color='y', label='ship broken')
+            red_patch = mpatches.Patch(color='r', label='crashes')
+
+            plt.legend(handles=[green_patch, red_patch])
 
             filename = 'hr_and_events_' + sd.names_logfiles[idx] + '.pdf'
             hp.save_plot(plt, 'Logfiles/Heartrate_Events/', filename)

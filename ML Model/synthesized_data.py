@@ -14,7 +14,7 @@ import refactoring_logfiles
 import matplotlib.pyplot as plt
 
 import setup_dataframes
-import plots_features
+import plots_helpers
 
 make_plots = False
 
@@ -173,4 +173,4 @@ def plot_hr(dataframe, i):
     ax1.set_xlabel('Playing time [s]')
     ax1.set_ylabel('Heartrate')
 
-    plots_features.save_plot(plt, 'Logfiles/synthesized_data/', 'heartrate_testdata_' + str(i) + '.pdf')
+    plots_helpers.save_plot(plt, 'Logfiles/synthesized_data/', 'heartrate_testdata_' + str(i) + '.pdf')

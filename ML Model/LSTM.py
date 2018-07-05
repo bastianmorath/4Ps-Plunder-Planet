@@ -9,8 +9,7 @@ import itertools
 import keras
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, Dropout
-from keras.optimizers import SGD
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking
 from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
 from numpy import array
@@ -21,7 +20,7 @@ import tensorflow as tf
 
 import model_factory
 import setup_dataframes as sd
-import plots_features
+import plots_helpers
 
 _maxlen = 0
 
@@ -143,7 +142,7 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
     plt.ylabel('roc_auc')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plots_features.save_plot(plt, 'Performance/LSTM/', 'LSTM roc_auc')
+    plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM roc_auc')
 
     # summarize history for loss
     plt.plot(history.history['loss'])
@@ -152,7 +151,7 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plots_features.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
+    plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
 
     return model
 

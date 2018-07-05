@@ -16,7 +16,7 @@ import seaborn as sns
 
 import model_factory
 import classifiers
-import plots_features
+import plots_helpers
 import features_factory as f_factory
 import synthesized_data
 
@@ -99,4 +99,4 @@ def plot_heat_map_of_grid_search(cv_results, Classifier):
     sns.heatmap(scores, annot=True,
                 xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
     plt.title('Grid Search roc_auc Score')
-    plots_features.save_plot(plt, 'Gridsearch/', Classifier.name + '.pdf')
+    plots_helpers.save_plot(plt, 'Gridsearch/', Classifier.name + '.pdf')
