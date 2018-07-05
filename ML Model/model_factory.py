@@ -40,7 +40,7 @@ def get_tuned_params_dict(model, tuned_params_keys):
     return dict(zip(tuned_params_keys, values))
 
 
-def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False, do_write_to_file=False):
+def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True, do_write_to_file=False, macro_averaging=False):
     """Computes performance of the model by doing cross validation with 10 folds, using
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
         as a string (plus tuned hyperparameters optionally)
@@ -52,13 +52,14 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     :param tuned_params_keys: keys of parameters that got tuned (in classifiers.py) (optional)
     :param verbose: Whether a detailed score should be printed out (optional)
     :param do_write_to_file: Write summary of performance into a file (optional)
+    :param macro_averaging: Per default we do micro_averaging when computing scores.
 
     :return: roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std,
             confusion_matrix and summary of those as a string
 
     """
-
-    print('Calculating performance of %s...' % clf_name)
+    if verbose:
+        print('Calculating performance of %s...' % clf_name)
 
     sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
@@ -77,7 +78,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
     precision_mean = precisions_.mean()
     recall_mean = recalls_.mean()
     roc_auc_mean = roc_aucs_.mean()
-    
+
     precision_std = precisions_.std()
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
@@ -93,8 +94,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=False
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
                                       specificity, precision_mean, precision_std, conf_mat, tuned_params_dict)
 
-    if verbose:
-        print(s)
+    # if verbose:
+    #     print(s)
 
     if do_write_to_file:
         # Write result to a file

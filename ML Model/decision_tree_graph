@@ -52,7 +52,7 @@ edge [fontname=helvetica] ;
 16 -> 24 ;
 25 [label=<timedelta_to_last_obst &le; 0.442<br/>gini = 0.003<br/>samples = 2.6%<br/>value = [0.001, 0.999]<br/>class = crash>, fillcolor="#399de5ff"] ;
 24 -> 25 ;
-26 [label=<gini = 0.0<br/>samples = 2.4%<br/>value = [0.0, 1.0]<br/>class = crash>, fillcolor="#399de5ff"] ;
+26 [label=<gini = -0.0<br/>samples = 2.4%<br/>value = [0.0, 1.0]<br/>class = crash>, fillcolor="#399de5ff"] ;
 25 -> 26 ;
 27 [label=<gini = 0.042<br/>samples = 0.2%<br/>value = [0.021, 0.979]<br/>class = crash>, fillcolor="#399de5f9"] ;
 25 -> 27 ;

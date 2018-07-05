@@ -99,6 +99,11 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
         model.fit(X_train, y_train)
+
+        # I do MACRO averaging such that I can compute std!
+        roc_auc, _, recall, _, specificity, precision, _, conf_mat, _ = \
+            model_factory.get_performance(model, "", X_test, y_test, verbose=False)
+        """
         y_pred = model.predict(X_test)
 
         conf_mat = confusion_matrix(y_test, y_pred)
@@ -106,14 +111,16 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
         recall = metrics.recall_score(y_test, y_pred)
         specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
         precision = metrics.precision_score(y_test, y_pred)
-        auc = metrics.roc_auc_score(y_test, y_pred)
+        roc_auc = metrics.roc_auc_score(y_test, y_pred)
+        """
+
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
         left_out_group_indices = sorted(set(range(0, len(df_obstacles_concatenated))) - set(train_index))
         group = df_obstacles_concatenated.loc[[left_out_group_indices[0]]]
         user_id = group['userID'].item()
         # print(auc, recall, precision, specificity)
-        scores_and_ids.append((auc, recall, specificity, precision, user_id))
+        scores_and_ids.append((roc_auc, recall, specificity, precision, user_id))
 
     # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
     names = []
@@ -166,7 +173,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
                  yerr=auc_stds_scenario_1,
                  error_kw={'elinewidth': 0.8}
                  )
-    
+
     r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
                  alpha=opacity,
                  color=plots.red_color,

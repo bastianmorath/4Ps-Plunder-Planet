@@ -95,12 +95,15 @@ def main(args):
                     X, y, clf_name=args.performance_with_tuning, num_iter=_num_iter
                 )
                 print('(n_iter in RandomizedSearchCV=' + str(_num_iter) + ')')
-                model_factory.get_performance(clf, args.performance_with_tuning, X, y, tuned_params,
-                                              verbose=True, do_write_to_file=False)
+                _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X, y,
+                                                                               tuned_params, verbose=True,
+                                                                               do_write_to_file=False)
             else:
                 model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y).clf
-                model_factory.get_performance(model, args.performance_without_tuning, X, y,
-                                              verbose=True, do_write_to_file=False)
+                _, _, _, _, _, _, _, _, report = model_factory.get_performance(model, args.performance_without_tuning,
+                                                                               X, y, verbose=True,
+                                                                               do_write_to_file=False)
+            print(report)
 
     if args.leave_one_group_out:
         # TODO: Add old plot (where logfile_left_out is used) into report
