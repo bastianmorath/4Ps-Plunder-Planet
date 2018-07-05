@@ -381,7 +381,7 @@ def test_clf_with_timedelta_only():
     print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
 
     ''' Timedeltas correctly computed
-    timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_last_obst']
+    timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_to_last_obst']
     # print(sklearn.metrics.accuracy_score(timedeltas, x_train))
     for a, b in zip(timedeltas, x_train):
         print(a, b)

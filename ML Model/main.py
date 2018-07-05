@@ -16,7 +16,7 @@ import features_factory as f_factory
 import window_optimization
 import hyperparameter_optimization
 import model_factory
-import leave_one_out_cv
+import leave_one_group_out_cv
 import LSTM
 import classifiers
 
@@ -31,7 +31,8 @@ def main(args):
     start = time.time()
     f_factory.use_reduced_features = not args.no_feature_selection
 
-    assert (not (args.use_test_data and args.leave_one_out)), 'Can\'t do leave_one_out with synthesized data'
+    assert (not (args.use_test_data and args.leave_one_group_out)), \
+        'Can\'t do leave_one_group_out with synthesized data'
 
     if args.use_test_data:
 
@@ -62,7 +63,6 @@ def main(args):
             )
 
     # model_factory.test_clf_with_timedelta_only()
-    plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
 
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
@@ -102,10 +102,10 @@ def main(args):
                 _, _, _, _, _, _ = model_factory.get_performance(model, args.performance_without_tuning, X, y,
                                                                  verbose=True, do_write_to_file=False)
 
-    if args.leave_one_out:
+    if args.leave_one_group_out:
         # TODO: Add old plot (where logfile_left_out is used) into report
         print("\n################# Leave one out #################\n")
-        leave_one_out_cv.clf_performance_with_user_left_out_vs_normal(
+        leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
         )
 
@@ -127,12 +127,11 @@ def main(args):
 
 def plot_features(X, y):
     plots.plot_corr_knn_distr(X, y)
-
+    plots.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     plots.plot_feature_distributions(X)
-
     plots.plot_heartrate_histogram()
-
     plots.plot_mean_value_of_feature_at_crash(X, y)
+
     for i in range(0, len(f_factory.feature_names)):
         plots.plot_feature(X, i)
 
@@ -189,7 +188,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-l",
-        "--leave_one_out",
+        "--leave_one_group_out",
         action="store_true",
         help="Plot performance when leaving out a logfile "
              "vs leaving out a whole user in crossvalidation",

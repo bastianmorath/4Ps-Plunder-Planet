@@ -28,6 +28,7 @@ _verbose = True
 # TODO: Onlt if not_reduced, add if-clauses. But we can always add the shared features...
 # TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
+
 hw = 3  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 cw = 3  # Over how many preceeding seconds should %crashes be calculated?
 gradient_w = 3  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
@@ -43,14 +44,15 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
     """ If the user wants to use an already saved feature matrix ('all' or 'reduced'), then check if those
     pickle files really exist. If not, new files have to be created
 
+
     :param use_cached_feature_matrix: Use already cached matrix; 'all' (use all features), 'selected'
                                 (do feature selection first), None (don't use cache)
-    :param use_boxcox: Whether boxcox transformation should be done (e.g. when Naive Bayes classifier is used)
+    :param use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
     :param feature_selection: Whether to do feature selection or not
 
     :return: Whether reading from cache is okey and  path where to read from/write to new pickel file (if necessary)
-    """
 
+    """
     err_string = 'ERROR: Pickle file of Feature matrix not yet created. Creating new one...'
     path = ''
     file_name = 'feature_matrix_%s_%s_%s.pickle' % (hw, cw, gradient_w)
@@ -115,12 +117,13 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['_verbose'] = verbose
 
     if feature_selection:
-        globals()['feature_names'] = ['timedelta_last_obst', '%crashes']
+        globals()['feature_names'] = ['%crashes', 'timedelta_to_last_obst']
     else:
-        globals()['feature_names'] = ['timedelta_last_obst', '%crashes', 'last_obstacle_crash', 'mean_hr', 'std_hr',
+        globals()['feature_names'] = ['%crashes', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
                                       'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
-                                      'points_gradient_changes', 'mean_points', 'std_points', 'max_hr', 'min_hr',
-                                      'max_over_min_hr', 'max_points', 'min_points', 'max_minus_min_points']
+                                      'last_obstacle_crash','points_gradient_changes', 'mean_points', 'std_points',
+                                      'max_hr', 'min_hr', 'max_over_min_hr', 'max_points', 'min_points',
+                                      'max_minus_min_points']
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
@@ -135,16 +138,17 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         if _verbose:
             print('Creating feature matrix...')
 
-        matrix['timedelta_last_obst'] = get_timedelta_last_obst_feature(do_normalize=False)
         matrix['%crashes'] = get_percentage_crashes_feature()
+        matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
-            matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
             matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
             matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
             matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
             matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
             matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
+
+            matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
 
             matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
             matrix['mean_points'] = get_standard_feature('mean', 'Points')
@@ -152,6 +156,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
             matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
             matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
+            matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
             matrix['max_points'] = get_standard_feature('max', 'Points')
             matrix['min_points'] = get_standard_feature('min', 'Points')
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
@@ -190,7 +195,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     return X, y
 
 
-def get_timedelta_last_obst_feature(do_normalize=False):
+def get_timedelta_to_last_obst_feature(do_normalize=False):
     """ Returns the timedelta to the previous obstacle
 
     NOTE: Significantly improves SVM/Linear SVM (from ca. auc=0.6 to 0.9) and Ada Boost (from auc=0.73 to 0.87
@@ -235,7 +240,7 @@ def get_timedelta_last_obst_feature(do_normalize=False):
         timedeltas_df_list.append(sd.obstacle_df_list[list_idx].apply(compute, axis=1))
         computed_timedeltas = []
 
-    return pd.DataFrame(list(itertools.chain.from_iterable(timedeltas_df_list)), columns=['timedelta_last_obst'])
+    return pd.DataFrame(list(itertools.chain.from_iterable(timedeltas_df_list)), columns=['timedelta_to_last_obst'])
 
 
 def get_standard_feature(feature, data_name):

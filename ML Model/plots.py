@@ -160,7 +160,7 @@ def plot_graph_of_decision_classifier(model, X, y):
 
     plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
                         sorted_feature_names, sorted_importances,
-                        'Importance', '../Features/feature_importances_decision_tree.pdf')
+                        'Importance', 'feature_importances.pdf')
 
     tree.export_graphviz(
         model,
@@ -216,7 +216,7 @@ def plot_feature_distributions(X):
     for idx, feature in enumerate(f_names):
         x = X[:, idx]
         plt.figure()
-        if feature == 'timedelta_last_obst':
+        if feature == 'timedelta_to_last_obst':
             plt.hist(x, bins=np.arange(np.mean(x) - 2 * np.std(x), np.mean(x) + 2* np.std(x), 0.005))
         else:
             plt.hist(x)
@@ -303,11 +303,11 @@ def plot_corr_knn_distr(X, y):
 
     """
 
-    print('Ploting correlations and knn boundaries')
+    print('Plotting correlations and knn boundaries')
 
     # Plot correlations between different features and classlabels
     dat2 = pd.DataFrame({'class': y})
-    dat1 = pd.DataFrame({'last_obst_crash': X[:, 0], 'timedelta_last_obst': X[:, 1]})
+    dat1 = pd.DataFrame({'%crashes': X[:, 0], 'timedelta_to_last_obst': X[:, 1]})
 
     matrix_df = dat1.join(dat2)
     sb.pairplot(matrix_df, hue='class')
@@ -342,16 +342,15 @@ def plot_corr_knn_distr(X, y):
         plt.xticks([0, 1])
         plt.xlabel(['no', 'yes'])
         plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
-        plt.ylabel("timedelta_last_obst")
-        plt.xlabel("last_obstacle_crash")
+        plt.ylabel("timedelta_to_last_obst")
+        plt.xlabel("%crashes")
         green_patch = mpatches.Patch(color=green_color, label='no crash')
         red_patch = mpatches.Patch(color=red_color, label='crash')
 
-        plt.legend(handles=[red_patch, green_patch])
+        plt.legend(handles=[green_patch, red_patch])
 
         if i == len(sd.df_list):
             save_plot(plt, 'Features/Correlations/', 'correlation_distr_all.pdf')
-
         else:
             save_plot(plt, 'Features/Correlations/', 'correlation_distr' + str(i) + '.pdf')
 
@@ -365,7 +364,7 @@ def plot_corr_knn_distr(X, y):
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-        np.arange(y_min, y_max, h))
+                         np.arange(y_min, y_max, h))
     Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
 
     Z = Z.reshape(xx.shape)
@@ -712,11 +711,10 @@ def crashes_per_obstacle_arrangement():
 
 
 def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
-    """Plots for each logfile the mean and std of timedelta_last_obst at each obstacle  and if a crash or not happened
+    """Plots for each logfile the mean and std of timedelta_to_last_obst at each obstacle  and if a crash or not happened
 
     :return:
     """
-    print("\n################# Plotting timedelta values at crash/vs non-crash #################\n")
     for idx, df in enumerate(sd.obstacle_df_list):
         timedelta_crash = []
         timedelta_no_crash = []
