@@ -20,6 +20,8 @@ Plots concerned with logfiles
 
 """
 
+# TODO: Use helper barplot for all plots..
+
 
 def plot_heartrate_and_events():
     print("Plotting heartrate and events...")
@@ -94,13 +96,15 @@ def plot_heartrate_histogram():
     """
     print("Plotting histogram of heartrate of accumulated logfiles...")
 
-    _, _ = plt.subplots()
+    _, ax = plt.subplots()
     df = pd.concat(sd.df_list, ignore_index=True)
     df = df[df['Heartrate'] != -1]['Heartrate']
     plt.hist(df)
     plt.title('Histogram of HR: $\mu=%.3f$, $\sigma=%.3f$'
               % (np.mean(df), np.std(df)))
-
+    ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(0.3) for i in ax.spines.values()]
     hp.save_plot(plt, 'Logfiles/', 'heartrate_distribution_all_logfiles.pdf')
 
 
@@ -108,7 +112,7 @@ def plot_average_hr_over_all_logfiles():
     """
     Plots average heartrate over all logfiles
     """
-    fig, ax = plt.subplots()
+    plt.subplots()
     plt.ylabel('Heartrate [bpm]')
     plt.xlabel('Playing time [s]')
     plt.title('Average Heartrate across all users')
@@ -147,8 +151,9 @@ def plot_mean_and_std_hr_boxplot():
 
 
 def plot_heartrate_change():
-    ''' Plot Heartrate change
-    '''
+    """ Plot Heartrate change
+    """
+
     bpm_changes_max = []  # Stores max. absolute change in HR per logfile
     bpm_changes_rel = []  # Stores max. percentage change in HR per logfile
 
@@ -165,19 +170,25 @@ def plot_heartrate_change():
 
     plt.ylabel('#Times HR changed')
     plt.xlabel('Change in Heartrate [%]')
-    for idx, l in enumerate(bpm_changes_rel):
+
+    for idx, l in enumerate(bpm_changes_rel):  # Histogram per user
         name = str(sd.names_logfiles[idx])
         plt.figure()
         plt.title('Heartrate change for plot ' + name)
         plt.hist(l, color=blue_color)
-
         hp.save_plot(plt, 'Logfiles/Abs Heartrate Changes/', 'heartrate_change_percentage_' + name + '.pdf')
 
-    plt.figure()
+    fig, ax = plt.subplots()
+
     plt.title('Maximal heartrate change')
     plt.ylabel('Max heartrate change [%]')
     plt.xlabel('Logfile')
     plt.bar([x for x in X], bpm_changes_max, color=blue_color, width=0.25)
+
+    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(0.3) for i in ax.spines.values()]
+
     hp.save_plot(plt, 'Logfiles/', 'heartrate_change_abs.pdf')
 
 
@@ -381,6 +392,11 @@ def crashes_per_obstacle_arrangement():
         count += 1
 
     df = pd.DataFrame(data, index=index, columns=columns)
+
+    fix, ax = plt.subplots()
+    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(0.3) for i in ax.spines.values()]
     plt.xticks(rotation=90)
     plt.title('Crashes vs. obstacle arrangement')
     plt.ylabel('Crashes at this arrangement [%]')

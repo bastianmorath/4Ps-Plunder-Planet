@@ -80,20 +80,18 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
 
     line_width = 0.3
 
-    ax.yaxis.grid(True, zorder=0)
-    ax.set_axisbelow(True)
+    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
+    ax.set_axisbelow(True)  # Put vertical grid in background of plot
+    [i.set_linewidth(line_width) for i in ax.spines.values()]  # Set width of plot borders
 
     plt.bar(index, values, bar_width,
             color=blue_color,
             label=lbl,
             yerr=std_err,
-
             error_kw={'elinewidth': line_width,
                       'capsize': 1.4,
                       'markeredgewidth': line_width},
             )
-
-    [i.set_linewidth(line_width) for i in ax.spines.values()]
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

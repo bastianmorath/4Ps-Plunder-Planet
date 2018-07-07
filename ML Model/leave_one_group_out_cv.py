@@ -165,7 +165,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
     line_width = 0.3
 
     index = np.arange(len(auc_scores_scenario_1))
-    ax.yaxis.grid(True, zorder=0)
+    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
     ax.set_axisbelow(True)
     [i.set_linewidth(line_width) for i in ax.spines.values()]
 

@@ -212,7 +212,7 @@ def get_timedelta_to_last_obst_feature(do_normalize=False):
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
             last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
-                                                                 (df['Logtype'] == 'EVENT_CRASH'))]
+                                                             (df['Logtype'] == 'EVENT_CRASH'))]
             if last_obstacles.empty:
                 computed_timedeltas.append(2.2)
                 return 1

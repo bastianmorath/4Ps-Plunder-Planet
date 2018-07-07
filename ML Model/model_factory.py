@@ -467,7 +467,8 @@ def plot_precision_recall_curve(classifier, X, y, filename):
 
         plots_helpers.save_plot(plt, 'Performance/Precision Recall Curves/', filename)
     else:
-        print('\tThis classifier doesn\'t implement decision_function(), thus no precision_recall curve can be generated')
+        print('\tThis classifier doesn\'t implement decision_function(), '
+              'thus no precision_recall curve can be generated')
 
 
 def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filename):

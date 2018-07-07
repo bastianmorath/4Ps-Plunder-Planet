@@ -134,11 +134,11 @@ def main(args):
 
 
 def plot_features(X, y):
-    fp.plot_scores_with_different_feature_selections()
-    fp.plot_corr_knn_distr(X, y)
-    fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
-    fp.plot_feature_distributions(X)
-    fp.plot_mean_value_of_feature_at_crash(X, y)
+    # fp.plot_scores_with_different_feature_selections()
+    #fp.plot_corr_knn_distr(X, y)
+    #fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+    #fp.plot_feature_distributions(X)
+    #fp.plot_mean_value_of_feature_at_crash(X, y)
 
     for i in range(0, len(f_factory.feature_names)):
         fp.plot_feature(X, i)
@@ -147,6 +147,7 @@ def plot_features(X, y):
 def plot_logfiles():
     if not args.do_not_normalize_heartrate:
         print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
+    lp.plot_heartrate_change()
     lp.plot_heartrate_and_events()
     lp.crashes_per_obstacle_arrangement()
     # plots.plot_crashes_vs_size_of_obstacle()
@@ -155,7 +156,7 @@ def plot_logfiles():
     lp.plot_difficulty_vs_size_obstacle_scatter_plot()
     lp.plot_hr_or_points_corr_with_difficulty('Heartrate')
     lp.plot_hr_or_points_corr_with_difficulty('Points')
-    lp.plot_heartrate_change()
+
     lp.plot_mean_and_std_hr_boxplot()
     lp.plot_hr_of_dataframes()
     lp.plot_average_hr_over_all_logfiles()

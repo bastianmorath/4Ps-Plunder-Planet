@@ -163,19 +163,29 @@ def plot_feature(X, i):
     print('Plotting feature ' + f_factory.feature_names[i] + ' of each logfile over time...')
 
     # df_num_resampled = resample_dataframe(samples, resolution)
-    # first dataframe only
     feature_name = f_factory.feature_names[i]
-    for idx, df in enumerate(sd.df_list):
-        times = sd.obstacle_df_list[idx]['Time']
+    for idx, _ in enumerate(sd.df_list):
+        obst_df = sd.obstacle_df_list[idx]
+        times = obst_df['Time']
         start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
         samples = list(X[start:start+len(times), i])
         _, ax1 = plt.subplots()
 
-        ax1.plot(times, samples, c=red_color)
+        # Plot crashes
+        times_crashes = [row['Time'] for _, row in obst_df.iterrows() if row['crash']]
+        timedelta_feature = [samples[index] for index, row in obst_df.iterrows() if row['crash']]
+
+        plt.scatter(times_crashes, timedelta_feature, c='r', marker='.', label='crash')
+
+        ax1.plot(times, samples, c=blue_color)
         ax1.set_xlabel('Playing time [s]')
         ax1.set_ylabel(feature_name, color=blue_color)
         plt.title('Feature ' + feature_name + ' for user ' + str(idx))
         ax1.tick_params('y', colors=blue_color)
+        plt.ylim([max(np.mean(X[:, i]) - 2*np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
+        ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
+        ax1.set_axisbelow(True)
+        [i.set_linewidth(0.3) for i in ax1.spines.values()]
 
         filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
         hp.save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
@@ -194,9 +204,11 @@ def plot_corr_knn_distr(X, y):
     """
 
     print('Plotting correlations and knn boundaries')
+
     f1 = 'last_obstacle_crash'
     f2 = 'timedelta_to_last_obst'
-    # Plot correlations between different features and classlabels
+
+    # 1. Plot correlations between different features and class labels
     dat2 = pd.DataFrame({'class': y})
     dat1 = pd.DataFrame({f1: X[:, 0], f2: X[:, 1]})
 
@@ -216,7 +228,8 @@ def plot_corr_knn_distr(X, y):
 
     X_old = X
     y_old = y
-    # Plot features and labels in a scatter plot and the histogram on top
+
+    # 2. Plot features and labels in a scatter plot and the histogram on top
     for i in range(0, len(sd.df_list)+1):
         if i == len(sd.df_list):  # Do the plot with the entire feature matrix
             X = X_old
@@ -225,16 +238,19 @@ def plot_corr_knn_distr(X, y):
             X = feature_matrices[i]
             y = label_lists[i]
 
-        g = sns.jointplot(X[:, 0], X[:, 1])
+        plt.subplot()
+
+        g = sns.jointplot(X[:, 0], X[:, 1], kind='reg')
+
         g.ax_joint.cla()
         plt.sca(g.ax_joint)
+
         colors = [red_color if i == 1 else green_color for i in y]
         plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
-        plt.xticks([0, 1])
-        plt.xlabel(['no', 'yes'])
+        plt.xticks([0, 1], ['False', 'True'])
         plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
-        plt.ylabel(f2)
-        plt.xlabel(f1)
+        plt.ylabel('Time to last obstacle')
+        plt.xlabel('Crash at last obstacle')
         green_patch = mpatches.Patch(color=green_color, label='no crash')
         red_patch = mpatches.Patch(color=red_color, label='crash')
 
@@ -357,7 +373,7 @@ def plot_scores_with_different_feature_selections():
     line_width = 0.3
 
     index = np.arange(len(scores_timedelta_only))
-    ax.yaxis.grid(True, zorder=0)
+    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
     ax.set_axisbelow(True)
     [i.set_linewidth(line_width) for i in ax.spines.values()]
 
