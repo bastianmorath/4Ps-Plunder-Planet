@@ -334,7 +334,7 @@ def feature_selection(X, y, verbose=False):
 
 def test_clf_with_timedelta_only():
     """
-    (Debugging purposes only). Calculates timedelta feature wihtout using anyother features. Since this also gives
+    (Debugging purposes only). Calculates timedelta feature without using any other features. Since this also gives
     a good score, the timedelta_feature really is a good predictor!
 
     """

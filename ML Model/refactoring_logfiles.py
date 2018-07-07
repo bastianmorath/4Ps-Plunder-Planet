@@ -154,6 +154,7 @@ def refactor_crashes():
                         obst_idx, obstacle_row = get_next_obstacle_row(idx, dataframe)
                         obst_indices.append(obst_idx)
                         row['obstacle'] = obstacle_row['obstacle']
+                        row['Time'] = obstacle_row['Time']  # TODO: Might change a lot....
                         dataframe.drop(obst_idx, inplace=True)
                 new_df = new_df.append(row)
 
@@ -173,7 +174,8 @@ def refactor_crashes():
         else:
             new_name += '_FBMC'
         hr_list = new_df['Heartrate']
-        if not (((hr_list == -1).all()) or (hr_list[1:] == hr_list[:-1])):  # If -1 or const
+
+        if not (((hr_list == -1).all()) or (len(set(hr_list)) == 1)):  # If -1 or const
             new_name += '_hr'
 
         if (new_df['Points'] == 0).all():

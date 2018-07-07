@@ -176,7 +176,7 @@ def plot_feature(X, i):
         timedelta_feature = [samples[index] for index, row in obst_df.iterrows() if row['crash']]
 
         plt.scatter(times_crashes, timedelta_feature, c='r', marker='.', label='crash')
-
+        plt.legend()
         ax1.plot(times, samples, c=blue_color)
         ax1.set_xlabel('Playing time [s]')
         ax1.set_ylabel(feature_name, color=blue_color)
@@ -260,7 +260,7 @@ def plot_corr_knn_distr(X, y):
             hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr_all.pdf')
         else:
             hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr' + str(i) + '.pdf')
-
+    '''
     # Plot NearestNeighborClassifier decision boundaries
     cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
     cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
@@ -284,6 +284,7 @@ def plot_corr_knn_distr(X, y):
     plt.title("2-Class classification (k = %i)"
               % clf.n_neighbors)
     hp.save_plot(plt, 'Features/', 'KNN_boundaries.pdf')
+    '''
 
 
 def plot_timedeltas_and_crash_per_logfile(do_normalize=True):

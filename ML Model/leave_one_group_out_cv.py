@@ -68,8 +68,8 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
 
-        _plot_scores_normal_cv_vs_leaveone_group_out_cv(clf_names, auc_scores_scenario_1, auc_stds_scenario_1,
-                                                        auc_scores_scenario_2, auc_stds_scenario_2)
+    _plot_scores_normal_cv_vs_leaveone_group_out_cv(clf_names, auc_scores_scenario_1, auc_stds_scenario_1,
+                                                    auc_scores_scenario_2, auc_stds_scenario_2)
 
 
 def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True):
@@ -149,7 +149,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
 
 
 def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1, auc_stds_scenario_1,
-                                             auc_scores_scenario_2, auc_stds_scenario_2):
+                                                    auc_scores_scenario_2, auc_stds_scenario_2):
     """
     Plots the roc_auc score and the standard deviation for each classifier for both scenarios next to each other
 

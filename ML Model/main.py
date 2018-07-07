@@ -27,7 +27,7 @@ import plots_logfiles as lp
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 
-_num_iter = 10  # Number of iterations when doing hyperparameter tuning with RandomizedSearchCV
+_num_iter = 200  # Number of iterations when doing hyperparameter tuning with RandomizedSearchCV
 
 
 def main(args):
@@ -64,7 +64,6 @@ def main(args):
                 feature_selection=f_factory.use_reduced_features,
                 use_boxcox=False,
             )
-
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
     # model_factory.test_clf_with_timedelta_only()
@@ -134,12 +133,11 @@ def main(args):
 
 
 def plot_features(X, y):
-    # fp.plot_scores_with_different_feature_selections()
-    #fp.plot_corr_knn_distr(X, y)
-    #fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
-    #fp.plot_feature_distributions(X)
-    #fp.plot_mean_value_of_feature_at_crash(X, y)
-
+    fp.plot_scores_with_different_feature_selections()
+    fp.plot_corr_knn_distr(X, y)
+    fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+    fp.plot_feature_distributions(X)
+    fp.plot_mean_value_of_feature_at_crash(X, y)
     for i in range(0, len(f_factory.feature_names)):
         fp.plot_feature(X, i)
 
