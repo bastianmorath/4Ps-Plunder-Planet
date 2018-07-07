@@ -118,6 +118,8 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     if feature_selection:
         globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst']
+
+
     else:
         globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
                                       'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',

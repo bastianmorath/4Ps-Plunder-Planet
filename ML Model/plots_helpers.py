@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -75,21 +75,38 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
 
     fix, ax = plt.subplots()
     bar_width = 0.3
-    opacity = 0.4
     index = np.arange(len(x_tick_labels))
 
-    r = plt.bar(index, values, bar_width,
-                alpha=opacity,
-                color=blue_color,
-                label=lbl,
-                yerr=std_err,
-                error_kw={'elinewidth': 0.8},
-                )
+    line_width = 0.3
+    '''
+    ax.axhline(y=0.2, c='k', linewidth=line_width, zorder=0)
+    ax.axhline(y=0.4, c='k', linewidth=line_width, zorder=0)
+    ax.axhline(y=0.6, c='k', linewidth=line_width, zorder=0)
+    ax.axhline(y=0.8, c='k', linewidth=line_width, zorder=0)
+    ax.axhline(y=1.0, c='k', linewidth=line_width, zorder=0)
+    '''
+
+    ax.yaxis.grid(True, zorder=0)
+    ax.set_axisbelow(True)
+
+    plt.bar(index, values, bar_width,
+            color=blue_color,
+            label=lbl,
+            yerr=std_err,
+
+            error_kw={'elinewidth': line_width,
+                      'capsize': 1.4,
+                      'markeredgewidth': line_width},
+            )
+
+    [i.set_linewidth(line_width) for i in ax.spines.values()]
+
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
     # ax.set_ylim([0, min(max(values) + 0.15, 1.2)])
-    ax.set_ylim([0, max(values) + 0.15])
+    # ax.set_ylim([0, max(values) + 0.15])
+    ax.set_ylim([0, 1.1])
 
     plt.xticks(index, x_tick_labels, rotation='vertical')
     plt.legend()
@@ -104,7 +121,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
                     '%0.3f' % values[i],
                     ha='center', va='bottom', size=5)
 
-    autolabel(r)
+    # autolabel(r)
 
     plt.tight_layout()
 

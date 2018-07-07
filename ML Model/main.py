@@ -1,16 +1,17 @@
 """
-This module is the main file when one wants to ...
+Type $ python main.py -h for how to use this module
 
 """
 
 from __future__ import division, print_function  # s.t. division uses float result
 
+import matplotlib
+matplotlib.use('Agg')
 import time
 import argparse
 
 
 import setup_dataframes
-import plots_features
 import synthesized_data
 import features_factory as f_factory
 import window_optimization
@@ -26,12 +27,12 @@ import plots_logfiles as lp
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 
-_num_iter = 10 # NUmber of iterations when doing hyperparameter tuning with RandomizedSearchCV
+_num_iter = 10  # Number of iterations when doing hyperparameter tuning with RandomizedSearchCV
 
 
 def main(args):
     start = time.time()
-    f_factory.use_reduced_features = not args.all_features
+    f_factory.use_reduced_features = not args.use_all_features
 
     assert (not (args.use_synthesized_data and args.leave_one_group_out)), \
         'Can\'t do leave_one_group_out with synthesized data'
@@ -238,7 +239,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-a",
-        "--all_features",
+        "--use_all_features",
         action='store_true',
         help="Do not do feature selection with cross_correlation matrix, but use all features instead"
     )

@@ -24,9 +24,7 @@ import plots_helpers
 
 _maxlen = 0
 
-# TODO: Split into train, test, validation set
 # TODO: Save model in pickle file for later use
-# TODO: Try softmax pred_classes
 # TODO: https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
 
 

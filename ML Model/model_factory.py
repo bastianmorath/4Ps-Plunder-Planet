@@ -3,7 +3,6 @@
 """
 from __future__ import division  # s.t. division uses float result
 
-# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -142,7 +141,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
 
         plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
-        plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
+        # plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
         # Write result to a file
@@ -255,7 +254,6 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
     Creates a formatted string from the performance scores, confusion matrix and optionally the tuned hyperparameters
 
     :param clf_name: name of the classifier
-
     :param conf_mat: confusion matrice
     :param tuned_params_dict: Dictionary containing the tuned parameters and its values
 

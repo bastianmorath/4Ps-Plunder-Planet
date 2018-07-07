@@ -2,9 +2,6 @@
 This module is responsible for plotting various things
 
 """
-import matplotlib
-matplotlib.use('Agg')
-
 import graphviz
 from sklearn import tree, neighbors
 from sklearn.preprocessing import MinMaxScaler
