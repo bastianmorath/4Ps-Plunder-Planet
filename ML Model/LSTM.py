@@ -40,7 +40,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_synthesized_data(X_list, y_list, leave_out=5)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=5)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
@@ -169,25 +169,34 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
     """
 
     y_pred_list = []
-    for X in X_test_list:
+    _roc_auc_scores = []
+    _precision_scores = []
+    _specificity_scores = []
+    _recall_scores = []
+    for idx, X in enumerate(X_test_list):
         # We need to predict on maxlen, and can then take the first len(X_original) values
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
         predictions = lstm_model.predict_classes(X_padded, batch_size=10, verbose=0).ravel()
-        y_pred_list.append(predictions[:length_old])  # Remove predictions for padded values
+        y_pred = predictions[:length_old]
+        y_true = y_test_list[idx]
+        y_pred_list.append(y_pred)  # Remove predictions for padded values
+
+        _roc_auc_scores.append(metrics.roc_auc_score(y_true, y_pred))
+        _recall_scores.append(metrics.recall_score(y_true, y_pred))
+        _precision_scores.append(metrics.precision_score(y_true, y_pred))
+        conf_mat = confusion_matrix(y_true, y_pred)
+        _specificity_scores.append(conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1]))
 
     y_pred = list(itertools.chain.from_iterable(y_pred_list))
     y_true = list(itertools.chain.from_iterable(y_test_list))
-    #for a, b in zip(y_pred, y_true):
-    #    print(a, b)
-    conf_mat = confusion_matrix(y_true, y_pred)
-    _precision = metrics.precision_score(y_true, y_pred)
-    _recall = metrics.recall_score(y_true, y_pred)
-    _specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    _roc_auc = metrics.roc_auc_score(y_true, y_pred)
 
-    print(model_factory.create_string_from_scores('LSTM', _roc_auc, _recall, _specificity, _precision, conf_mat))
+    conf_mat = confusion_matrix(y_true, y_pred)
+
+    print(model_factory.create_string_from_scores('LSTM', np.mean(_roc_auc_scores), np.std(_roc_auc_scores),
+          np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.mean(_precision_scores),
+          np.std(_precision_scores), conf_mat))
 
 
 """
