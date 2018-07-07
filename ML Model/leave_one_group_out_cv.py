@@ -162,23 +162,29 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
     """
     fix, ax = plt.subplots()
     bar_width = 0.3
-    opacity = 0.4
+    line_width = 0.3
+
     index = np.arange(len(auc_scores_scenario_1))
+    ax.yaxis.grid(True, zorder=0)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(line_width) for i in ax.spines.values()]
 
     r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
-                 alpha=opacity,
                  color=plots_helpers.blue_color,
                  label='roc_auc normal CV',
                  yerr=auc_stds_scenario_1,
-                 error_kw={'elinewidth': 0.8}
+                 error_kw={'elinewidth': line_width,
+                           'capsize': 1.4,
+                           'markeredgewidth': line_width},
                  )
 
     r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
-                 alpha=opacity,
                  color=plots_helpers.red_color,
                  label='roc_auc LeaveOneGroupOut CV',
                  yerr=auc_stds_scenario_2,
-                 error_kw={'elinewidth': 0.8},
+                 error_kw={'elinewidth': line_width,
+                           'capsize': 1.4,
+                           'markeredgewidth': line_width},
                  )
 
     plt.ylabel('roc_auc')
@@ -197,8 +203,8 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
                     '%0.2f' % height,
                     ha='center', va='bottom', size=5)
 
-    autolabel(r1)
-    autolabel(r2)
+    # autolabel(r1)
+    # autolabel(r2)
 
     plt.tight_layout()
 

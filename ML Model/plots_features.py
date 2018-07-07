@@ -17,7 +17,7 @@ import seaborn as sns
 import setup_dataframes as sd
 import features_factory as f_factory
 import plots_helpers as hp
-
+import classifiers
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
@@ -334,3 +334,73 @@ def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
 
         filename = str(idx) + '_crash.pdf'
         hp.save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)
+
+
+def plot_scores_with_different_feature_selections():
+    """ After trying different feature selcetions, I plot the scores for each classifier in a barchart.
+        Note: The numbers were colelcted by analyzsing the performances!
+
+        1. timedelta_to_last_obst only
+        2. timedelta_to_last_obst + last_obstacle_crash
+        3. all features
+        4. old features (=all features without timedelta_to_last_obst)
+
+    """
+
+    scores_timedelta_only = [ 0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
+    scores_timedelta_and_last_obst_crash = [ 0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
+    scores_all_features = [0.68, 0.68, 0.61, 0.64, 0.96, 0.95, 0.965, 0.65]
+    scores_old_features = [0.62, 0.63, 0.57, 0.622, 0.53, 0.6, 0.64, 0.74]
+
+    fix, ax = plt.subplots()
+    bar_width = 0.2
+    line_width = 0.3
+
+    index = np.arange(len(scores_timedelta_only))
+    ax.yaxis.grid(True, zorder=0)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(line_width) for i in ax.spines.values()]
+
+
+    r1 = plt.bar(index, scores_timedelta_and_last_obst_crash, bar_width,
+                 color=hp.red_color,
+                 label='timedelta_to_last_obst + last_obstacle_crash',
+                 )
+
+    r2 = plt.bar(index + bar_width, scores_timedelta_only, bar_width,
+                 color=hp.blue_color,
+                 label='timedelta_to_last_obst',
+                 )
+
+    r3 = plt.bar(index + 2*bar_width, scores_all_features, bar_width,
+                 color=hp.green_color,
+                 label='all features',
+                 )
+
+    r4 = plt.bar(index + 3*bar_width, scores_old_features, bar_width,
+                 color=hp.yellow_color,
+                 label='all features without timedelta_to_last_obst',
+                 )
+
+    plt.ylabel('roc_auc')
+    plt.title('roc_auc when selecting different features')
+    plt.xticks(index + bar_width / 4, classifiers.names, rotation='vertical')
+    ax.set_ylim([0, 1.2])
+    plt.legend(prop={'size': 6})
+
+    def autolabel(rects):
+        """
+           Attach a text label above each bar displaying its height
+           """
+        for rect in rects:
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.1 * height,
+                    '%0.2f' % height,
+                    ha='center', va='bottom', size=5)
+
+    # autolabel(r1)
+    # autolabel(r2)
+
+    plt.tight_layout()
+
+    hp.save_plot(plt, 'Performance/', 'clf_performance_with_different_features.pdf')

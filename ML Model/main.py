@@ -66,6 +66,7 @@ def main(args):
             )
 
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
+    fp.plot_scores_with_different_feature_selections()
 
     # model_factory.test_clf_with_timedelta_only()
 

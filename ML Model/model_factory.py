@@ -481,14 +481,14 @@ def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filen
     """
 
     plots_helpers.plot_barchart(title=title,
-                        xlabel='Classifier',
-                        ylabel='Performance',
-                        x_tick_labels=names,
-                        values=roc_auc_scores,
-                        lbl='auc_score',
-                        filename=filename,
-                        std_err=roc_auc_scores_std,
-                        )
+                                xlabel='Classifier',
+                                ylabel='Performance',
+                                x_tick_labels=names,
+                                values=roc_auc_scores,
+                                lbl='auc_score',
+                                filename=filename,
+                                std_err=roc_auc_scores_std,
+                                )
 
 
 def print_confidentiality_scores(X_train, X_test, y_train, y_test):

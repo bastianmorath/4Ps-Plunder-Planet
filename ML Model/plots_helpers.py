@@ -9,6 +9,7 @@ import setup_dataframes as sd
 green_color = '#AEBD38'
 blue_color = '#68829E'
 red_color = '#A62A2A'
+yellow_color = '#FABE3C'
 """
 Helper methods
 
@@ -78,13 +79,6 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     index = np.arange(len(x_tick_labels))
 
     line_width = 0.3
-    '''
-    ax.axhline(y=0.2, c='k', linewidth=line_width, zorder=0)
-    ax.axhline(y=0.4, c='k', linewidth=line_width, zorder=0)
-    ax.axhline(y=0.6, c='k', linewidth=line_width, zorder=0)
-    ax.axhline(y=0.8, c='k', linewidth=line_width, zorder=0)
-    ax.axhline(y=1.0, c='k', linewidth=line_width, zorder=0)
-    '''
 
     ax.yaxis.grid(True, zorder=0)
     ax.set_axisbelow(True)

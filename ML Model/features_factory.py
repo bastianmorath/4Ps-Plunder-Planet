@@ -121,7 +121,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
 
     else:
-        globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
+        globals()['feature_names'] = ['last_obstacle_crash', 'mean_hr', 'std_hr',
                                       'max_minus_min_hr', 'lin_regression_hr_slope', 'hr_gradient_changes',
                                       '%crashes', 'points_gradient_changes', 'mean_points', 'std_points',
                                       'max_hr', 'min_hr', 'max_over_min_hr', 'max_points', 'min_points',
@@ -141,7 +141,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             print('Creating feature matrix...')
 
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
-        matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
+        # matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
             matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
@@ -158,7 +158,6 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
             matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
             matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
-            matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
             matrix['max_points'] = get_standard_feature('max', 'Points')
             matrix['min_points'] = get_standard_feature('min', 'Points')
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
