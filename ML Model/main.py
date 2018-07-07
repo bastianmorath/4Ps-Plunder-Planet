@@ -66,7 +66,6 @@ def main(args):
             )
 
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
-    fp.plot_scores_with_different_feature_selections()
 
     # model_factory.test_clf_with_timedelta_only()
 
@@ -135,7 +134,7 @@ def main(args):
 
 
 def plot_features(X, y):
-
+    fp.plot_scores_with_different_feature_selections()
     fp.plot_corr_knn_distr(X, y)
     fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     fp.plot_feature_distributions(X)

@@ -379,7 +379,7 @@ def plot_scores_with_different_feature_selections():
 
     r4 = plt.bar(index + 3*bar_width, scores_old_features, bar_width,
                  color=hp.yellow_color,
-                 label='all features without timedelta_to_last_obst',
+                 label='all features, but without timedelta_to_last_obst',
                  )
 
     plt.ylabel('roc_auc')
@@ -388,18 +388,7 @@ def plot_scores_with_different_feature_selections():
     ax.set_ylim([0, 1.2])
     plt.legend(prop={'size': 6})
 
-    def autolabel(rects):
-        """
-           Attach a text label above each bar displaying its height
-           """
-        for rect in rects:
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width() / 2., 1.1 * height,
-                    '%0.2f' % height,
-                    ha='center', va='bottom', size=5)
-
-    # autolabel(r1)
-    # autolabel(r2)
+    plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
     plt.tight_layout()
 

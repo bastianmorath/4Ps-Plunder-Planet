@@ -103,6 +103,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     ax.set_ylim([0, 1.1])
 
     plt.xticks(index, x_tick_labels, rotation='vertical')
+    plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
     plt.legend()
 
     def autolabel(rects):

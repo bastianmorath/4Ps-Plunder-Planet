@@ -141,7 +141,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             print('Creating feature matrix...')
 
         matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
-        # matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
+        matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
             matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')

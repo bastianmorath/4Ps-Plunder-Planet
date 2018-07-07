@@ -27,7 +27,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     :param X: Feature matrix
     :param y: labels
     :param plot_auc_score_per_user: Whether or not we should create a plot for each user left out with the auc_score of
-                                    each classifier when using LeaveOneOut cross validation
+                                    each classifier when using LeaveOneGroupOut cross validation
     :param reduced_features: Whether we should use all features or do feature selection first
 
     """
@@ -40,7 +40,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     print('\n***** Scenario 1 (normal crossvalidation) *****\n')
     auc_scores_scenario_1, auc_stds_scenario_1 = model_factory.analyse_performance(clf_list, clf_names, X, y,
                                                                                    create_barchart=False,
-                                                                                   create_roc_curves=False,
+                                                                                   create_curves=False,
                                                                                    write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
@@ -48,7 +48,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     auc_scores_scenario_2 = []
     auc_stds_scenario_2 = []
     for name, classifier in zip(clf_names, clf_list):
-        print('Calculating performance of %s with doing LeaveOneOutCV ...' % name)
+        print('Calculating performance of %s with doing LeaveOneGroupOut ...' % name)
 
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
@@ -68,8 +68,8 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
 
-    _plot_scores_normal_cv_vs_leaveoneout_cv(clf_names, auc_scores_scenario_1, auc_stds_scenario_1,
-                                             auc_scores_scenario_2, auc_stds_scenario_2)
+        _plot_scores_normal_cv_vs_leaveone_group_out_cv(clf_names, auc_scores_scenario_1, auc_stds_scenario_1,
+                                                        auc_scores_scenario_2, auc_stds_scenario_2)
 
 
 def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True):
@@ -101,7 +101,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
 
         # I do MACRO averaging such that I can compute std!
         roc_auc, _, recall, _, specificity, precision, _, conf_mat, _ = \
-            model_factory.get_performance(model, "", X_test, y_test, verbose=False)
+            model_factory.get_performance(model, "", X_test, y_test, verbose=False, create_curves=False)
         """
         y_pred = model.predict(X_test)
 
@@ -138,7 +138,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
 
     if plot_auc_score_per_user:
         title = r'Auc scores per user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, auc_mean, auc_std)
-        filename = 'LeaveOneOut/performance_per_user_' + clf_name + '.pdf'
+        filename = 'LeaveOneGroupOut/performance_per_user_' + clf_name + '.pdf'
         plots_helpers.plot_barchart(title, 'Users', 'Auc score', names, aucs, 'auc_score', filename, verbose=False)
 
     y_pred = cross_val_predict(model, X, y, cv=logo.split(X, y, groups_ids))
@@ -148,7 +148,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
     return auc_mean, auc_std
 
 
-def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_stds_scenario_1,
+def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1, auc_stds_scenario_1,
                                              auc_scores_scenario_2, auc_stds_scenario_2):
     """
     Plots the roc_auc score and the standard deviation for each classifier for both scenarios next to each other
@@ -208,7 +208,7 @@ def _plot_scores_normal_cv_vs_leaveoneout_cv(names, auc_scores_scenario_1, auc_s
 
     plt.tight_layout()
 
-    plots_helpers.save_plot(plt, 'Performance/LeaveOneOut/', 'clf_performance_with_user_left_out_vs_normal.pdf')
+    plots_helpers.save_plot(plt, 'Performance/LeaveOneGroupOut/', 'clf_performance_with_user_left_out_vs_normal.pdf')
 
 
 def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
@@ -252,5 +252,5 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
 
     # TODO: Only append if in the same "session", otherwise delete everything and create a new one
 
-    model_factory.write_to_file(s, 'Performance/LeaveOneOut',
+    model_factory.write_to_file(s, 'Performance/LeaveOneGroupOut',
                                 'clf_performance_with_user_left_out_vs_normal_detailed.txt', 'a+', verbose=False)

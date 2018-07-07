@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import matplotlib
 import numpy as np
 import pandas as pd
@@ -40,27 +42,24 @@ def plot_heartrate_and_events():
             heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
                                  for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
 
-            # for xc, yc in zip(times_crashes, heartrate_crashes):
-            plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.')
+            s = plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='crash')
 
             # Plot Brokenships
             times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'BROKENSHIP']
             hr_max = df['Heartrate'].max()
             hr_min = df['Heartrate'].min()
             for xc in times_repairing:
-                plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1)
+                plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1, label='ship broken')
 
             # Plot worms appearing
             times_worms = [row['Time'] for _, row in df.iterrows()
                            if (row['obstacle'] == 'FARBOTTOMLEFT') or (row['obstacle'] == 'FARBOTTOMRIGHT')]
             heartrate_worms = [df[df['Time'] == time].iloc[0]['Heartrate'] for time in times_worms]
             # plt.scatter(times_worms, heartrate_worms, c='g', marker='o', s=15)
-            import matplotlib.patches as mpatches
 
-            green_patch = mpatches.Patch(color='y', label='ship broken')
-            red_patch = mpatches.Patch(color='r', label='crashes')
-
-            plt.legend(handles=[green_patch, red_patch])
+            handles, labels = plt.gca().get_legend_handles_labels()
+            by_label = OrderedDict(zip(labels, handles)) # Otherwise we'd have one label for each vline
+            plt.legend(by_label.values(), by_label.keys())
 
             filename = 'hr_and_events_' + sd.names_logfiles[idx] + '.pdf'
             hp.save_plot(plt, 'Logfiles/Heartrate_Events/', filename)
