@@ -189,7 +189,7 @@ if __name__ == "__main__":
         "--test_windows",
         type=int,
         nargs=3,
-        help="Trains and tests a SVM with the given window sizes. Stores roc_auc score in "
+        help="Trains and tests all classifiers with the given window sizes. Stores roc_auc score in "
              "a file in /Evaluation/Performance/Windows. "
              "Note: Provide the windows in seconds",
         metavar=('hw_window', 'crash_window', 'gc_window'),

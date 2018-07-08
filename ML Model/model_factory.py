@@ -27,7 +27,7 @@ import hyperparameter_optimization
 # High level functions
 
 def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=False,
-                        create_barchart=True, create_curves=True, write_to_file=True):
+                        create_barchart=True, create_curves=True, do_write_to_file=True):
     """Given a list of classifiers, computes performance (roc_auc, recall, specificity, precision, confusion matrix),
        writes it into a file and plots roc_auc scores of the classifiers in a barchart.
 
@@ -39,9 +39,9 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomizedSearchCV) -> To simplify printing scores
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_curves: Create roc_curves and precision_recall curve
-    :param write_to_file: Write summary of performance into a file (optional)
+    :param do_write_to_file: Write summary of performance into a file (optional)
 
-    :return list of roc_aucs, list of roc_auc_stds
+    :return list of roc_aucs, list of roc_auc_stds (one score for each classifier) and formatted string of scores
     """
 
     scores_mean = []
@@ -74,14 +74,25 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
                 else 'Scores by classifier without hyperparameter tuning'
         plot_barchart_scores(names, [s[0] for s in scores_mean], [s[0] for s in scores_std], title, filename + '.pdf')
 
-    if write_to_file:
-        write_scores_to_file(names, [s[0] for s in scores_mean], [s[0] for s in scores_std],  # roc_auc mean and std
-                                    [s[1] for s in scores_mean], [s[1] for s in scores_std],  # recall mean and std
-                                    [s[2] for s in scores_mean],  # Specificity
-                                    [s[3] for s in scores_mean], [s[2] for s in scores_std],  # precision mean and std
-                                    tuned_params, conf_mats, filename + '.txt')
+    s = ''
 
-    return [s[0] for s in scores_mean], [s[0] for s in scores_std]
+    roc_scores = [s[0] for s in scores_mean]
+    roc_scores_std = [s[0] for s in scores_std]
+    recall_scores = [s[1] for s in scores_mean]
+    recall_scores_std = [s[0] for s in scores_std]
+    specifity_scores = [s[2] for s in scores_mean]
+    precision_scores = [s[3] for s in scores_mean]
+    precision_scores_std = [s[2] for s in scores_std]
+
+    for i, name in enumerate(names):
+        s += create_string_from_scores(name, roc_scores[i], roc_scores_std[i], recall_scores[i], recall_scores_std[i],
+                                       specifity_scores[i], precision_scores[i], precision_scores_std[i],
+                                       conf_mats[i], tuned_params[i])
+
+    if do_write_to_file:
+        write_to_file(s, 'Performance/', filename + '.txt', 'w+')
+
+    return roc_scores, roc_scores_std, s
 
 
 def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True, do_write_to_file=False, create_curves=True):
@@ -151,17 +162,20 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 
     return roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std, conf_mat, s
 
+# TODO: For each "write_to"file", say under what name it gets saved
 
-def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False, num_iter=20):
+
+def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False,
+                                         num_iter=20, do_write_to_file=True):
     """
 
-    :param X:
-    :param y:
-    :param tune_hyperparameters:
+    :param X: Feature matrix
+    :param y: labels
+    :param tune_hyperparameters: Whether to do hyperparameter optimization or not
     :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
     :param num_iter: if tune_hyperparameters==True, then how many iterations should be done in RandomizedSearchCV
-
-    :return list of roc_auc means, list of roc_auc_stds
+    :param do_write_to_file: Write scores to file
+    :return list of roc_auc means , list of roc_auc_stds (one score for each classifier), string of scores
     """
 
     if reduced_clfs:
@@ -177,38 +191,13 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
 
     # Compute performance; Write to file and plot barchart
 
-    auc_mean_scores, auc_std_scores = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters)
+    auc_mean_scores, auc_std_scores, s = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters,
+                                                             do_write_to_file=do_write_to_file)
 
-    return auc_mean_scores, auc_std_scores
+    return auc_mean_scores, auc_std_scores, s
 
 
 # Helper functions
-
-def write_scores_to_file(names, roc_scores, roc_scores_std, recall_scores, recall_scores_std, specifity_scores,
-                         precision_scores, precision_scores_std, tuned_params, conf_mats, filename):
-    """Writes a formatted text consisting of roc, recall, specificity, precision, tuned_params and confusion matrices
-        into a file
-
-    :param names: list of names of classifiers
-    :param roc_scores: list of roc_auc scores
-    :param recall_scores: list of recall scores
-    :param specifity_scores: list of specificity scores
-    :param precision_scores: list of precision scores
-    :param tuned_params: list of dictionaries containing the tuned parameters and its values
-    :param conf_mats: list of confusion matrices
-    :param filename: name of the file to be stored
-
-    """
-
-    s = ''
-
-    for i, name in enumerate(names):
-        s += create_string_from_scores(name, roc_scores[i], roc_scores_std[i], recall_scores[i], recall_scores_std[i],
-                                       specifity_scores[i], precision_scores[i], precision_scores_std[i],
-                                       conf_mats[i], tuned_params[i])
-
-    write_to_file(s, 'Performance/', filename, 'w+')
-
 
 def write_to_file(string, folder, filename, mode, verbose=True):
     """Writes a string to a file while checking that the path already exists and creating it if not

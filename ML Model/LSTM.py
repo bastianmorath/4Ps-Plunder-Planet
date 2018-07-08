@@ -114,33 +114,36 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
 
     # loss = WeightedCategoricalCrossEntropy({0: 3, 1: 1})  # TODO: Maybe 0.8?
     adam = optimizers.adam(lr=0.019, decay=0.00001)
-    print('Learning rate and decay: ' + str(0.019) + ', ' + str(adam.decay))
-    # Metrics are NOT used in training phase (only loss function is tried to be minimized)
-    _metrics = [roc_auc, 'accuracy']
-    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=_metrics)
 
-    # shuffle=True takes entire samples and shuffles those
-    # TODO: Use validation_data or validation_split? Maybe validation_split doesn't take entire samples?
+    _metrics = [recall, precision]
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'], sample_weight_mode="temporal")
 
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
     my_callbacks = [EarlyStopping(monitor='roc_auc', patience=500, min_delta=0.001, verbose=1, mode='max')]
 
+    to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])    # sample_weights need a 2D array with shape
+                                                                            # `(samples, sequence_length)`,
+                                                                            # to apply a different weight to every
+                                                                            # timestep of every sample.
+    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+
     history = model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
-                        verbose=1, shuffle=False, callbacks=my_callbacks, validation_split=0.2)
+                        verbose=1, shuffle=False, callbacks=my_callbacks,
+                        validation_split=0.2, sample_weight=_sample_weight)
+
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
     print(model.summary())
-
     # Plot
     # summarize history for roc_auc
-
-    plt.plot(history.history['roc_auc'])
-    plt.plot(history.history['val_roc_auc'])
-    plt.title('model roc_auc')
-    plt.ylabel('roc_auc')
+    name = 'acc'
+    plt.plot(history.history[name])
+    plt.plot(history.history['val_'+name])
+    plt.title('model ' + name)
+    plt.ylabel(name)
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM roc_auc')
+    plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM ' + name)
 
     # summarize history for loss
     plt.plot(history.history['loss'])
@@ -181,6 +184,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
         predictions = lstm_model.predict_classes(X_padded, batch_size=10, verbose=0).ravel()
         y_pred = predictions[:length_old]
         y_true = y_test_list[idx]
+
         y_pred_list.append(y_pred)  # Remove predictions for padded values
 
         _roc_auc_scores.append(metrics.roc_auc_score(y_true, y_pred))
@@ -259,22 +263,10 @@ def precision(y_true, y_pred):
     Computes the precision, a metric for multi-label classification of
     how many selected items are relevant.
     """
-    # any tensorflow metric
-    value, update_op = tf.metrics.precision(y_true, y_pred)
-
-    # find all variables created for this metric
-    metric_vars = [i for i in tf.local_variables() if 'precision' in i.name.split('/')[1]]
-
-    # Add metric variables to GLOBAL_VARIABLES collection.
-    # They will be initialized for new session.
-    for v in metric_vars:
-        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
-
-    # force to update metric values
-    with tf.control_dependencies([update_op]):
-        value = tf.identity(value)
-        return value
-
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    return precision
 
 def recall(y_true, y_pred):
     """Recall metric.
@@ -284,26 +276,10 @@ def recall(y_true, y_pred):
     Computes the recall, a metric for multi-label classification of
     how many relevant items are selected.
     """
-    # any tensorflow metric
-    value, update_op = tf.metrics.recall(y_true, y_pred)
-
-    # find all variables created for this metric
-    metric_vars = [i for i in tf.local_variables() if 'recall' in i.name.split('/')[1]]
-
-    # Add metric variables to GLOBAL_VARIABLES collection.
-    # They will be initialized for new session.
-    for v in metric_vars:
-        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
-
-    # force to update metric values
-    with tf.control_dependencies([update_op]):
-        value = tf.identity(value)
-        return value
-
-'''
-def specificity(y_true, y_pred):
-    
-'''
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    recall = true_positives / (possible_positives + K.epsilon())
+    return recall
 
 
 def roc_auc(y_true, y_pred):
@@ -378,3 +354,4 @@ class WeightedCategoricalCrossEntropy(object):
         y_t = K.cast(y_true[..., c_t], K.floatx())
         final_mask += w * y_p * y_t
     return K.categorical_crossentropy(y_pred, y_true) * final_mask
+
