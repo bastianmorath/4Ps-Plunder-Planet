@@ -17,7 +17,6 @@ from sklearn.calibration import CalibratedClassifierCV
 
 import features_factory as f_factory
 import setup_dataframes as sd
-import plots_features
 import plots_helpers
 import classifiers
 import setup_dataframes
@@ -50,7 +49,10 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
     tuned_params = []
     conf_mats = []
 
-    filename = 'clf_performances_with_hp_tuning' if hyperparameters_are_tuned else 'clf_performances_without_hp_tuning'
+    windows = str(f_factory.hw) + '_' + str(f_factory.cw) + '_' + str(f_factory.gradient_w)
+
+    filename = 'clf_performances_with_hp_tuning_' + windows if hyperparameters_are_tuned \
+        else 'clf_performances_without_hp_tuning_' + windows
 
     for idx, clf in enumerate(clf_list):
         tuned_parameters = classifiers.get_cclassifier_with_name(clf_names[idx], X, y).tuned_params
@@ -136,8 +138,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-    if clf_name == 'Decision Tree':
-        plots_features.plot_graph_of_decision_classifier(model, X, y)
+    # if clf_name == 'Decision Tree':
+        # plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,

@@ -65,7 +65,7 @@ def main(args):
                 use_boxcox=False,
             )
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
-
+    # window_optimization.test_all_windows()
     # model_factory.test_clf_with_timedelta_only()
 
     if args.print_keynumbers_logfiles:
@@ -194,6 +194,7 @@ if __name__ == "__main__":
              "Note: Provide the windows in seconds",
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
+
 
     parser.add_argument(
         "-g",

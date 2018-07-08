@@ -268,6 +268,7 @@ def precision(y_true, y_pred):
     precision = true_positives / (predicted_positives + K.epsilon())
     return precision
 
+
 def recall(y_true, y_pred):
     """Recall metric.
 
