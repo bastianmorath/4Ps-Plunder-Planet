@@ -63,7 +63,7 @@ def main(args):
                 use_boxcox=False,
             )
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
-    # window_optimization.test_all_windows()
+    window_optimization.test_all_windows()
     # model_factory.test_clf_with_timedelta_only()
 
     if args.print_keynumbers_logfiles:

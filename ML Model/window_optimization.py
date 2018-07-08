@@ -18,6 +18,7 @@ import plots_helpers
 
 def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):
     print('Testing window size ' + str(hw) + ', ' + str(cw) + ', ' + str(gradient_w) + '...')
+
     X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                   save_as_pickle_file=True, h_window=hw, c_window=cw,
                                                   gradient_window=gradient_w)
@@ -39,37 +40,74 @@ def test_all_windows():
     classifier roc_auc scores with plt.imshow.
 
     """
-    hw = 10
+    const_window = 'gradient_w'
 
-    cw_list = [3, 5, 10, 20, 30, 60]
-    gradient_w = [3, 4, 5, 10, 20, 30, 60]
-    mean_scores = np.zeros((len(cw_list), len(gradient_w)))
-    scores_std = np.zeros((len(cw_list), len(gradient_w)))
+    const_w = 10
+    list_1 = [3, 5, 10, 20, 30, 60]
+    list_2 = list_1[::-1]
 
-    for idx_hw, cw in enumerate(cw_list):
-        for idx_cw, gradient_w in enumerate(gradient_w):
-            X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
-                save_as_pickle_file=True, h_window=hw, c_window=cw,
-                gradient_window=gradient_w)
+    if const_window == 'hw':
+        name1 = 'Crash window'
+        name2 = 'Gradient window'
+        filename = 'windows_const_hw.pdf'
+    elif const_window == 'cw':
+        name1 = 'Heartrate window'
+        name2 = 'Gradient window'
+        filename = 'windows_const_cw.pdf'
+    else:
+        name1 = 'Crash window'
+        name2 = 'Heartrate window'
+        filename = 'windows_const_gradient_w.pdf'
 
-            auc_mean_scores, auc_std_scores, _ = model_factory. \
-                calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
-                reduced_clfs=False, do_write_to_file=False)
-            print(np.mean(auc_mean_scores), np.mean(auc_std_scores), idx_hw, idx_cw)
-            mean_scores[idx_hw][idx_cw] = np.mean(auc_mean_scores)
-            scores_std[idx_hw][idx_cw] = np.mean(auc_std_scores)
+    mean_scores = np.zeros((len(list_1), len(list_2)))
+    scores_std = np.zeros((len(list_1), len(list_2)))
+
+    for idx_w1, w1 in enumerate(list_1):
+        for idx_w2, w2 in enumerate(list_2):
+            if const_window == 'hw':
+                X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
+                                                              save_as_pickle_file=True, h_window=const_w, c_window=w1,
+                                                              gradient_window=w2)
+
+                auc_mean_scores, auc_std_scores, _ = model_factory. \
+                    calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
+                                                         reduced_clfs=False, do_write_to_file=False)
+
+                mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
+                scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+            elif const_window == 'cw':
+                X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
+                                                              save_as_pickle_file=True, h_window=w1, c_window=const_w,
+                                                              gradient_window=w2)
+
+                auc_mean_scores, auc_std_scores, _ = model_factory. \
+                    calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
+                                                         reduced_clfs=False, do_write_to_file=False)
+
+                mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
+                scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+            else:
+                X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
+                                                              save_as_pickle_file=True, h_window=w1, c_window=w2,
+                                                              gradient_window=const_w)
+
+                auc_mean_scores, auc_std_scores, _ = model_factory. \
+                    calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
+                                                         reduced_clfs=False, do_write_to_file=False)
+
+                mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
+                scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
 
     # Plot elements
-
     plt.imshow(mean_scores, cmap='RdYlGn')
-    plt.title('Average classifier performance when using constant gradient_window')
+    plt.title('Average classifier performance when using constant ' + const_window)
     ax = plt.gca()
-    ax.set_xticks(np.arange(0, len(gradient_w), 1))
-    ax.set_yticks(np.arange(0, len(cw_list), 1))
-    ax.set_xticklabels(gradient_w)
-    ax.set_yticklabels(cw_list)
-    ax.set_ylabel('Crash window')
-    ax.set_xlabel('Gradient window')
+    ax.set_xticks(np.arange(0, len(list_1), 1))
+    ax.set_yticks(np.arange(0, len(list_2), 1))
+    ax.set_xticklabels(list_1)
+    ax.set_yticklabels(list_2)
+    ax.set_ylabel(name1)
+    ax.set_xlabel(name2)
     plt.colorbar()
-    plots_helpers.save_plot(plt, 'Performance/Windows/', 'windows_const_hw.pdf')
+    plots_helpers.save_plot(plt, 'Performance/Windows/', filename)
 

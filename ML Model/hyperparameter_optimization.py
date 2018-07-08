@@ -61,7 +61,6 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
         if synthesized_data.synthesized_data_enabled:
-            print('in')
             X_n, y_n = f_factory.get_feature_matrix_and_label(False, False, True, True, f_factory.use_reduced_features)  # Use features with boxcox
         else:
             X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, f_factory.use_reduced_features)  # Use features with boxcox
