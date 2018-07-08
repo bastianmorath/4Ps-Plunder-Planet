@@ -40,10 +40,12 @@ def test_all_windows():
     classifier roc_auc scores with plt.imshow.
 
     """
+    print("\n################# Testing all window sizes #################\n")
+
     const_window = 'gradient_w'
 
     const_w = 10
-    list_1 = [3, 5, 10, 20, 30, 60]
+    list_1 = [5, 10, 20, 30, 50, 60, 80, 100, 120]
     list_2 = list_1[::-1]
 
     if const_window == 'hw':
@@ -72,7 +74,7 @@ def test_all_windows():
                 auc_mean_scores, auc_std_scores, _ = model_factory. \
                     calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
                                                          reduced_clfs=False, do_write_to_file=False)
-
+                print(np.mean(auc_mean_scores))
                 mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
                 scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
             elif const_window == 'cw':
@@ -98,7 +100,11 @@ def test_all_windows():
                 mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
                 scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
 
+    mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly
+
+    
     # Plot elements
+    plt.subplot()
     plt.imshow(mean_scores, cmap='RdYlGn')
     plt.title('Average classifier performance when using constant ' + const_window)
     ax = plt.gca()
