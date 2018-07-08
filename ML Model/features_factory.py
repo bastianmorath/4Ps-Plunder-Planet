@@ -31,7 +31,7 @@ _verbose = True
 
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 cw = 10  # Over how many preceeding seconds should %crashes be calculated?
-gradient_w = 5  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
+gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
 path_reduced_features = sd.working_directory_path + '/Pickle/reduced_features/'

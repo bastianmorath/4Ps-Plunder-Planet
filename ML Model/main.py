@@ -27,8 +27,6 @@ import plots_logfiles as lp
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
 
-_num_iter = 200  # Number of iterations when doing hyperparameter tuning with RandomizedSearchCV
-
 
 def main(args):
     start = time.time()
@@ -92,13 +90,13 @@ def main(args):
         if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
-                                                     reduced_clfs=False, num_iter=_num_iter)
+                                                     reduced_clfs=False)
         else:
             if args.performance_with_tuning:
                 clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                    X, y, clf_name=args.performance_with_tuning, num_iter=_num_iter
+                    X, y, clf_name=args.performance_with_tuning
                 )
-                print('(n_iter in RandomizedSearchCV=' + str(_num_iter) + ')')
+
                 _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X, y,
                                                                                tuned_params, verbose=True,
                                                                                do_write_to_file=False)

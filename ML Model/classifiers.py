@@ -27,6 +27,10 @@ length_param_list = 1000
 # Note: Whenever there is 'auto' or None as an option, I add it 'length_param_list/3' times to the hyperparameter list,
 # such that the likelhoode of drawing this is very high (because the default parameters often give good performance)
 
+num_iter_small = 100  # SVM, Linear SVM,
+num_iter_medium = 300  # QDA, Gradient Boosting
+num_iter_big = 1000  # Nearest Neighbor, Decision Tree, Random Forest, AdaBoost
+
 
 def get_cclassifier_with_name(clf_name, X, y):
     """Returns the CClassifier with the given name
@@ -77,6 +81,7 @@ class CSVM(CClassifier):
     param2 = get_list_with_distr_and_opt_param(uniform(EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
     tuned_params = {'C': param1, 'gamma': param2}
+    num_iter = num_iter_small
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -90,6 +95,7 @@ class CLinearSVM(CClassifier):
     param2 = ['l1', 'l2']  # penalty
     param2_name = 'penalty'
     tuned_params = {'C': param1, 'penalty': param2}
+    num_iter = num_iter_small
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -104,6 +110,7 @@ class CNearestNeighbors(CClassifier):
     param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
     param2_name = 'metric'
     tuned_params = {'n_neighbors': param1, 'metric': param2}
+    num_iter = num_iter_big
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -118,6 +125,7 @@ class CQuadraticDiscriminantAnalysis(CClassifier):
     param2 = uniform(EPSILON, 0.1)  # tol
     param2_name = 'tol'
     tuned_params = {'reg_param': param1, 'tol': param2}  # TODO redo
+    num_iter = num_iter_medium
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -142,6 +150,8 @@ class CGradientBoostingClassifier(CClassifier):
 
     param8 = uniform(EPSILON, 1)  # subsample
     param8_name = 'subsample'
+
+    num_iter = num_iter_medium
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -174,6 +184,8 @@ class CDecisionTreeClassifier(CClassifier):
     param5 = sp_randint(1, 20)  # min_samples_leaf
     param5_name = 'min_samples_leaf'
 
+    num_iter = num_iter_big
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         # Compute this after instantiations since feature_names is [] otherwise
@@ -201,6 +213,8 @@ class CRandomForest(CClassifier):
     param5 = ['gini', 'entropy']  # criterion
     param5_name = 'criterion'
 
+    num_iter = num_iter_big
+
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier()
@@ -227,6 +241,8 @@ class CAdaBoost(CClassifier):
     tuned_params = {'n_estimators': param1, 'learning_rate': param2,
                     'algorithm': param3,
                     }
+
+    num_iter = num_iter_big
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)

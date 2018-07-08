@@ -42,14 +42,13 @@ def report(results, n_top=3):
     print(s)
 
 
-def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, verbose=True):
+def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
     """This method optimizes hyperparameters with cross-validation using RandomizedSearchCV, optionally creates a ROC curve
         and returns this optimized classifier and the tuned parameters
 
     :param X: Feature matrix
     :param y: labels
     :param clf_name:  Name of the classifier as given in classifiers.py
-    :param num_iter: Number of iterations the RandomizedSearchCV should perform
     :param verbose: Whether scores of top hyperparameter configurations should be printed out
 
     :return: optimized classifier, dictionary of tuned_params
@@ -58,7 +57,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, v
 
     c_classifier = classifiers.get_cclassifier_with_name(clf_name, X, y)
 
-    print('Doing RandomizedSearchCV with n_iter=' + str(num_iter) + ' for ' + clf_name + '...')
+    print('Doing RandomizedSearchCV with n_iter=' + str(c_classifier.num_iter) + ' for ' + clf_name + '...')
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
         if synthesized_data.synthesized_data_enabled:
@@ -73,7 +72,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', num_iter=20, v
 
     else:
         clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=5,
-                                 scoring='roc_auc', n_iter=num_iter)
+                                 scoring='roc_auc', n_iter=c_classifier.num_iter)
         clf.fit(X, y)
 
         if verbose:

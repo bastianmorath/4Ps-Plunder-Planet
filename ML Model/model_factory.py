@@ -167,15 +167,13 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 # TODO: For each "write_to"file", say under what name it gets saved
 
 
-def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False,
-                                         num_iter=20, do_write_to_file=True):
+def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False, do_write_to_file=True):
     """
 
     :param X: Feature matrix
     :param y: labels
     :param tune_hyperparameters: Whether to do hyperparameter optimization or not
     :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
-    :param num_iter: if tune_hyperparameters==True, then how many iterations should be done in RandomizedSearchCV
     :param do_write_to_file: Write scores to file
     :return list of roc_auc means , list of roc_auc_stds (one score for each classifier), string of scores
     """
@@ -188,7 +186,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
 
     if tune_hyperparameters:
-        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name, num_iter,
+        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
                     verbose=False)[0] for name in clf_names]
 
     # Compute performance; Write to file and plot barchart
