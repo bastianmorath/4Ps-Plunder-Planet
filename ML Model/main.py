@@ -7,9 +7,9 @@ from __future__ import division, print_function  # s.t. division uses float resu
 
 import matplotlib
 matplotlib.use('Agg')
+
 import time
 import argparse
-
 
 import setup_dataframes
 import synthesized_data
@@ -22,6 +22,7 @@ import LSTM
 import classifiers
 import plots_features as fp
 import plots_logfiles as lp
+
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
@@ -64,7 +65,7 @@ def main(args):
             )
 
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
-
+    model_factory.plot_roc_curves(X, y, hyperparameter_tuning=True)
     # window_optimization.test_all_windows()
     # model_factory.test_clf_with_timedelta_only()
 
@@ -94,6 +95,12 @@ def main(args):
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
                                                      reduced_clfs=False)
         else:
+            X_old = X
+            y_old = y
+            if (args.performance_with_tuning == 'Naive Bayes') or (args.performance_without_tuning == 'Naive Bayes'):
+                X, y = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=True,
+                                                              save_as_pickle_file=True, use_boxcox=True)
+
             if args.performance_with_tuning:
                 clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
                     X, y, clf_name=args.performance_with_tuning
@@ -103,10 +110,13 @@ def main(args):
                                                                                tuned_params, verbose=True,
                                                                                do_write_to_file=False)
             else:
-                model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y).clf
-                _, _, _, _, _, _, _, _, report = model_factory.get_performance(model, args.performance_without_tuning,
+                model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y)
+
+                _, _, _, _, _, _, _, _, report = model_factory.get_performance(model.clf, args.performance_without_tuning,
                                                                                X, y, verbose=True,
                                                                                do_write_to_file=False)
+            X = X_old
+            y = y_old
             print(report)
 
     if args.leave_one_group_out:
@@ -134,7 +144,7 @@ def main(args):
 
 def plot_features(X, y):
     # fp.plot_scores_with_different_feature_selections()
-    fp.plot_crashes_vs_timedelta(X)
+    # fp.plot_crashes_vs_timedelta(X)
     fp.plot_corr_knn_distr(X, y)
     fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     fp.plot_feature_distributions(X)

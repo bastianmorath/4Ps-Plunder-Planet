@@ -196,11 +196,8 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 def get_timedelta_to_last_obst_feature(do_normalize=False):
     """ Returns the timedelta to the previous obstacle
 
-    NOTE: Significantly improves SVM/Linear SVM (from ca. auc=0.6 to 0.9) and Ada Boost (from auc=0.73 to 0.87
     :param do_normalize: Normalize the timedelta with previous timedelta (bc. it varies slightly within and across
                          logfiles)
-
-
 
     """
     timedeltas_df_list = []  # list that contains a dataframe with feature for each logfile

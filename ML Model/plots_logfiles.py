@@ -53,6 +53,13 @@ def plot_heartrate_and_events():
             for xc in times_repairing:
                 plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1, label='ship broken')
 
+            # Plot Shieldtutorial
+            times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'SHIELDTUTORIAL']
+            hr_max = df['Heartrate'].max()
+            hr_min = df['Heartrate'].min()
+            for xc in times_repairing:
+                plt.vlines(x=xc, ymin=hr_min, ymax=hr_max + 0.2, color='g', linewidth=1, label='Shield tutorial')
+
             # Plot worms appearing
             times_worms = [row['Time'] for _, row in df.iterrows()
                            if (row['obstacle'] == 'FARBOTTOMLEFT') or (row['obstacle'] == 'FARBOTTOMRIGHT')]

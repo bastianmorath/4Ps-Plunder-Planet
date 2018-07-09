@@ -62,9 +62,9 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
             # TODO: Use boxcox feature matrix
-
+            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True)
             roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
-                get_performance(clf, clf_name, X, y, create_curves=create_curves)
+                get_performance(clf, clf_name, X_n, y_n, create_curves=create_curves)
         else:
             roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
                 get_performance(clf, clf_name, X, y, tuned_parameters, create_curves=create_curves)
@@ -141,8 +141,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-    if clf_name == 'Decision Tree':
-        plots_features.plot_graph_of_decision_classifier(model, X, y)
+    # if clf_name == 'Decision Tree':
+    #     plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
@@ -182,7 +182,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     """
 
     if reduced_clfs:
-        clf_names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Naive Bayes']
+        clf_names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'Decision Tree', 'Naive Bayes']
     else:
         clf_names = classifiers.names
 
@@ -426,6 +426,64 @@ def plot_roc_curve(classifier, X, y, filename, title='ROC'):
     plt.xlabel('False Positive Rate')
 
     plots_helpers.save_plot(plt, 'Performance/Roc Curves/', filename)
+
+
+def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
+    """Plots roc_curves for all classifier
+
+    :param X: Feature matrix
+    :param y: labels
+    :param reduced_clfs:
+    :param hyperparameter_tuning:
+
+    """
+
+    # allows to add probability output to classifiers which implement decision_function()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+    if reduced_clfs:
+        clf_names = ['SVM', 'Nearest Neighbor', 'Decision Tree', 'Naive Bayes']
+    else:
+        clf_names = classifiers.names
+
+    clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
+
+    tprs = []
+    fprs = []
+    roc_aucs = []
+
+    for idx, classifier in enumerate(clf_list):
+        if hyperparameter_tuning:
+            classifier, _ = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
+                X, y, clf_name=clf_names[idx], verbose=False
+            )
+
+        clf = CalibratedClassifierCV(classifier)
+
+        clf.fit(X_train, y_train)
+
+        predicted_probas = clf.predict_proba(X_test)  # returns class probabilities for each class
+
+        fpr, tpr, _ = roc_curve(y_test, predicted_probas[:, 1])
+        roc_auc = auc(fpr, tpr)
+        fprs.append(fpr)
+        tprs.append(tpr)
+        roc_aucs.append(roc_auc)
+
+    plt.figure()
+
+    for idx, name in enumerate(clf_names):
+        plt.plot(fprs[idx], tprs[idx], label=clf_names[idx] + ' (AUC = %0.2f)' % roc_aucs[idx])
+
+    plt.title('Roc curves')
+    plt.legend(loc='lower right')
+    plt.plot([0, 1], [0, 1], 'r--')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+
+    plots_helpers.save_plot(plt, 'Performance/Roc Curves/', 'roc_curves.pdf')
 
 
 def plot_precision_recall_curve(classifier, X, y, filename):
