@@ -38,10 +38,10 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
     # Get scores for scenario 1 (normal crossvalidation)
     print('\n***** Scenario 1 (normal crossvalidation) *****\n')
-    auc_scores_scenario_1, auc_stds_scenario_1 = model_factory.analyse_performance(clf_list, clf_names, X, y,
-                                                                                   create_barchart=False,
-                                                                                   create_curves=False,
-                                                                                   write_to_file=False)
+    auc_scores_scenario_1, auc_stds_scenario_1, s = model_factory.analyse_performance(clf_list, clf_names, X, y,
+                                                                                      create_barchart=False,
+                                                                                      create_curves=False,
+                                                                                      do_write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
     print('\n***** Scenario 2  (Leave one user out in training phase) ***** \n')

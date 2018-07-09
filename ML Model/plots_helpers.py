@@ -82,7 +82,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
 
     ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
     ax.set_axisbelow(True)  # Put vertical grid in background of plot
-    [i.set_linewidth(line_width) for i in ax.spines.values()]  # Set width of plot borders
+    # [i.set_linewidth(line_width) for i in ax.spines.values()]  # Set width of plot borders
 
     plt.bar(index, values, bar_width,
             color=blue_color,
@@ -97,24 +97,12 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     plt.ylabel(ylabel)
     plt.title(title)
     # ax.set_ylim([0, min(max(values) + 0.15, 1.2)])
-    # ax.set_ylim([0, max(values) + 0.15])
-    ax.set_ylim([0, 1.1])
+    ax.set_ylim([0, max(values) + np.std(values)])
+    # ax.set_ylim([0, 1.1])
 
     plt.xticks(index, x_tick_labels, rotation='vertical')
     plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
     plt.legend()
-
-    def autolabel(rects):
-        """
-        Attach a text label above each bar displaying its height
-        """
-        for i, rect in enumerate(rects):
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width() / 2., 1.02 * height,
-                    '%0.3f' % values[i],
-                    ha='center', va='bottom', size=5)
-
-    # autolabel(r)
 
     plt.tight_layout()
 

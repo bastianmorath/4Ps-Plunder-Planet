@@ -62,8 +62,10 @@ def main(args):
                 feature_selection=f_factory.use_reduced_features,
                 use_boxcox=False,
             )
+
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
-    window_optimization.test_all_windows()
+
+    # window_optimization.test_all_windows()
     # model_factory.test_clf_with_timedelta_only()
 
     if args.print_keynumbers_logfiles:
@@ -131,7 +133,8 @@ def main(args):
 
 
 def plot_features(X, y):
-    fp.plot_scores_with_different_feature_selections()
+    # fp.plot_scores_with_different_feature_selections()
+    fp.plot_crashes_vs_timedelta(X)
     fp.plot_corr_knn_distr(X, y)
     fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     fp.plot_feature_distributions(X)

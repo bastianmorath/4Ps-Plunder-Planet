@@ -18,6 +18,7 @@ from sklearn.calibration import CalibratedClassifierCV
 import features_factory as f_factory
 import setup_dataframes as sd
 import plots_helpers
+import plots_features
 import classifiers
 import setup_dataframes
 import hyperparameter_optimization
@@ -60,6 +61,8 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
         names.append(clf_name)
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
+            # TODO: Use boxcox feature matrix
+
             roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
                 get_performance(clf, clf_name, X, y, create_curves=create_curves)
         else:
@@ -138,8 +141,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-    # if clf_name == 'Decision Tree':
-        # plots_features.plot_graph_of_decision_classifier(model, X, y)
+    if clf_name == 'Decision Tree':
+        plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,

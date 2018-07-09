@@ -169,7 +169,7 @@ def plot_hr(dataframe, i):
 
     # Plot mean_hr
     ax1.plot(dataframe['Time'], dataframe['Heartrate'])
-    ax1.set_xlabel('Playing time [s]')
+    ax1.set_xlabel('Playing time (s)')
     ax1.set_ylabel('Heartrate')
 
     plots_helpers.save_plot(plt, 'Logfiles/synthesized_data/', 'heartrate_testdata_' + str(i) + '.pdf')

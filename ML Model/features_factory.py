@@ -25,12 +25,10 @@ use_reduced_features = True
 _verbose = True
 
 # TODO: Explicitly write down which features use which window
-# TODO: Onlt if not_reduced, add if-clauses. But we can always add the shared features...
-# TODO: Simplify feature_selection: Store is at variable in this class and use this always (without argument passing)
 
 
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
-cw = 10  # Over how many preceeding seconds should %crashes be calculated?
+cw = 5  # Over how many preceeding seconds should %crashes be calculated?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 

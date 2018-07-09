@@ -42,19 +42,19 @@ def test_all_windows():
     """
     print("\n################# Testing all window sizes #################\n")
 
-    const_window = 'gradient_w'
+    const_window = 'cw'
 
     const_w = 10
     list_1 = [5, 10, 20, 30, 50, 60, 80, 100, 120]
     list_2 = list_1[::-1]
 
     if const_window == 'hw':
-        name1 = 'Crash window'
-        name2 = 'Gradient window'
+        name1 = 'Crash window (s)'
+        name2 = 'Gradient window (s)'
         filename = 'windows_const_hw.pdf'
     elif const_window == 'cw':
-        name1 = 'Heartrate window'
-        name2 = 'Gradient window'
+        name1 = 'Heartrate window (s)'
+        name2 = 'Gradient window (s)'
         filename = 'windows_const_cw.pdf'
     else:
         name1 = 'Crash window'
@@ -102,7 +102,7 @@ def test_all_windows():
 
     mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly
 
-    
+
     # Plot elements
     plt.subplot()
     plt.imshow(mean_scores, cmap='RdYlGn')

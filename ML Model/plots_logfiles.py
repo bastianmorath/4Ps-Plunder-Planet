@@ -35,7 +35,7 @@ def plot_heartrate_and_events():
             # Plot Heartrate
             _, ax1 = plt.subplots()
             ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color, linewidth=1.0)
-            ax1.set_xlabel('Playing time [s]')
+            ax1.set_xlabel('Playing time (s)')
             ax1.set_ylabel('Heartrate', color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 
@@ -43,7 +43,7 @@ def plot_heartrate_and_events():
             times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
             heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
                                  for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
-
+            print(sd.names_logfiles[idx], len(times_crashes))
             s = plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='crash')
 
             # Plot Brokenships
@@ -82,7 +82,7 @@ def plot_hr_of_dataframes():
             # Plot Heartrate
             _, ax1 = plt.subplots()
             ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color)
-            ax1.set_xlabel('Playing time [s]')
+            ax1.set_xlabel('Playing time (s)')
             ax1.set_ylabel('Heartrate', color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 
@@ -113,8 +113,8 @@ def plot_average_hr_over_all_logfiles():
     Plots average heartrate over all logfiles
     """
     plt.subplots()
-    plt.ylabel('Heartrate [bpm]')
-    plt.xlabel('Playing time [s]')
+    plt.ylabel('Heartrate (bpm)')
+    plt.xlabel('Playing time (s)')
     plt.title('Average Heartrate across all users')
 
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
@@ -145,7 +145,7 @@ def plot_mean_and_std_hr_boxplot():
     df2 = conc_dataframes.pivot(columns=conc_dataframes.columns[1], index=conc_dataframes.index)
     df2.columns = df2.columns.droplevel()
     conc_dataframes[['Heartrate', 'userID']].boxplot(by='userID', grid=False, sym='r+')
-    plt.ylabel('Heartrate [bpm]')
+    plt.ylabel('Heartrate (bpm)')
     plt.title('')
     hp.save_plot(plt, 'Logfiles/', 'mean_heartrate_boxplot.pdf')
 
@@ -219,7 +219,7 @@ def plot_hr_or_points_corr_with_difficulty(to_compare):
             # Plot Heartrate
             fig, ax1 = plt.subplots()
             ax1.plot(df_num_resampled['Time'], df_num_resampled[to_compare], blue_color)
-            ax1.set_xlabel('Playing time [s]')
+            ax1.set_xlabel('Playing time (s)')
             ax1.set_ylabel(to_compare, color=blue_color)
             ax1.tick_params('y', colors=blue_color)
 

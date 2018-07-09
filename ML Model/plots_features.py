@@ -3,15 +3,15 @@ This module is responsible for plotting various things
 
 """
 import graphviz
-from sklearn import tree, neighbors
+from sklearn import tree
 from sklearn.preprocessing import MinMaxScaler
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import seaborn as sb
+from math import ceil
 
 import seaborn as sns
 import setup_dataframes as sd
@@ -49,8 +49,8 @@ def plot_graph_of_decision_classifier(model, X, y):
                             sorted(zip(model.feature_importances_, f_factory.feature_names), reverse=True)]
 
     hp.plot_barchart('Feature importances with Decision Tree Classifier', 'Feature', 'Importance',
-                        sorted_feature_names, sorted_importances,
-                        'Importance', 'feature_importances.pdf')
+                     sorted_feature_names, sorted_importances,
+                     'Importance', 'feature_importances.pdf')
 
     tree.export_graphviz(
         model,
@@ -172,23 +172,86 @@ def plot_feature(X, i):
         _, ax1 = plt.subplots()
 
         # Plot crashes
-        times_crashes = [row['Time'] for _, row in obst_df.iterrows() if row['crash']]
-        timedelta_feature = [samples[index] for index, row in obst_df.iterrows() if row['crash']]
+        crash_times = [row['Time'] for _, row in obst_df.iterrows() if row['crash']]
+        crash_values = [samples[index] for index, row in obst_df.iterrows() if row['crash']]
 
-        plt.scatter(times_crashes, timedelta_feature, c='r', marker='.', label='crash')
+        plt.scatter(crash_times, crash_values, c='r', marker='.', label='crash')
         plt.legend()
         ax1.plot(times, samples, c=blue_color)
-        ax1.set_xlabel('Playing time [s]')
+        ax1.set_xlabel('Playing time (s)')
         ax1.set_ylabel(feature_name, color=blue_color)
         plt.title('Feature ' + feature_name + ' for user ' + str(idx))
         ax1.tick_params('y', colors=blue_color)
         plt.ylim([max(np.mean(X[:, i]) - 2*np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
         ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
         ax1.set_axisbelow(True)
-        [i.set_linewidth(0.3) for i in ax1.spines.values()]
-
+        # [i.set_linewidth(0.3) for i in ax1.spines.values()]
+        # removing top and right borders
+        ax1.spines['top'].set_linewidth(0.3)
+        ax1.spines['right'].set_linewidth(0.3)
         filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
         hp.save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
+
+
+def plot_crashes_vs_timedelta(X):
+    print("Plotting percentage crashes vs timedelta...")
+
+    timedelta_values_at_crashes = []
+    timedelta_values_at_non_crashes = []
+    timedelta_feature_index = f_factory.feature_names.index('timedelta_to_last_obst')
+
+    obst_conc = pd.concat(sd.obstacle_df_list)
+
+    for idx, row in obst_conc.iterrows():
+        if row['crash']:
+            timedelta_values_at_crashes.append(X[idx, timedelta_feature_index])
+        else:
+            timedelta_values_at_non_crashes.append(X[idx, timedelta_feature_index])
+
+    def get_percentage_crashes_for_bin(i):
+        """
+        Returns percentage of crashes when timedelta is in a certain bin, where bin i:
+        0: timedelta < 0.4
+        1: 0.4 <= timdelta < 0.5
+        2: 0.5 <= timdelta < 0.6
+        3: 0.7 <= timdelta < 0.8
+        4: 0.8 <= timdelta < 0.9
+
+        :param i: Bin
+        :return: percentage
+        """
+        conc = timedelta_values_at_crashes + timedelta_values_at_non_crashes
+
+        if i == 0:
+            return len([x for x in timedelta_values_at_crashes if x < 0.4]) / len([x for x in conc if x < 0.4])
+        if i == 1:
+            return len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) / len([x for x in conc if 0.4 <= x < 0.5])
+        if i == 2:
+            return len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) / len([x for x in conc if 0.5 <= x < 0.6])
+        if i == 3:
+            return len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) / len([x for x in conc if 0.6 <= x < 0.7])
+        if i == 4:
+            return len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) / len([x for x in conc if 0.7 <= x < 0.8])
+
+    x_tick_labels = ['<0.4', '[0.4, 0.5]', '[0.5, 0.6]', '[0.6, 0.7]', '[0.7, 0.8]']
+    values = [get_percentage_crashes_for_bin(0), get_percentage_crashes_for_bin(1), get_percentage_crashes_for_bin(2),
+              get_percentage_crashes_for_bin(3), get_percentage_crashes_for_bin(4)]
+
+    fig, ax = plt.subplots()
+
+    plt.title('Percentage of crashes depending on timedelta')
+    plt.ylabel('crashes (%)')
+    plt.xlabel('timedelta to previous obstacle (s)')
+    ax.set_xticks(np.arange(len(values)))
+    ax.set_xticklabels(x_tick_labels)
+    ax.set_ylim(0, ceil(max(values) * 100) / 100.0)
+    plt.bar(np.arange(len(values)), values, color=blue_color)
+
+    ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(0.3) for i in ax.spines.values()]
+
+    hp.save_plot(plt, 'Features/', 'percentage_crashes_vs_timedelta.pdf')
 
 
 def plot_corr_knn_distr(X, y):
@@ -363,8 +426,9 @@ def plot_scores_with_different_feature_selections():
         4. old features (=all features without timedelta_to_last_obst)
 
     """
+    # TODO: Only use all or reduced features
 
-    scores_timedelta_only = [ 0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
+    scores_timedelta_only = [0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
     scores_timedelta_and_last_obst_crash = [ 0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
     scores_all_features = [0.68, 0.68, 0.61, 0.64, 0.96, 0.95, 0.965, 0.65]
     scores_old_features = [0.62, 0.63, 0.57, 0.622, 0.53, 0.6, 0.64, 0.74]
