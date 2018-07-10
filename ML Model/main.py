@@ -43,7 +43,7 @@ def main(args):
         # synthesized_data.init_with_testdata_events_random_hr_const()
         synthesized_data.init_with_testdata_events_const_hr_const()
         # synthesized_data.init_with_testdata_events_random_hr_continuous()
-        X, y = f_factory.get_feature_matrix_and_label(
+        X, y, scaler = f_factory.get_feature_matrix_and_label(
             verbose=args.verbose, use_cached_feature_matrix=False, save_as_pickle_file=False,
             feature_selection=f_factory.use_reduced_features
         )
@@ -55,17 +55,17 @@ def main(args):
         )
 
         if not args.test_windows:  # We most likely have to calculate new feature matrix anyways
-            X, y = f_factory.get_feature_matrix_and_label(
-                verbose=True,
-                use_cached_feature_matrix=True,
-                save_as_pickle_file=True,
-                # TODO: Remove f_selection argument as it is stored as local variable anyways
-                feature_selection=f_factory.use_reduced_features,
-                use_boxcox=False,
+            X, y, scaler = f_factory.get_feature_matrix_and_label(
+                    verbose=True,
+                    use_cached_feature_matrix=True,
+                    save_as_pickle_file=True,
+                    # TODO: Remove f_selection argument as it is stored as local variable anyways
+                    feature_selection=f_factory.use_reduced_features,
+                    use_boxcox=False,
             )
 
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
-    model_factory.plot_roc_curves(X, y, hyperparameter_tuning=True)
+    # model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)
     # window_optimization.test_all_windows()
     # model_factory.test_clf_with_timedelta_only()
 
@@ -132,7 +132,7 @@ def main(args):
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")
-        plot_features(X, y)
+        plot_features(X, y, scaler)
 
     if args.generate_plots_about_logfiles:
         print("\n################# Generate plots about logfiles #################\n")
@@ -142,9 +142,16 @@ def main(args):
     print("Time elapsed: " + str(end - start))
 
 
-def plot_features(X, y):
+def plot_features(X, y, scaler):
+    """
+
+    :param X:
+    :param y:
+    :param scaler:  Scaler used to scale feature matrix. Can be used transform them back
+    :return:
+    """
     # fp.plot_scores_with_different_feature_selections()
-    # fp.plot_crashes_vs_timedelta(X)
+    fp.plot_crashes_vs_timedelta(X)
     fp.plot_corr_knn_distr(X, y)
     fp.plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     fp.plot_feature_distributions(X)

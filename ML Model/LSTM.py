@@ -9,7 +9,8 @@ import itertools
 import keras
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN
+from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
 from numpy import array
@@ -44,9 +45,11 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
-    model = generate_lstm_classifier(X_lstm, y_lstm, n_epochs)
+    model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    calculate_performance(X_test_list, y_test_list, model)
+    trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
+
+    calculate_performance(X_test_list, y_test_list, trained_model)
 
     return model
 
@@ -90,34 +93,33 @@ def get_reshaped_matrices(new_X, new_y):
 """
 
 
-def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
+def generate_lstm_classifier(shape):
     """
-
-    :param X_reshaped: Reshaped feature matrix
-    :param y_reshaped: Reshaped labels
-    :param n_epochs: NUmber of epochs to train
-
     :return: trained classifier
     """
 
-    print('\nShape X: ' + str(X_reshaped.shape))
-    print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
-
     print('Compiling lstm network...')
     model = Sequential()
-    model.add(Masking(input_shape=(X_reshaped.shape[1], X_reshaped.shape[2])))
-    model.add(LSTM(32, return_sequences=True))
-    model.add(Dense(32))
+    model.add(Masking(input_shape=shape))
+    model.add(LSTM(64, return_sequences=True))
+    model.add(Dense(64, activation='relu'))
+
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    # loss = WeightedCategoricalCrossEntropy({0: 3, 1: 1})  # TODO: Maybe 0.8?
-    adam = optimizers.adam(lr=0.019, decay=0.00001)
+    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 3})  # TODO: Maybe 0.8?
+    adam = optimizers.adam(lr=0.1, decay=0.0001)
+    res_prop = RMSprop(lr=0.1)
+    _metrics = [roc_auc, recall, specificity, precision]
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=_metrics, sample_weight_mode="temporal")
 
-    _metrics = [recall, precision]
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'], sample_weight_mode="temporal")
+    return model
 
+
+def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
+    print('\nShape X: ' + str(X_reshaped.shape))
+    print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
     my_callbacks = [EarlyStopping(monitor='roc_auc', patience=500, min_delta=0.001, verbose=1, mode='max')]
 
@@ -125,18 +127,19 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
                                                                             # `(samples, sequence_length)`,
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
-    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
 
-    history = model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
+    _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
+
+    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
                         verbose=1, shuffle=False, callbacks=my_callbacks,
                         validation_split=0.2, sample_weight=_sample_weight)
 
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
-    print(model.summary())
+    print(trained_model.summary())
     # Plot
     # summarize history for roc_auc
-    name = 'acc'
+    name = 'roc_auc'
     plt.plot(history.history[name])
     plt.plot(history.history['val_'+name])
     plt.title('model ' + name)
@@ -154,7 +157,7 @@ def generate_lstm_classifier(X_reshaped, y_reshaped, n_epochs):
     plt.legend(['train', 'test'], loc='upper left')
     plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
 
-    return model
+    return trained_model
 
 
 """
@@ -256,31 +259,48 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
 
 
 def precision(y_true, y_pred):
-    """Precision metric.
-
-    Only computes a batch-wise average of precision.
-
-    Computes the precision, a metric for multi-label classification of
-    how many selected items are relevant.
     """
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + K.epsilon())
-    return precision
+    https: // stackoverflow.com / a / 46844409
+
+    """
+    # any tensorflow metric
+    value, update_op = tf.metrics.auc(y_true, y_pred)
+
+    # find all variables created for this metric
+    metric_vars = [i for i in tf.local_variables() if 'precision' in i.name.split('/')[1]]
+
+    # Add metric variables to GLOBAL_VARIABLES collection.
+    # They will be initialized for new session.
+    for v in metric_vars:
+        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+
+    # force to update metric values
+    with tf.control_dependencies([update_op]):
+        value = tf.identity(value)
+        return value
+
 
 
 def recall(y_true, y_pred):
-    """Recall metric.
-
-    Only computes a batch-wise average of recall.
-
-    Computes the recall, a metric for multi-label classification of
-    how many relevant items are selected.
     """
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-    recall = true_positives / (possible_positives + K.epsilon())
-    return recall
+       https: // stackoverflow.com / a / 46844409
+
+       """
+    # any tensorflow metric
+    value, update_op = tf.metrics.recall(y_true, y_pred)
+
+    # find all variables created for this metric
+    metric_vars = [i for i in tf.local_variables() if 'recall' in i.name.split('/')[1]]
+
+    # Add metric variables to GLOBAL_VARIABLES collection.
+    # They will be initialized for new session.
+    for v in metric_vars:
+        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+
+    # force to update metric values
+    with tf.control_dependencies([update_op]):
+        value = tf.identity(value)
+        return value
 
 
 def roc_auc(y_true, y_pred):
@@ -303,6 +323,13 @@ def roc_auc(y_true, y_pred):
     with tf.control_dependencies([update_op]):
         value = tf.identity(value)
         return value
+
+
+def specificity(y_true, y_pred):
+
+    true_negatives = K.sum(K.round(K.clip((1-y_true) * (1-y_pred), 0, 1)))
+    possible_negatives = K.sum(K.round(K.clip(1-y_true, 0, 1)))
+    return true_negatives / (possible_negatives + K.epsilon())
 
 
 class WeightedBinaryCrossEntropy(object):

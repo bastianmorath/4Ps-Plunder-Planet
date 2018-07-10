@@ -89,7 +89,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :param verbose:                      Whether to print messages
     :param use_cached_feature_matrix:    Use already cached matrix; 'all' (use all features), 'selected'
                                             (do feature selection first), None (don't use cache)
-    :param save_as_pickle_file:          if use_use_cached_feature_matrix=False, then store newly computed
+    :param save_as_pickle_file:          If use_use_cached_feature_matrix=False, then store newly computed
                                             matrix in a pickle file (IMPORTANT: Usually only used the very first time to
                                             store feature matrix with e.g. default windows)
     :param use_boxcox:                   Whether boxcox transformation should be done (e.g. when Naive Bayes
@@ -99,7 +99,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :param c_window:                     Size of crash window
     :param gradient_window:              Size of gradient window
 
-    :return: Feature matrix and labels
+    :return: Feature matrix, labels, scaler used to scale features
 
     """
     for df in sd.df_list:
@@ -134,6 +134,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     if should_read_from_pickle_file:
         if _verbose:
             print('Feature matrix already cached!')
+
         matrix = pd.read_pickle(path)
     else:
         if _verbose:
@@ -190,7 +191,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     if verbose:
         print('Feature matrix and labels created!')
 
-    return X, y
+    return X, y, scaler
 
 
 def get_timedelta_to_last_obst_feature(do_normalize=False):
@@ -213,9 +214,12 @@ def get_timedelta_to_last_obst_feature(do_normalize=False):
 
             timedelta = row['Time'] - last_obstacles.iloc[-1]['Time']
             # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
-            # clamp to c.a. the average
+            # clamp to c.a. the average/last timedelta
             if timedelta > 3 or timedelta < 1:
-                timedelta = 2
+                if len(computed_timedeltas) > 0:
+                    timedelta = computed_timedeltas[-1]
+                else:
+                    timedelta = 2
 
             # AdaBoost: 2 or 3 is best
             # Random Forest: 1 is best
@@ -382,7 +386,7 @@ def get_percentage_crashes_column(idx):
     """Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the
         last crash-window-seconds the user crashed into
 
-    :param idx: Index into gl.df_list (indicated the dataframe)
+    :param idx: Index into gl.df_list (indicates the dataframe)
 
     :return: Percentage feature column
 
@@ -404,7 +408,7 @@ def get_percentage_crashes_column(idx):
 def get_last_obstacle_crash_column(idx):
     """Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
 
-      :param idx: Index into gl.df_list (indicated the dataframe)
+      :param idx: Index into gl.df_list (indicates the dataframe)
 
       :return: last_obstacle_crash feature column
 
@@ -427,7 +431,7 @@ def get_hr_slope_column(idx):
     """Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression
         line over the heartrate in the last hw seconds
 
-          :param idx: Index into gl.df_list (indicated the dataframe)
+          :param idx: Index into gl.df_list (indicates the dataframe)
 
           :return: hr_slope feature column
 
@@ -450,7 +454,7 @@ def get_gradient_changes_column(idx, data_name):
     """Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate)
         have changed from increasing to decreasing and the other way around
 
-        :param idx: Index into gl.df_list (indicated the dataframe)
+        :param idx: Index into gl.df_list (indicates the dataframe)
         :param data_name: Points or Heartrate
 
         :return: gradient_changes feature column for either points or heartrate

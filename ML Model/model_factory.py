@@ -157,7 +157,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
 
         plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
-        # plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
+        plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
         # Write result to a file
@@ -417,9 +417,9 @@ def plot_roc_curve(classifier, X, y, filename, title='ROC'):
 
     plt.figure()
     plt.title(title)
-    plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
+    plt.plot(fpr, tpr, plots_helpers.blue_color, label='AUC = %0.2f' % roc_auc)
     plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1], 'r--')
+    plt.plot([0, 1], [0, 1], c=plots_helpers.red_color,  ls='--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
@@ -437,6 +437,8 @@ def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
     :param hyperparameter_tuning:
 
     """
+
+    print("\n################# Plotting ROC curves of classifiers #################\n")
 
     # allows to add probability output to classifiers which implement decision_function()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)

@@ -1,0 +1,72 @@
+
+******** Scores for SVM (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'C': 63, 'gamma': 'auto'},
+	roc_auc: 0.650 (+-0.02), recall: 0.510 (+-0.02), specificity: 0.746, precision: 0.308 (+-0.03) 
+
+	Confusion matrix: 	 [3566 1214] 
+				 [514 535]
+
+
+******** Scores for Linear SVM (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'C': 2386, 'penalty': 'l1'},
+	roc_auc: 0.641 (+-0.05), recall: 0.465 (+-0.05), specificity: 0.739, precision: 0.287 (+-0.04) 
+
+	Confusion matrix: 	 [3534 1246] 
+				 [561 488]
+
+
+******** Scores for Nearest Neighbor (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'n_neighbors': 313, 'metric': 'manhattan'},
+	roc_auc: 0.654 (+-0.04), recall: 0.000 (+-0.04), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4780    0] 
+				 [1049    0]
+
+
+******** Scores for QDA (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'reg_param': 0.12243404353752751, 'tol': 0.021591168018448504},
+	roc_auc: 0.649 (+-0.04), recall: 0.062 (+-0.04), specificity: 0.974, precision: 0.360 (+-0.11) 
+
+	Confusion matrix: 	 [4658  122] 
+				 [984  65]
+
+
+******** Scores for Decision Tree (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'criterion': 'gini', 'splitter': 'random', 'max_depth': 3, 'min_samples_split': 7, 'min_samples_leaf': 11},
+	roc_auc: 0.647 (+-0.02), recall: 0.010 (+-0.02), specificity: 0.989, precision: 0.425 (+-0.38) 
+
+	Confusion matrix: 	 [4729   51] 
+				 [1023   26]
+
+
+******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'max_depth': 1, 'min_samples_split': 5, 'min_samples_leaf': 3, 'criterion': 'entropy'},
+	roc_auc: 0.644 (+-0.03), recall: 0.000 (+-0.03), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4780    0] 
+				 [1049    0]
+
+
+******** Scores for Ada Boost (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'n_estimators': 23, 'learning_rate': 0.18233190530417553, 'algorithm': 'SAMME'},
+	roc_auc: 0.656 (+-0.03), recall: 0.000 (+-0.03), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4780    0] 
+				 [1049    0]
+
+
+******** Scores for Naive Bayes (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {},
+	roc_auc: 0.630 (+-0.04), recall: 0.390 (+-0.04), specificity: 0.832, precision: 0.342 (+-0.05) 
+
+	Confusion matrix: 	 [3979  801] 
+				 [640 409]
+

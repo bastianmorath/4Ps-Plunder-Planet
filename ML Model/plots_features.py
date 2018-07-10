@@ -218,34 +218,64 @@ def plot_crashes_vs_timedelta(X):
         4: 0.8 <= timdelta < 0.9
 
         :param i: Bin
-        :return: percentage
+        :return: tuple with (opercentage, #occurences)
         """
         conc = timedelta_values_at_crashes + timedelta_values_at_non_crashes
+        try:
+            if i == 0:
+                return (len([x for x in timedelta_values_at_crashes if x < 0.4]) / len([x for x in conc if x < 0.4]),
+                        len([x for x in timedelta_values_at_crashes if x < 0.4]))
+            if i == 1:
+                return (len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) / len([x for x in conc if 0.4 <= x < 0.5]),
+                        len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]))
+            if i == 2:
+                return (len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) / len([x for x in conc if 0.5 <= x < 0.6]),
+                        len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]))
+            if i == 3:
+                return (len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) / len([x for x in conc if 0.6 <= x < 0.7]),
+                        len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]))
+            if i == 4:
+                return (len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) / len([x for x in conc if 0.7 <= x < 0.8]),
+                        len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]))
+            if i == 5:
+                return (len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 1.0]) / len([x for x in conc if 0.8 <= x <= 1.0]),
+                        len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 1.0]))
+        except ZeroDivisionError:
+            return 0
 
-        if i == 0:
-            return len([x for x in timedelta_values_at_crashes if x < 0.4]) / len([x for x in conc if x < 0.4])
-        if i == 1:
-            return len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) / len([x for x in conc if 0.4 <= x < 0.5])
-        if i == 2:
-            return len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) / len([x for x in conc if 0.5 <= x < 0.6])
-        if i == 3:
-            return len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) / len([x for x in conc if 0.6 <= x < 0.7])
-        if i == 4:
-            return len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) / len([x for x in conc if 0.7 <= x < 0.8])
+    x_tick_labels = ['<0.4', '[0.4, 0.5]', '[0.5, 0.6]', '[0.6, 0.7]', '[0.7, 0.8]', '[0.8, 1.0]']
+    tuples = [get_percentage_crashes_for_bin(0), get_percentage_crashes_for_bin(1), get_percentage_crashes_for_bin(2),
+              get_percentage_crashes_for_bin(3), get_percentage_crashes_for_bin(4), get_percentage_crashes_for_bin(5)]
+    value_list = [t[0] for t in tuples]
+    occurences_list = [t[1] for t in tuples]
 
-    x_tick_labels = ['<0.4', '[0.4, 0.5]', '[0.5, 0.6]', '[0.6, 0.7]', '[0.7, 0.8]']
-    values = [get_percentage_crashes_for_bin(0), get_percentage_crashes_for_bin(1), get_percentage_crashes_for_bin(2),
-              get_percentage_crashes_for_bin(3), get_percentage_crashes_for_bin(4)]
-
+    bar_width = 0.4
     fig, ax = plt.subplots()
-
     plt.title('Percentage of crashes depending on timedelta')
     plt.ylabel('crashes (%)')
-    plt.xlabel('timedelta to previous obstacle (s)')
-    ax.set_xticks(np.arange(len(values)))
+    plt.xlabel('timedelta to previous obstacle (s, normalized)')
+    ax.set_xticks(np.arange(len(value_list)) + bar_width/2)
     ax.set_xticklabels(x_tick_labels)
-    ax.set_ylim(0, ceil(max(values) * 100) / 100.0)
-    plt.bar(np.arange(len(values)), values, color=blue_color)
+    # ax.set_ylim(0, ceil(max(value_list) * 10) / 10.0)
+    plt.bar(np.arange(len(value_list)), value_list, color=blue_color, width=bar_width)
+
+    ax2 = ax.twinx()
+    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=red_color, width=bar_width)
+    ax2.set_ylabel('Occurences', color=red_color)
+    ax2.tick_params('y', colors=red_color)
+
+    # add occurences
+    def autolabel(rects):
+        """
+        Attach a text label above each bar displaying its height
+        """
+        for i, rect in enumerate(rects):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.02 * height,
+                    str(occurences_list[i]),
+                ha='center', va='bottom', size=5)
+
+    # autolabel(rects2)
 
     ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
     ax.set_axisbelow(True)

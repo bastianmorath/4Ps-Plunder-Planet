@@ -27,9 +27,9 @@ length_param_list = 1000
 # Note: Whenever there is 'auto' or None as an option, I add it 'length_param_list/3' times to the hyperparameter list,
 # such that the likelhoode of drawing this is very high (because the default parameters often give good performance)
 
-num_iter_small = 2  # SVM, Linear SVM,
-num_iter_medium = 2  # QDA, Gradient Boosting
-num_iter_big = 2  # Nearest Neighbor, Decision Tree, Random Forest, AdaBoost
+num_iter_small = 100  # SVM, Linear SVM,
+num_iter_medium = 300  # QDA, Gradient Boosting
+num_iter_big = 1000  # Nearest Neighbor, Decision Tree, Random Forest, AdaBoost
 
 
 def get_cclassifier_with_name(clf_name, X, y):
