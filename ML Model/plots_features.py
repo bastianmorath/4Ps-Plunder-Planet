@@ -223,59 +223,65 @@ def plot_crashes_vs_timedelta(X):
         conc = timedelta_values_at_crashes + timedelta_values_at_non_crashes
         try:
             if i == 0:
-                return (len([x for x in timedelta_values_at_crashes if x < 0.4]) / len([x for x in conc if x < 0.4]),
-                        len([x for x in timedelta_values_at_crashes if x < 0.4]))
+                return (len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]) / len([x for x in conc if 0.0 <= x <= 0.1]),
+                        len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]))
             if i == 1:
+                return (len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]) / len([x for x in conc if 0.1 <= x <= 0.2]),
+                        len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]))
+            if i == 2:
+                return (len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]) / len([x for x in conc if 0.2 <= x <= 0.3]),
+                        len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]))
+            if i == 3:
+                return (len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]) / len([x for x in conc if 0.3 <= x <= 0.4]),
+                        len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]))
+            if i == 4:
                 return (len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) / len([x for x in conc if 0.4 <= x < 0.5]),
                         len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]))
-            if i == 2:
+            if i == 5:
                 return (len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) / len([x for x in conc if 0.5 <= x < 0.6]),
                         len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]))
-            if i == 3:
+            if i == 6:
                 return (len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) / len([x for x in conc if 0.6 <= x < 0.7]),
                         len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]))
-            if i == 4:
+            if i == 7:
                 return (len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) / len([x for x in conc if 0.7 <= x < 0.8]),
                         len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]))
-            if i == 5:
-                return (len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 1.0]) / len([x for x in conc if 0.8 <= x <= 1.0]),
-                        len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 1.0]))
-        except ZeroDivisionError:
-            return 0
+            if i == 8:
+                return (len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]) / len([x for x in conc if 0.8 <= x <= 0.9]),
+                        len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]))
+            if i == 9:
+                return (len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]) / len([x for x in conc if 0.9 <= x <= 1.0]),
+                        len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]))
 
-    x_tick_labels = ['<0.4', '[0.4, 0.5]', '[0.5, 0.6]', '[0.6, 0.7]', '[0.7, 0.8]', '[0.8, 1.0]']
-    tuples = [get_percentage_crashes_for_bin(0), get_percentage_crashes_for_bin(1), get_percentage_crashes_for_bin(2),
-              get_percentage_crashes_for_bin(3), get_percentage_crashes_for_bin(4), get_percentage_crashes_for_bin(5)]
+        except ZeroDivisionError:
+            return (0, 0)
+
+    x_tick_labels = ['[0.0, 0.1]', '[0.1, 0.2]', '[0.2, 0.3]', '[0.3, 0.4]', '[0.4, 0.5]', '[0.5, 0.6]', '[0.6, 0.7]',
+                     '[0.7, 0.8]', '[0.8, 0.9]', '[0.9, 1.0]']
+    tuples = [get_percentage_crashes_for_bin(i) for i in range(0, 10)]
     value_list = [t[0] for t in tuples]
     occurences_list = [t[1] for t in tuples]
 
-    bar_width = 0.4
+    bar_width = 0.2
     fig, ax = plt.subplots()
+
     plt.title('Percentage of crashes depending on timedelta')
     plt.ylabel('crashes (%)')
     plt.xlabel('timedelta to previous obstacle (s, normalized)')
-    ax.set_xticks(np.arange(len(value_list)) + bar_width/2)
+    plt.xticks(np.arange(len(value_list)) + bar_width/2, rotation='vertical')
     ax.set_xticklabels(x_tick_labels)
     # ax.set_ylim(0, ceil(max(value_list) * 10) / 10.0)
-    plt.bar(np.arange(len(value_list)), value_list, color=blue_color, width=bar_width)
+    plt.bar(np.arange(len(value_list)), value_list, color=blue_color, width=bar_width, label='Crashes (%)')
 
     ax2 = ax.twinx()
-    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=red_color, width=bar_width)
+    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=red_color, width=bar_width, label='Occurences')
     ax2.set_ylabel('Occurences', color=red_color)
     ax2.tick_params('y', colors=red_color)
 
-    # add occurences
-    def autolabel(rects):
-        """
-        Attach a text label above each bar displaying its height
-        """
-        for i, rect in enumerate(rects):
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width() / 2., 1.02 * height,
-                    str(occurences_list[i]),
-                ha='center', va='bottom', size=5)
-
-    # autolabel(rects2)
+    # Add legend with two axis
+    lines, labels = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines + lines2, labels + labels2, loc=0)
 
     ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
     ax.set_axisbelow(True)

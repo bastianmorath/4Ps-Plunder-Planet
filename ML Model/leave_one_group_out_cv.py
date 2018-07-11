@@ -188,7 +188,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
                  )
 
     plt.ylabel('roc_auc')
-    plt.title('clf_performance_with_user_left_out_vs_normal')
+    plt.title('Performance when leaving one user out in training phase')
     plt.xticks(index + bar_width/2, names, rotation='vertical')
     ax.set_ylim([0, 1.2])
     plt.legend(prop={'size': 6})

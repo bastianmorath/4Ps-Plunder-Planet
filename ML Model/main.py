@@ -43,7 +43,7 @@ def main(args):
         # synthesized_data.init_with_testdata_events_random_hr_const()
         synthesized_data.init_with_testdata_events_const_hr_const()
         # synthesized_data.init_with_testdata_events_random_hr_continuous()
-        X, y, scaler = f_factory.get_feature_matrix_and_label(
+        X, y = f_factory.get_feature_matrix_and_label(
             verbose=args.verbose, use_cached_feature_matrix=False, save_as_pickle_file=False,
             feature_selection=f_factory.use_reduced_features
         )
@@ -55,7 +55,7 @@ def main(args):
         )
 
         if not args.test_windows:  # We most likely have to calculate new feature matrix anyways
-            X, y, scaler = f_factory.get_feature_matrix_and_label(
+            X, y = f_factory.get_feature_matrix_and_label(
                     verbose=True,
                     use_cached_feature_matrix=True,
                     save_as_pickle_file=True,
@@ -132,7 +132,7 @@ def main(args):
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")
-        plot_features(X, y, scaler)
+        plot_features(X, y)
 
     if args.generate_plots_about_logfiles:
         print("\n################# Generate plots about logfiles #################\n")
@@ -142,7 +142,7 @@ def main(args):
     print("Time elapsed: " + str(end - start))
 
 
-def plot_features(X, y, scaler):
+def plot_features(X, y):
     """
 
     :param X:

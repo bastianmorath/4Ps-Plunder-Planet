@@ -99,7 +99,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :param c_window:                     Size of crash window
     :param gradient_window:              Size of gradient window
 
-    :return: Feature matrix, labels, scaler used to scale features
+    :return: Feature matrix, labels
 
     """
     for df in sd.df_list:
@@ -122,7 +122,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     else:
         globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
                                       'lin_regression_hr_slope', 'hr_gradient_changes',
-                                      'points_gradient_changes', 'mean_points', 'std_points',
+                                      'points_gradient_changes', 'mean_points', 'std_points', '%crashes',
                                       'max_minus_min_hr', 'max_hr', 'min_hr', 'max_over_min_hr', 'max_points',
                                       'min_points', 'max_minus_min_points']
     matrix = pd.DataFrame()
@@ -191,7 +191,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     if verbose:
         print('Feature matrix and labels created!')
 
-    return X, y, scaler
+    return X, y
 
 
 def get_timedelta_to_last_obst_feature(do_normalize=False):
@@ -394,12 +394,24 @@ def get_percentage_crashes_column(idx):
 
     df = sd.df_list[idx]
 
+    '''
+    # Scale feature depending on timedelta (the shorter, the more difficult...
+    def get_factor(timedelta):
+        if timedelta < 2:
+            return 0.8
+        if 2 <= timedelta < 3:
+            return 1.2
+        else:
+            return 1
+    '''
     def compute_crashes(row):
         if row['Time'] > max(cw, hw, gradient_w):
             last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
             num_obstacles = len(last_x_seconds_df[(last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE')
                                                   | (last_x_seconds_df['Logtype'] == 'EVENT_CRASH')].index)
             num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
+            # factor = get_factor(row['Time'] - last_x_seconds_df.iloc[-1]['Time'])
+
             return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
 
     return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)

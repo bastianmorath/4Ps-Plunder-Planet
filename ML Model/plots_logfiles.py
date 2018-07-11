@@ -300,7 +300,6 @@ def print_obstacle_information():
     df = pd.concat(df_list, ignore_index=True)
 
     grouped2 = df.groupby(['physDifficulty', 'Logtype']).size()
-    print(grouped2)
 
     print('\nOn physDifficulty=HIGH, there were ' + str(grouped2[2]+grouped2[1]) + \
           ' obstacles, out of which the user crashed ' + str(grouped2[1]) + \
