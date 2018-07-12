@@ -42,7 +42,7 @@ def test_all_windows():
     """
     print("\n################# Testing all window sizes #################\n")
 
-    const_window = 'cw'
+    const_window = 'gradient_w'
 
     const_w = 10
     list_1 = [5, 10, 20, 30, 50, 60, 80, 100, 120]
@@ -62,7 +62,7 @@ def test_all_windows():
         filename = 'windows_const_gradient_w.pdf'
 
     mean_scores = np.zeros((len(list_1), len(list_2)))
-    scores_std = np.zeros((len(list_1), len(list_2)))
+    # scores_std = np.zeros((len(list_1), len(list_2)))
 
     for idx_w1, w1 in enumerate(list_1):
         for idx_w2, w2 in enumerate(list_2):
@@ -74,9 +74,13 @@ def test_all_windows():
                 auc_mean_scores, auc_std_scores, _ = model_factory. \
                     calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
                                                          reduced_clfs=False, do_write_to_file=False)
+
+                print(np.max(auc_mean_scores))
                 print(np.mean(auc_mean_scores))
-                mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
-                scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+                print(np.min(auc_mean_scores))
+                print(auc_mean_scores[0])
+                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]# np.mean(auc_mean_scores)
+                # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
             elif const_window == 'cw':
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=const_w,
@@ -86,8 +90,12 @@ def test_all_windows():
                     calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
                                                          reduced_clfs=False, do_write_to_file=False)
 
-                mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
-                scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+                print(np.max(auc_mean_scores))
+                print(np.mean(auc_mean_scores))
+                print(np.min(auc_mean_scores))
+                print(auc_mean_scores[0])
+                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0] # np.mean(auc_mean_scores)
+                # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
             else:
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=w2,
@@ -97,8 +105,12 @@ def test_all_windows():
                     calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
                                                          reduced_clfs=False, do_write_to_file=False)
 
-                mean_scores[idx_w1][idx_w2] = np.mean(auc_mean_scores)
-                scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+                print(np.max(auc_mean_scores))
+                print(np.mean(auc_mean_scores))
+                print(np.min(auc_mean_scores))
+                print(auc_mean_scores[0])
+                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]  # np.mean(auc_mean_scores)
+                # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
 
     mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly
 

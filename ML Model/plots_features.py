@@ -209,6 +209,7 @@ def plot_crashes_vs_timedelta(X):
             timedelta_values_at_non_crashes.append(X[idx, timedelta_feature_index])
 
     def get_percentage_crashes_for_bin(i):
+        # TODO: Write nicer...
         """
         Returns percentage of crashes when timedelta is in a certain bin, where bin i:
         0: timedelta < 0.4

@@ -41,7 +41,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=5)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
@@ -49,7 +49,8 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
 
-    calculate_performance(X_test_list, y_test_list, trained_model)
+    # calculate_performance(X_test_list, y_test_list, trained_model)
+    calculate_performance(X_lstm, y_lstm, trained_model)
 
     return model
 
@@ -101,8 +102,9 @@ def generate_lstm_classifier(shape):
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))
-    model.add(LSTM(64, return_sequences=True))
-    model.add(Dense(64, activation='relu'))
+    model.add(LSTM(32, return_sequences=True))
+    model.add(Dense(16, activation='relu'))
+
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -111,8 +113,8 @@ def generate_lstm_classifier(shape):
     loss = WeightedCategoricalCrossEntropy({0: 1, 1: 3})  # TODO: Maybe 0.8?
     adam = optimizers.adam(lr=0.1, decay=0.0001)
     res_prop = RMSprop(lr=0.1)
-    _metrics = [roc_auc, recall, specificity, precision]
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=_metrics, sample_weight_mode="temporal")
+    _metrics = [roc_auc]
+    model.compile(loss='categorical_crossentropy', optimizer='adam', sample_weight_mode="temporal")
 
     return model
 
@@ -121,7 +123,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     print('\nShape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
-    my_callbacks = [EarlyStopping(monitor='roc_auc', patience=500, min_delta=0.001, verbose=1, mode='max')]
+    # my_callbacks = [EarlyStopping(monitor='loss', patience=500, min_delta=0.001, verbose=1, mode='min')]
 
     to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])    # sample_weights need a 2D array with shape
                                                                             # `(samples, sequence_length)`,
@@ -131,14 +133,15 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
 
     history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
-                        verbose=1, shuffle=False, callbacks=my_callbacks,
-                        validation_split=0.2, sample_weight=_sample_weight)
+                                verbose=1, shuffle=False,
+                                validation_split=0.2, sample_weight=_sample_weight)
 
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
     print(trained_model.summary())
     # Plot
     # summarize history for roc_auc
+    '''
     name = 'roc_auc'
     plt.plot(history.history[name])
     plt.plot(history.history['val_'+name])
@@ -147,7 +150,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
     plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM ' + name)
-
+    '''
     # summarize history for loss
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -183,7 +186,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
         # We need to predict on maxlen, and can then take the first len(X_original) values
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
-        X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64', value=-2)
+        X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
         predictions = lstm_model.predict_classes(X_padded, batch_size=10, verbose=0).ravel()
         y_pred = predictions[:length_old]
         y_true = y_test_list[idx]
