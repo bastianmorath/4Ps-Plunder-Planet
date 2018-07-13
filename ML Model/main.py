@@ -128,6 +128,7 @@ def main(args):
 
     if args.get_trained_lstm:
         print("\n################# Get trained LSTM #################\n")
+        import LSTM_cv
         LSTM.get_trained_lstm_classifier(X, y, n_epochs=args.get_trained_lstm[0])
 
     if args.generate_plots_about_features:

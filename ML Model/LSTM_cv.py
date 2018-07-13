@@ -11,9 +11,11 @@ import itertools
 import keras
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout, Bidirectional
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout
 from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.cross_validation import cross_val_score
 from sklearn.metrics import confusion_matrix
 from numpy import array
 from sklearn import metrics
@@ -40,21 +42,27 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     :return: neural network
     """
-
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=16)
+    y_pred_lists = []  # In each cross_validation run, I leave e.g. 4 logfiles out for test_phase and store the 4
+                       # predicted label_lists in this list
+    y_true_lists = []
+    for i in range(0, 3):
 
-    X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
+        X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=3)
 
-    model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
+        X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
-    trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
+        model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    calculate_performance(X_test_list, y_test_list, trained_model)
-    # calculate_performance(X_lstm, y_lstm, trained_model)
+        trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
 
-    return model
+        # calculate_performance(X_test_list, y_test_list, trained_model)
+        y_true_lists.append(y_lstm)
+        y_pred = calculate_performance(X_lstm, y_lstm, trained_model)
+        y_pred_lists.append(y_pred)
+
+    # Calculate scores:
 
 
 """
@@ -104,28 +112,30 @@ def generate_lstm_classifier(shape):
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
-    model.add(Bidirectional(LSTM(64, return_sequences=True)))
-
+    model.add(LSTM(128, return_sequences=True))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(32, activation='relu'))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 8})
+    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 9})
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
     adam = optimizers.adam(lr=0.005, decay=0.0001)
     rms_prop = RMSprop(lr=0.03)
     _metrics = [roc_auc]
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=_metrics, sample_weight_mode='temporal')
+    model.compile(loss=loss, optimizer='adam', metrics=_metrics, sample_weight_mode='temporal')
 
     return model
 
 
-def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
+def train_lstm(compiled_model, X_reshaped, y_reshaped, n_epochs):
     print('\nShape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
+
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
     # my_callbacks = [EarlyStopping(monitor='loss', patience=500, min_delta=0.001, verbose=1, mode='min')]
 
@@ -134,13 +144,13 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
 
-    _sample_weight = np.array([[1 if v == 0 else 1 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
 
-    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=16,
-                                verbose=1, shuffle=True, validation_split=0.2,
+    history = compiled_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=16,
+                                verbose=1, shuffle=True, validation_split=0.1,
                                 sample_weight=_sample_weight)
 
-    print(trained_model.summary())
+    print(compiled_model.summary())
     # Plot
     # summarize history for roc_auc
     '''
@@ -152,7 +162,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
     plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM ' + name)
-    '''
+    
     # summarize history for loss
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -161,8 +171,8 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
     plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
-
-    return trained_model
+    '''
+    return compiled_model
 
 
 """
@@ -210,6 +220,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
           np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.mean(_precision_scores),
           np.std(_precision_scores), conf_mat))
 
+    return y_pred_list
 
 """
 Helper methods
