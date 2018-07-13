@@ -2,6 +2,8 @@
 This module is responsible to for the LSTM network
 
 """
+from functools import partial
+
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
@@ -9,7 +11,7 @@ import itertools
 import keras
 from keras.callbacks import EarlyStopping
 from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout
 from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
@@ -41,7 +43,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=1)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
@@ -49,8 +51,8 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
 
-    # calculate_performance(X_test_list, y_test_list, trained_model)
-    calculate_performance(X_lstm, y_lstm, trained_model)
+    calculate_performance(X_test_list, y_test_list, trained_model)
+    # calculate_performance(X_lstm, y_lstm, trained_model)
 
     return model
 
@@ -101,20 +103,23 @@ def generate_lstm_classifier(shape):
 
     print('Compiling lstm network...')
     model = Sequential()
-    model.add(Masking(input_shape=shape))
-    model.add(LSTM(32, return_sequences=True))
-    model.add(Dense(16, activation='relu'))
-
+    model.add(Masking(input_shape=shape))  # Mask out padded rows
+    model.add(LSTM(128, return_sequences=True))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(32, activation='relu'))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 3})  # TODO: Maybe 0.8?
-    adam = optimizers.adam(lr=0.1, decay=0.0001)
-    res_prop = RMSprop(lr=0.1)
+    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 9})
+    # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
+    # loss = weighted_categorical_crossentropy(weights)
+
+    adam = optimizers.adam(lr=0.005, decay=0.0001)
+    rms_prop = RMSprop(lr=0.03)
     _metrics = [roc_auc]
-    model.compile(loss='categorical_crossentropy', optimizer='adam', sample_weight_mode="temporal")
+    model.compile(loss=loss, optimizer='adam', metrics=_metrics, sample_weight_mode='temporal')
 
     return model
 
@@ -130,11 +135,11 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
 
-    _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
 
-    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
-                                verbose=1, shuffle=False,
-                                validation_split=0.2, sample_weight=_sample_weight)
+    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=16,
+                                verbose=1, shuffle=True,
+                                sample_weight=_sample_weight)
 
     # TODO: Use model.evaluate with test_Data
     # https: // github.com / keras - team / keras / issues / 1753
@@ -153,7 +158,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     '''
     # summarize history for loss
     plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    # plt.plot(history.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
@@ -187,7 +192,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
-        predictions = lstm_model.predict_classes(X_padded, batch_size=10, verbose=0).ravel()
+        predictions = lstm_model.predict_classes(X_padded, batch_size=1, verbose=0).ravel()
         y_pred = predictions[:length_old]
         y_true = y_test_list[idx]
 
@@ -203,7 +208,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
     y_true = list(itertools.chain.from_iterable(y_test_list))
 
     conf_mat = confusion_matrix(y_true, y_pred)
-
+    print(_roc_auc_scores)
     print(model_factory.create_string_from_scores('LSTM', np.mean(_roc_auc_scores), np.std(_roc_auc_scores),
           np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.mean(_precision_scores),
           np.std(_precision_scores), conf_mat))
@@ -247,6 +252,8 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
 
     :return: X_train, X_test, y_train, y_test, each as a list
     """
+    if leave_out == 0:
+        return X_splitted, y_splitted, [], []
 
     import random
     c = list(zip(X_splitted, y_splitted))
@@ -386,3 +393,33 @@ class WeightedCategoricalCrossEntropy(object):
         final_mask += w * y_p * y_t
     return K.categorical_crossentropy(y_pred, y_true) * final_mask
 
+
+from keras import backend as K
+
+
+def weighted_categorical_crossentropy(weights):
+    """
+    A weighted version of keras.objectives.categorical_crossentropy
+
+    Variables:
+        weights: numpy array of shape (C,) where C is the number of classes
+
+    Usage:
+        weights = np.array([0.5,2,10]) # Class one at 0.5, class 2 twice the normal weights, class 3 10x.
+        loss = weighted_categorical_crossentropy(weights)
+        model.compile(loss=loss,optimizer='adam')
+    """
+
+    weights = K.variable(weights)
+
+    def loss(y_true, y_pred):
+        # scale predictions so that the class probas of each sample sum to 1
+        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
+        # clip to prevent NaN's and Inf's
+        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
+        # calc
+        loss = y_true * K.log(y_pred) * weights
+        loss = -K.sum(loss, -1)
+        return loss
+
+    return loss

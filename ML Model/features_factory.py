@@ -184,9 +184,10 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     # Create feature matrix from df
     X = matrix.values
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    X = scaler.fit_transform(X)  # Rescale between 0 and 1
-
+    scaler1 = MinMaxScaler(feature_range=(0, 1))
+    scaler2 = StandardScaler()
+    X = scaler1.fit_transform(X)  # Rescale between 0 and 1
+    X = scaler2.fit_transform(X)
     plots_features.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')

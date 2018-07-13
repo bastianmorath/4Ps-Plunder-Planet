@@ -1,0 +1,57 @@
+2018-07-13 11:52:58.561889: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Get trained LSTM #################
+
+Maxlen (=Max. #obstacles of logfiles) is 334, minlen is 237
+Compiling lstm network...
+
+Shape X: (17, 334, 10)
+Shape y: (17, 334, 1)
+
+Train on 13 samples, validate on 4 samples
+Epoch 1/2
+
+13/13 [==============================] - 6s 435ms/step - loss: 1.3096 - val_loss: 1.3814
+Epoch 2/2
+
+13/13 [==============================] - 4s 327ms/step - loss: 1.3381 - val_loss: 1.3853
+Using TensorFlow backend.
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_1 (Masking)          (None, 334, 10)           0         
+_________________________________________________________________
+lstm_1 (LSTM)                (None, 334, 256)          273408    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 334, 256)          0         
+_________________________________________________________________
+lstm_2 (LSTM)                (None, 334, 512)          1574912   
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 334, 512)          0         
+_________________________________________________________________
+lstm_3 (LSTM)                (None, 334, 256)          787456    
+_________________________________________________________________
+dense_1 (Dense)              (None, 334, 256)          65792     
+_________________________________________________________________
+time_distributed_1 (TimeDist (None, 334, 2)            514       
+=================================================================
+Total params: 2,702,082
+Trainable params: 2,702,082
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.500 (+-0.00), recall: 1.000 (+-0.00), specificity: 0.000, precision: 0.168 (+-0.05) 
+
+	Confusion matrix: 	 [   0 4722] 
+				 [  0 956]
+
+
+
+Time elapsed: 20.24876379966736
