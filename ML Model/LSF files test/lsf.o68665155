@@ -1,0 +1,63 @@
+Sender: LSF System <lsfadmin@eu-ms-015-37>
+Subject: Job 68665155: <#!/usr/bin/env bash;bsub "python main.py -m 20";bsub "python main.py -m 50";bsub "python main.py -m 100";bsub "python main.py -m 200";bsub "python main.py -m 300";bsub "python main.py -m 500";bsub "python main.py -m 1000";bsub "python main.py -m 2000";bsub "python main.py -m 5000"> in cluster <euler> Done
+
+Job <#!/usr/bin/env bash;bsub "python main.py -m 20";bsub "python main.py -m 50";bsub "python main.py -m 100";bsub "python main.py -m 200";bsub "python main.py -m 300";bsub "python main.py -m 500";bsub "python main.py -m 1000";bsub "python main.py -m 2000";bsub "python main.py -m 5000"> was submitted from host <eu-login-06> by user <morathba> in cluster <euler> at Sat Jul 14 17:24:00 2018.
+Job was executed on host(s) <eu-ms-015-37>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Sat Jul 14 17:24:44 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/PP local/Code local/plunder planet/ML Model> was used as the working directory.
+Started at Sat Jul 14 17:24:44 2018.
+Terminated at Sat Jul 14 17:24:52 2018.
+Results reported at Sat Jul 14 17:24:52 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/usr/bin/env bash
+bsub "python main.py -m 20"
+bsub "python main.py -m 50"
+bsub "python main.py -m 100"
+bsub "python main.py -m 200"
+bsub "python main.py -m 300"
+bsub "python main.py -m 500"
+bsub "python main.py -m 1000"
+bsub "python main.py -m 2000"
+bsub "python main.py -m 5000"
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   1.21 sec.
+    Max Memory :                                 5 MB
+    Average Memory :                             4.00 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               1019.00 MB
+    Max Swap :                                   -
+    Max Processes :                              8
+    Max Threads :                                9
+    Run time :                                   8 sec.
+    Turnaround time :                            52 sec.
+
+The output (if any) follows:
+
+Generic job.
+Job <68665163> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665164> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665165> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665166> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665167> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665168> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665169> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665170> is submitted to queue <normal.4h>.
+Generic job.
+Job <68665171> is submitted to queue <normal.4h>.

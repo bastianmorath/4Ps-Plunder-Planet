@@ -1,0 +1,39 @@
+Sender: LSF System <lsfadmin@eu-ms-027-02>
+Subject: Job 68663887: <#!/usr/bin/env bash;bsub "python main.py -m 10"> in cluster <euler> Done
+
+Job <#!/usr/bin/env bash;bsub "python main.py -m 10"> was submitted from host <eu-login-06> by user <morathba> in cluster <euler> at Sat Jul 14 17:12:59 2018.
+Job was executed on host(s) <eu-ms-027-02>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Sat Jul 14 17:13:10 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/PP local/Code local/plunder planet/ML Model> was used as the working directory.
+Started at Sat Jul 14 17:13:10 2018.
+Terminated at Sat Jul 14 17:13:15 2018.
+Results reported at Sat Jul 14 17:13:15 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/usr/bin/env bash
+bsub "python main.py -m 10"
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   0.17 sec.
+    Max Memory :                                 11 MB
+    Average Memory :                             11.00 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               1013.00 MB
+    Max Swap :                                   -
+    Max Processes :                              9
+    Max Threads :                                10
+    Run time :                                   25 sec.
+    Turnaround time :                            16 sec.
+
+The output (if any) follows:
+
+Generic job.
+Job <68663888> is submitted to queue <normal.4h>.

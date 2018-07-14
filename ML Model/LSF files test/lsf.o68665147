@@ -1,0 +1,261 @@
+Sender: LSF System <lsfadmin@eu-ms-012-36>
+Subject: Job 68665147: <python main.py -m 50> in cluster <euler> Done
+
+Job <python main.py -m 50> was submitted from host <eu-ms-019-01> by user <morathba> in cluster <euler> at Sat Jul 14 17:23:50 2018.
+Job was executed on host(s) <eu-ms-012-36>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Sat Jul 14 17:24:16 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/PP local/Code local/plunder planet/ML Model> was used as the working directory.
+Started at Sat Jul 14 17:24:16 2018.
+Terminated at Sat Jul 14 17:26:00 2018.
+Results reported at Sat Jul 14 17:26:00 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -m 50
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   179.15 sec.
+    Max Memory :                                 731 MB
+    Average Memory :                             502.25 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               293.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                8
+    Run time :                                   104 sec.
+    Turnaround time :                            130 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/cross_validation.py:41: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+  "This module will be removed in 0.20.", DeprecationWarning)
+WARNING:tensorflow:Variable *= will be deprecated. Use variable.assign_mul if you want assignment to the variable value or 'x = x * y' if you want a new python Tensor object.
+2018-07-14 17:24:26.809685: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Get trained LSTM #################
+
+Maxlen (=Max. #obstacles of logfiles) is 334, minlen is 281
+Compiling lstm network...
+
+Shape X: (16, 334, 10)
+Shape y: (16, 334, 1)
+
+Epoch 1/50
+
+16/16 [==============================] - 2s 149ms/step - loss: 1.0536
+Epoch 2/50
+
+16/16 [==============================] - 2s 110ms/step - loss: 1.5261
+Epoch 3/50
+
+16/16 [==============================] - 2s 111ms/step - loss: 1.1106
+Epoch 4/50
+
+16/16 [==============================] - 2s 113ms/step - loss: 1.1227
+Epoch 5/50
+
+16/16 [==============================] - 2s 111ms/step - loss: 1.0548
+Epoch 6/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.0553
+Epoch 7/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.0618
+Epoch 8/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.0504
+Epoch 9/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.1001
+Epoch 10/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.0686
+Epoch 11/50
+
+16/16 [==============================] - 2s 113ms/step - loss: 1.0637
+Epoch 12/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.0572
+Epoch 13/50
+
+16/16 [==============================] - 2s 112ms/step - loss: 1.0517
+Epoch 14/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0507
+Epoch 15/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0508
+Epoch 16/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0503
+Epoch 17/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0511
+Epoch 18/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0503
+Epoch 19/50
+
+16/16 [==============================] - 2s 114ms/step - loss: 1.0472
+Epoch 20/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0467
+Epoch 21/50
+
+16/16 [==============================] - 2s 114ms/step - loss: 1.0470
+Epoch 22/50
+
+16/16 [==============================] - 2s 111ms/step - loss: 1.0485
+Epoch 23/50
+
+16/16 [==============================] - 2s 114ms/step - loss: 1.0483
+Epoch 24/50
+
+16/16 [==============================] - 2s 117ms/step - loss: 1.0496
+Epoch 25/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0497
+Epoch 26/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0488
+Epoch 27/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0483
+Epoch 28/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0485
+Epoch 29/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0486
+Epoch 30/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0488
+Epoch 31/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0482
+Epoch 32/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0481
+Epoch 33/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0483
+Epoch 34/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0473
+Epoch 35/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0473
+Epoch 36/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0486
+Epoch 37/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0473
+Epoch 38/50
+
+16/16 [==============================] - 2s 117ms/step - loss: 1.0478
+Epoch 39/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0471
+Epoch 40/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0478
+Epoch 41/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0475
+Epoch 42/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0480
+Epoch 43/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0477
+Epoch 44/50
+
+16/16 [==============================] - 2s 117ms/step - loss: 1.0467
+Epoch 45/50
+
+16/16 [==============================] - 2s 117ms/step - loss: 1.0472
+Epoch 46/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0475
+Epoch 47/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0481
+Epoch 48/50
+
+16/16 [==============================] - 2s 115ms/step - loss: 1.0470
+Epoch 49/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0482
+Epoch 50/50
+
+16/16 [==============================] - 2s 116ms/step - loss: 1.0493
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_1 (Masking)          (None, 334, 10)           0         
+_________________________________________________________________
+lstm_1 (LSTM)                (None, 334, 512)          1071104   
+_________________________________________________________________
+activation_1 (Activation)    (None, 334, 512)          0         
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 334, 512)          0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 334, 256)          131328    
+_________________________________________________________________
+activation_2 (Activation)    (None, 334, 256)          0         
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 334, 256)          0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 334, 128)          32896     
+_________________________________________________________________
+activation_3 (Activation)    (None, 334, 128)          0         
+_________________________________________________________________
+dropout_3 (Dropout)          (None, 334, 128)          0         
+_________________________________________________________________
+time_distributed_1 (TimeDist (None, 334, 2)            258       
+=================================================================
+Total params: 1,235,586
+Trainable params: 1,235,586
+Non-trainable params: 0
+_________________________________________________________________
+None
+Performance training set: 
+[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.500 (+-0.00), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4485    0] 
+				 [859   0]
+
+
+
+Performance test set: 
+[0.5, 0.5, 0.5]
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.500 (+-0.00), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [679   0] 
+				 [190   0]
+
+
+
+Time elapsed: 99.40229511260986

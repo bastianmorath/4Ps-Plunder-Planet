@@ -1,0 +1,165 @@
+Sender: LSF System <lsfadmin@eu-ms-005-45>
+Subject: Job 68664662: <python main.py -m 20> in cluster <euler> Done
+
+Job <python main.py -m 20> was submitted from host <eu-ms-006-27> by user <morathba> in cluster <euler> at Sat Jul 14 17:20:21 2018.
+Job was executed on host(s) <eu-ms-005-45>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Sat Jul 14 17:20:44 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/PP local/Code local/plunder planet/ML Model> was used as the working directory.
+Started at Sat Jul 14 17:20:44 2018.
+Terminated at Sat Jul 14 17:21:01 2018.
+Results reported at Sat Jul 14 17:21:01 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -m 20
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   20.30 sec.
+    Max Memory :                                 487 MB
+    Average Memory :                             317.00 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               537.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   36 sec.
+    Turnaround time :                            40 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/cross_validation.py:41: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+  "This module will be removed in 0.20.", DeprecationWarning)
+WARNING:tensorflow:Variable *= will be deprecated. Use variable.assign_mul if you want assignment to the variable value or 'x = x * y' if you want a new python Tensor object.
+2018-07-14 17:20:54.082988: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Get trained LSTM #################
+
+Maxlen (=Max. #obstacles of logfiles) is 334, minlen is 237
+Compiling lstm network...
+
+Shape X: (16, 334, 10)
+Shape y: (16, 334, 1)
+
+Epoch 1/20
+
+16/16 [==============================] - 1s 55ms/step - loss: 21.9129
+Epoch 2/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 18.6994
+Epoch 3/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 15.8686
+Epoch 4/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 13.3814
+Epoch 5/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 11.2263
+Epoch 6/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 9.3712
+Epoch 7/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 7.7926
+Epoch 8/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 6.4641
+Epoch 9/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 5.3607
+Epoch 10/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 4.4543
+Epoch 11/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 3.7270
+Epoch 12/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 3.1482
+Epoch 13/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 2.6882
+Epoch 14/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 2.3405
+Epoch 15/20
+
+16/16 [==============================] - 0s 20ms/step - loss: 2.0800
+Epoch 16/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 1.8895
+Epoch 17/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 1.7559
+Epoch 18/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 1.6668
+Epoch 19/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 1.6104
+Epoch 20/20
+
+16/16 [==============================] - 0s 19ms/step - loss: 1.5770
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_1 (Masking)          (None, 334, 10)           0         
+_________________________________________________________________
+lstm_1 (LSTM)                (None, 334, 128)          71168     
+_________________________________________________________________
+activation_1 (Activation)    (None, 334, 128)          0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 334, 96)           12384     
+_________________________________________________________________
+activation_2 (Activation)    (None, 334, 96)           0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 334, 64)           6208      
+_________________________________________________________________
+activation_3 (Activation)    (None, 334, 64)           0         
+_________________________________________________________________
+time_distributed_1 (TimeDist (None, 334, 2)            130       
+=================================================================
+Total params: 89,890
+Trainable params: 89,890
+Non-trainable params: 0
+_________________________________________________________________
+None
+Performance training set: 
+[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.500 (+-0.00), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4471    0] 
+				 [873   0]
+
+
+
+Performance test set: 
+[0.5, 0.5, 0.5]
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.500 (+-0.00), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [724   0] 
+				 [176   0]
+
+
+
+Time elapsed: 12.456292152404785

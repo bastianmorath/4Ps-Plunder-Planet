@@ -9,9 +9,12 @@ import numpy as np
 import itertools
 
 import keras
+from keras.models import load_model
 from keras.callbacks import EarlyStopping
+from keras import regularizers
 from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout, Bidirectional
+from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout, Bidirectional, BatchNormalization, \
+    Activation
 from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
 from sklearn.metrics import confusion_matrix
@@ -43,16 +46,19 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=1)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=3)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
     model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
     trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
-
-    # calculate_performance(X_test_list, y_test_list, trained_model)
+    print('Performance training set: ')
     calculate_performance(X_lstm, y_lstm, trained_model)
+    print('Performance test set: ')
+    calculate_performance(X_test_list, y_test_list, trained_model)
+
+    # calculate_performance(X_lstm, y_lstm, trained_model)
 
     return model
 
@@ -105,9 +111,19 @@ def generate_lstm_classifier(shape):
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
-    model.add(LSTM(64, return_sequences=True))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(64, activation='relu'))
+
+    model.add(LSTM(128, return_sequences=True))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.15))
+
+    model.add(Dense(96))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.15))
+
+    model.add(Dense(64))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.15))
+
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -117,10 +133,10 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.009, decay=0.0001)
+    adam = optimizers.adam(lr=0.011, decay=0.00001)
     rms_prop = RMSprop(lr=0.03)
     _metrics = [roc_auc]
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=_metrics, sample_weight_mode='temporal')
+    model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
@@ -137,17 +153,23 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
                                                                             # timestep of every sample.
 
     _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+    # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
+
+    tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0,
+        write_graph=True, write_images=True)
+
     history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=32,
                                 verbose=1, shuffle=False, validation_split=0.1,
-                                sample_weight=_sample_weight)
-
+                                sample_weight=_sample_weight,
+                                callbacks=[tbCallBack])
+    # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
     print(trained_model.summary())
     # Plot
     # summarize history for roc_auc
     '''
     name = 'roc_auc'
     plt.plot(history.history[name])
-    plt.plot(history.history['val_'+name])
+    # plt.plot(history.history['val_'+name])
     plt.title('model ' + name)
     plt.ylabel(name)
     plt.xlabel('epoch')
