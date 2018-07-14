@@ -43,7 +43,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=16)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=1)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
 
@@ -51,8 +51,8 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
 
-    calculate_performance(X_test_list, y_test_list, trained_model)
-    # calculate_performance(X_lstm, y_lstm, trained_model)
+    # calculate_performance(X_test_list, y_test_list, trained_model)
+    calculate_performance(X_lstm, y_lstm, trained_model)
 
     return model
 
@@ -104,8 +104,10 @@ def generate_lstm_classifier(shape):
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
-    model.add(Bidirectional(LSTM(64, return_sequences=True)))
-
+    # model.add(Bidirectional(LSTM(64, return_sequences=True)))
+    model.add(LSTM(64, return_sequences=True))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(64, activation='relu'))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -115,10 +117,10 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.005, decay=0.0001)
+    adam = optimizers.adam(lr=0.009, decay=0.0001)
     rms_prop = RMSprop(lr=0.03)
     _metrics = [roc_auc]
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=_metrics, sample_weight_mode='temporal')
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=_metrics, sample_weight_mode='temporal')
 
     return model
 
@@ -134,10 +136,9 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
 
-    _sample_weight = np.array([[1 if v == 0 else 1 for v in row] for row in to_2d])
-
-    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=16,
-                                verbose=1, shuffle=True, validation_split=0.2,
+    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=32,
+                                verbose=1, shuffle=False, validation_split=0.1,
                                 sample_weight=_sample_weight)
 
     print(trained_model.summary())
@@ -178,7 +179,6 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
     :param y_test_list:
     :param lstm_model:
     """
-
     y_pred_list = []
     _roc_auc_scores = []
     _precision_scores = []
@@ -189,7 +189,8 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
-        predictions = lstm_model.predict_classes(X_padded, batch_size=1, verbose=0).ravel()
+        predictions = lstm_model.predict_classes(X_padded, batch_size=16, verbose=0).ravel()
+
         y_pred = predictions[:length_old]
         y_true = y_test_list[idx]
 
@@ -255,6 +256,7 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
     import random
     c = list(zip(X_splitted, y_splitted))
     random.shuffle(c)
+
     X_splitted, y_splitted = zip(*c)
 
     X_train = X_splitted[:-leave_out]
