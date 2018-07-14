@@ -17,7 +17,7 @@ from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout,
     Activation
 from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_auc_score
 from numpy import array
 from sklearn import metrics
 from keras import optimizers
@@ -46,13 +46,14 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=3)
+    X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = split_into_train_and_test_data(X_list, y_list, leave_out=3)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
+    X_val, y_val = get_reshaped_matrices(X_val, y_val)
 
     model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
+    trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val, n_epochs)
     print('Performance training set: ')
     calculate_performance(X_lstm, y_lstm, trained_model)
     print('Performance test set: ')
@@ -129,19 +130,18 @@ def generate_lstm_classifier(shape):
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    loss = WeightedCategoricalCrossEntropy({0: 1, 1: 8})
+    # loss = WeightedCategoricalCrossEntropy({0: 1, 1: 8})
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
     adam = optimizers.adam(lr=0.011, decay=0.00001)
     rms_prop = RMSprop(lr=0.03)
-    _metrics = [roc_auc]
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
 
-def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
+def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val,  n_epochs):
     print('\nShape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
@@ -153,15 +153,19 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
                                                                             # timestep of every sample.
 
     _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
 
-    tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0,
-        write_graph=True, write_images=True)
-
+    history_callback = Histories((X_reshaped, one_hot_labels))
     history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=32,
                                 verbose=1, shuffle=False, validation_split=0.1,
                                 sample_weight=_sample_weight,
-                                callbacks=[tbCallBack])
+                                callbacks=[history_callback]
+                                )
+
+    print(history_callback.aucs_test)
+    print(history_callback.aucs_train)
+
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
     print(trained_model.summary())
     # Plot
@@ -281,166 +285,137 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
 
     X_splitted, y_splitted = zip(*c)
 
-    X_train = X_splitted[:-leave_out]
-    X_test = X_splitted[-leave_out:]
-    y_train = y_splitted[:-leave_out]
-    y_test = y_splitted[-leave_out:]
+    X_train = X_splitted[leave_out + 1:]
+    X_test = X_splitted[:leave_out]
+    X_val = [X_splitted[leave_out]]
+    y_train = y_splitted[leave_out + 1:]
+    y_test = y_splitted[:leave_out]
+    y_val = [y_splitted[leave_out]]
 
-    return X_train, y_train, X_test, y_test
+    return X_train, y_train, X_test, y_test, X_val, y_val
+
+
+
+
+# define roc_callback, inspired by https://github.com/keras-team/keras/issues/6050#issuecomment-329996505
+def auc_roc(y_true, y_pred):
+    # any tensorflow metric
+    value, update_op = tf.contrib.metrics.streaming_auc(y_pred, y_true)
+
+    # find all variables created for this metric
+    metric_vars = [i for i in tf.local_variables() if 'auc_roc' in i.name.split('/')[1]]
+
+    # Add metric variables to GLOBAL_VARIABLES collection.
+    # They will be initialized for new session.
+    for v in metric_vars:
+        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+
+    # force to update metric values
+    with tf.control_dependencies([update_op]):
+        value = tf.identity(value)
+        return value
+
+'''
+def f1_score(y_true, y_pred):
+
+    # Count positive samples.
+    c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
+
+    # If there are no true samples, fix the F1 score at 0.
+    if c3 == 0:
+        return 0
+
+    # How many selected items are relevant?
+    precision = c1 / c2
+
+    # How many relevant items are selected?
+    recall = c1 / c3
+
+    # Calculate f1_score
+    f1_score = 2 * (precision * recall) / (precision + recall)
+    return f1_score
 
 
 def precision(y_true, y_pred):
-    """
-    https: // stackoverflow.com / a / 46844409
 
-    """
-    # any tensorflow metric
-    value, update_op = tf.metrics.auc(y_true, y_pred)
+    # Count positive samples.
+    c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
 
-    # find all variables created for this metric
-    metric_vars = [i for i in tf.local_variables() if 'precision' in i.name.split('/')[1]]
+    # If there are no true samples, fix the F1 score at 0.
+    if c3 == 0:
+        return 0
 
-    # Add metric variables to GLOBAL_VARIABLES collection.
-    # They will be initialized for new session.
-    for v in metric_vars:
-        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+    # How many selected items are relevant?
+    precision = c1 / c2
 
-    # force to update metric values
-    with tf.control_dependencies([update_op]):
-        value = tf.identity(value)
-        return value
-
+    return precision
 
 
 def recall(y_true, y_pred):
-    """
-       https: // stackoverflow.com / a / 46844409
 
-       """
-    # any tensorflow metric
-    value, update_op = tf.metrics.recall(y_true, y_pred)
+    # Count positive samples.
+    c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
 
-    # find all variables created for this metric
-    metric_vars = [i for i in tf.local_variables() if 'recall' in i.name.split('/')[1]]
+    # If there are no true samples, fix the F1 score at 0.
+    if c3 == 0:
+        return 0
 
-    # Add metric variables to GLOBAL_VARIABLES collection.
-    # They will be initialized for new session.
-    for v in metric_vars:
-        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+    recall = c1 / c3
 
-    # force to update metric values
-    with tf.control_dependencies([update_op]):
-        value = tf.identity(value)
-        return value
+    return recall
+'''
 
+class Histories(keras.callbacks.Callback):
 
-def roc_auc(y_true, y_pred):
-    """
-    https: // stackoverflow.com / a / 46844409
- 
-    """
-    # any tensorflow metric
-    value, update_op = tf.metrics.auc(y_true, y_pred)
+    def __init__(self, training_data):
+        self.aucs_train = []
+        self.aucs_test = []
+        self.losses = []
+        self.val_losses = []
+        self.training_data = training_data
 
-    # find all variables created for this metric
-    metric_vars = [i for i in tf.local_variables() if 'roc_auc' in i.name.split('/')[1]]
+    def on_train_begin(self, logs={}):
+        return
 
-    # Add metric variables to GLOBAL_VARIABLES collection.
-    # They will be initialized for new session.
-    for v in metric_vars:
-        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
+    def on_train_end(self, logs={}):
+        return
 
-    # force to update metric values
-    with tf.control_dependencies([update_op]):
-        value = tf.identity(value)
-        return value
+    def on_epoch_begin(self, epoch, logs={}):
+        return
 
+    def on_epoch_end(self, epoch, logs={}):
+        self.losses.append(logs.get('loss'))
+        self.val_losses.append(logs.get('val_loss'))
+        print(self.training_data[0].shape)
+        print(self.training_data[1].shape)
 
-def specificity(y_true, y_pred):
+        pred_y_train = self.model.predict_classes(self.training_data[0])
+        y_pred_train_conc = list(itertools.chain.from_iterable(pred_y_train))
+        y_true_train = list(itertools.chain.from_iterable(self.training_data[1]))
+        y_true_train_conc = np.argmax(y_true_train, axis=1)
 
-    true_negatives = K.sum(K.round(K.clip((1-y_true) * (1-y_pred), 0, 1)))
-    possible_negatives = K.sum(K.round(K.clip(1-y_true, 0, 1)))
-    return true_negatives / (possible_negatives + K.epsilon())
+        roc_auc_train = roc_auc_score(y_true_train_conc, y_pred_train_conc)
+        print('Roc_auc on training set: ' + str(round(roc_auc_train, 3)))
 
+        val_x = self.validation_data[0]
+        val_y_conc = list(itertools.chain.from_iterable(self.validation_data[1]))
+        y_pred_conc = list(itertools.chain.from_iterable(self.model.predict_classes(val_x)))
+        y_true_conc = np.argmax(val_y_conc, axis=1)
+        roc_auc_test = roc_auc_score(y_true_conc, y_pred_conc)
+        print('Roc_auc on validation set: ' + str(round(roc_auc_test, 3)))
 
-class WeightedBinaryCrossEntropy(object):
+        self.aucs_train.append(round(roc_auc_train, 3))
+        self.aucs_test.append(round(roc_auc_test, 3))
 
-    def __init__(self, pos_ratio):
-        """
+        return
 
-        :param pos_ratio: Ratio of positive to negative labels (0.5 meaning 1:1)
-        """
-        neg_ratio = 1. - pos_ratio
-        self.pos_ratio = tf.constant(pos_ratio, tf.float32)
-        self.weights = tf.constant(neg_ratio / pos_ratio, tf.float32)
-        self.__name__ = "weighted_binary_crossentropy({0})".format(pos_ratio)
+    def on_batch_begin(self, batch, logs={}):
+        return
 
-    def __call__(self, y_true, y_pred):
-        return self.weighted_binary_crossentropy(y_true, y_pred)
-
-    def weighted_binary_crossentropy(self, y_true, y_pred):
-        # Transform to logits
-        epsilon = tf.convert_to_tensor(K.common._EPSILON, y_pred.dtype.base_dtype)
-        y_pred = tf.clip_by_value(y_pred, epsilon, 1 - epsilon)
-        y_pred = tf.log(y_pred / (1 - y_pred))
-
-        cost = tf.nn.weighted_cross_entropy_with_logits(y_true, y_pred, self.weights)
-        return K.mean(cost * self.pos_ratio, axis=-1)
-
-
-class WeightedCategoricalCrossEntropy(object):
-
-  def __init__(self, weights):
-    nb_cl = len(weights)
-    self.weights = np.ones((nb_cl, nb_cl))
-    for class_idx, class_weight in weights.items():
-      self.weights[0][class_idx] = class_weight
-      self.weights[class_idx][0] = class_weight
-    self.__name__ = 'w_categorical_crossentropy'
-
-  def __call__(self, y_true, y_pred):
-    return self.w_categorical_crossentropy(y_true, y_pred)
-
-  def w_categorical_crossentropy(self, y_true, y_pred):
-    nb_cl = len(self.weights)
-    final_mask = K.zeros_like(y_pred[..., 0])
-    y_pred_max = K.max(y_pred, axis=-1)
-    y_pred_max = K.expand_dims(y_pred_max, axis=-1)
-    y_pred_max_mat = K.equal(y_pred, y_pred_max)
-    for c_p, c_t in itertools.product(range(nb_cl), range(nb_cl)):
-        w = K.cast(self.weights[c_t, c_p], K.floatx())
-        y_p = K.cast(y_pred_max_mat[..., c_p], K.floatx())
-        y_t = K.cast(y_true[..., c_t], K.floatx())
-        final_mask += w * y_p * y_t
-    return K.categorical_crossentropy(y_pred, y_true) * final_mask
-
-
-from keras import backend as K
-
-
-def weighted_categorical_crossentropy(weights):
-    """
-    A weighted version of keras.objectives.categorical_crossentropy
-
-    Variables:
-        weights: numpy array of shape (C,) where C is the number of classes
-
-    Usage:
-        weights = np.array([0.5,2,10]) # Class one at 0.5, class 2 twice the normal weights, class 3 10x.
-        loss = weighted_categorical_crossentropy(weights)
-        model.compile(loss=loss,optimizer='adam')
-    """
-
-    weights = K.variable(weights)
-
-    def loss(y_true, y_pred):
-        # scale predictions so that the class probas of each sample sum to 1
-        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
-        # clip to prevent NaN's and Inf's
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
-        # calc
-        loss = y_true * K.log(y_pred) * weights
-        loss = -K.sum(loss, -1)
-        return loss
-
-    return loss
+    def on_batch_end(self, batch, logs={}):
+        return
