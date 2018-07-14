@@ -157,37 +157,20 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val,  n_epochs):
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
 
     history_callback = Histories((X_reshaped, one_hot_labels))
-    history = trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=32,
+
+    trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=32,
                                 verbose=1, shuffle=False, validation_split=0.1,
                                 sample_weight=_sample_weight,
                                 callbacks=[history_callback]
                                 )
 
-    print(history_callback.aucs_test)
-    print(history_callback.aucs_train)
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
     print(trained_model.summary())
+
     # Plot
-    # summarize history for roc_auc
-    '''
-    name = 'roc_auc'
-    plt.plot(history.history[name])
-    # plt.plot(history.history['val_'+name])
-    plt.title('model ' + name)
-    plt.ylabel(name)
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM ' + name)
-    '''
-    # summarize history for loss
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plots_helpers.save_plot(plt, 'Performance/LSTM/', 'LSTM loss')
+    plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
+                             history_callback.train_losses, history_callback.val_losses)
 
     return trained_model
 
@@ -241,6 +224,39 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
 """
 Helper methods
 """
+
+
+def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses):
+    """Plots the losses and roc_auc scores that were obtained during the training phase (with the callback).
+
+
+    :param aucs_train: list of roc_auc scores on training data
+    :param aucs_val: list of roc_auc scores on validation data
+    :param train_losses: list of losses on training data
+    :param val_losses: list of losses on validation data
+
+    """
+    plt.subplots()
+    plt.ylabel('roc_auc')
+    plt.xlabel('Epochs')
+    plt.title('Training and validation roc_auc after each epoch')
+    index = np.arange(len(aucs_train))
+
+    plt.plot(index, aucs_train, label='roc_auc train')
+    plt.plot(index, aucs_val, label='roc_auc validation')
+    plt.legend()
+    plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot.pdf')
+
+    plt.subplots()
+    plt.ylabel('loss')
+    plt.xlabel('Epochs')
+    plt.title('Training and validation loss after each epoch')
+    index = np.arange(len(train_losses))
+
+    plt.plot(index, train_losses, label='training loss')
+    plt.plot(index, val_losses, label='validation loss')
+    plt.legend()
+    plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
 
 
 def get_splitted_up_feature_matrix_and_labels(X, y):
@@ -374,8 +390,8 @@ class Histories(keras.callbacks.Callback):
 
     def __init__(self, training_data):
         self.aucs_train = []
-        self.aucs_test = []
-        self.losses = []
+        self.aucs_val = []
+        self.train_losses = []
         self.val_losses = []
         self.training_data = training_data
 
@@ -389,10 +405,8 @@ class Histories(keras.callbacks.Callback):
         return
 
     def on_epoch_end(self, epoch, logs={}):
-        self.losses.append(logs.get('loss'))
+        self.train_losses.append(logs.get('loss'))
         self.val_losses.append(logs.get('val_loss'))
-        print(self.training_data[0].shape)
-        print(self.training_data[1].shape)
 
         pred_y_train = self.model.predict_classes(self.training_data[0])
         y_pred_train_conc = list(itertools.chain.from_iterable(pred_y_train))
@@ -400,17 +414,17 @@ class Histories(keras.callbacks.Callback):
         y_true_train_conc = np.argmax(y_true_train, axis=1)
 
         roc_auc_train = roc_auc_score(y_true_train_conc, y_pred_train_conc)
-        print('Roc_auc on training set: ' + str(round(roc_auc_train, 3)))
+        # print('Roc_auc on training set: ' + str(round(roc_auc_train, 3)))
 
         val_x = self.validation_data[0]
         val_y_conc = list(itertools.chain.from_iterable(self.validation_data[1]))
         y_pred_conc = list(itertools.chain.from_iterable(self.model.predict_classes(val_x)))
         y_true_conc = np.argmax(val_y_conc, axis=1)
         roc_auc_test = roc_auc_score(y_true_conc, y_pred_conc)
-        print('Roc_auc on validation set: ' + str(round(roc_auc_test, 3)))
+        # print('Roc_auc on validation set: ' + str(round(roc_auc_test, 3)))
 
         self.aucs_train.append(round(roc_auc_train, 3))
-        self.aucs_test.append(round(roc_auc_test, 3))
+        self.aucs_val.append(round(roc_auc_test, 3))
 
         return
 
