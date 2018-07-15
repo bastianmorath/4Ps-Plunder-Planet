@@ -11,6 +11,8 @@ from pathlib import Path
 from scipy import stats
 import numpy as np
 import itertools
+
+from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 import setup_dataframes as sd
@@ -114,17 +116,21 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['use_reduced_features'] = feature_selection
     globals()['_verbose'] = verbose
 
+    '''
     if feature_selection:
         globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
                                       'lin_regression_hr_slope', 'hr_gradient_changes',
-                                      'points_gradient_changes', 'mean_points', 'std_points', '%crashes']
+                                      'points_gradient_changes', 'mean_points', 'std_points', '%crashes',
+                                      'obstacle_arrangement']
 
     else:
         globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
                                       'lin_regression_hr_slope', 'hr_gradient_changes',
                                       'points_gradient_changes', 'mean_points', 'std_points', '%crashes',
-                                      'max_minus_min_hr', 'max_hr', 'min_hr', 'max_over_min_hr', 'max_points',
-                                      'min_points', 'max_minus_min_points']
+                                      'obstacle_arrangement', 'max_minus_min_hr', 'max_hr', 'min_hr', 'max_over_min_hr',
+                                      'max_points', 'min_points', 'max_minus_min_points']
+
+    '''
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
@@ -136,6 +142,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             print('Feature matrix already cached!')
 
         matrix = pd.read_pickle(path)
+
     else:
         if _verbose:
             print('Creating feature matrix...')
@@ -150,6 +157,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['mean_points'] = get_standard_feature('mean', 'Points')
         matrix['std_points'] = get_standard_feature('std', 'Points')
         matrix['%crashes'] = get_percentage_crashes_feature()
+        matrix['obstacle_arrangement'] = get_obstacle_arrangement_feature()
 
         if not use_reduced_features:
             matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
@@ -160,6 +168,8 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['min_points'] = get_standard_feature('min', 'Points')
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
 
+        # One hot encoding
+        matrix = pd.get_dummies(matrix, columns=['obstacle_arrangement'], prefix=['arr_'])
         # Boxcox transformation
         if use_boxcox:
             # Values must be positive. If not, shift it
@@ -182,17 +192,61 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     matrix.dropna(inplace=True)  # First max(hw, cw, gradient_w) seconds did not get computed since inaccurate -> Delete
 
+    globals()['feature_names'] = list(matrix)
+
     # Create feature matrix from df
     X = matrix.values
     scaler1 = MinMaxScaler(feature_range=(0, 1))
     scaler2 = StandardScaler()
     X = scaler2.fit_transform(X)
+
     X = scaler1.fit_transform(X)  # Rescale between 0 and 1
     plots_features.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')
 
     return X, y
+
+
+def get_obstacle_arrangement_feature():
+    """
+    Returns the arrangement of the current obstacle, encoded with LabelEncoder
+    """
+
+    if _verbose:
+        print('Creating obstacle_arrangement feature...')
+
+    obst_arrangements = []
+
+    for list_idx, df in enumerate(sd.df_list):
+        arrangement = get_obstacle_arrangement_column(list_idx)
+        obst_arrangements.append(arrangement)
+
+    conc = list(itertools.chain.from_iterable(obst_arrangements))
+    '''le = preprocessing.LabelEncoder()
+    le.fit(conc)
+    c_encoded = le.transform(conc).reshape(-1, 1)
+    le = preprocessing.OneHotEncoder()
+    le.fit(c_encoded)
+    c_one_hot = le.transform(c_encoded).toarray()
+    print(c_one_hot)
+'''
+    return conc
+
+
+def get_obstacle_arrangement_column(idx):
+    """Returns a dataframe column that indicates at each timestamp the arrangement of the obstacle, encoded with
+    LabelEncoder
+
+    :return: obstacle_arrangement feature column
+
+    """
+
+    def compute_obst_arrangement(row):
+        if row['Time'] > max(cw, hw, gradient_w):
+            return row['obstacle']
+
+    return sd.obstacle_df_list[idx].apply(compute_obst_arrangement, axis=1)
 
 
 def get_timedelta_to_last_obst_feature(do_normalize=False):
@@ -204,6 +258,8 @@ def get_timedelta_to_last_obst_feature(do_normalize=False):
     """
     timedeltas_df_list = []  # list that contains a dataframe with feature for each logfile
     computed_timedeltas = []
+    if _verbose:
+        print('Creating timedelta_to_last_obst feature...')
 
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):

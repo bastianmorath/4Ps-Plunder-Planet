@@ -174,20 +174,22 @@ def get_obstacle_times_with_success():
             if row["Time"] > max(f_factory.cw, f_factory.hw, f_factory.gradient_w):
                 if row["Logtype"] == "EVENT_OBSTACLE":
                     obstacle_times_current_df.append(
-                        (row["Time"], 0, row["userID"], row["logID"])
+                        (row["Time"], 0, row["userID"], row["logID"], row["obstacle"])
                     )
                 if row["Logtype"] == "EVENT_CRASH":
                     obstacle_times_current_df.append(
-                        (row["Time"], 1, row["userID"], row["logID"])
+                        (row["Time"], 1, row["userID"], row["logID"], row["obstacle"])
                     )
-        times = np.asarray([a for (a, b, c, d) in obstacle_times_current_df])
-        crashes = np.asarray([b for (a, b, c, d) in obstacle_times_current_df])
-        userIDs = np.asarray([c for (a, b, c, d) in obstacle_times_current_df])
-        logIDs = np.asarray([d for (a, b, c, d) in obstacle_times_current_df])
+        times = np.asarray([a for (a, b, c, d, e) in obstacle_times_current_df])
+        crashes = np.asarray([b for (a, b, c, d, e) in obstacle_times_current_df])
+        userIDs = np.asarray([c for (a, b, c, d, e) in obstacle_times_current_df])
+        logIDs = np.asarray([d for (a, b, c, d, e) in obstacle_times_current_df])
+        obstacle_arrangements = np.asarray([e for (a, b, c, d, e) in obstacle_times_current_df])
 
         obstacle_time_crash.append(
             pd.DataFrame(
-                {"Time": times, "crash": crashes, "userID": userIDs, "logID": logIDs}
+                {"Time": times, "crash": crashes, "userID": userIDs, "logID": logIDs,
+                 "obstacle": obstacle_arrangements}
             )
         )
 

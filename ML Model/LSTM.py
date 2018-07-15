@@ -46,14 +46,13 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = split_into_train_and_test_data(X_list, y_list, leave_out=3)
+    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
-    X_val, y_val = get_reshaped_matrices(X_val, y_val)
 
     model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val, n_epochs)
+    trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
     print('Performance training set: ')
     calculate_performance(X_lstm, y_lstm, trained_model)
     print('Performance test set: ')
@@ -107,24 +106,20 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-
+    dropout = 0.2
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
+    model.add(Dropout(dropout))
 
-    model.add(LSTM(128, return_sequences=True))
+    model.add(LSTM(96, return_sequences=True))
     model.add(Activation('relu'))
-    model.add(Dropout(0.15))
+    model.add(Dropout(dropout))
 
-    model.add(Dense(96))
+    model.add(Dense(32))
     model.add(Activation('relu'))
-    model.add(Dropout(0.15))
-
-    model.add(Dense(64))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.15))
-
+    model.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -134,14 +129,14 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.011, decay=0.00001)
+    adam = optimizers.adam(lr=0.0005, decay=0.000001)
     rms_prop = RMSprop(lr=0.03)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
 
-def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val,  n_epochs):
+def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
     print('\nShape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
     one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
@@ -152,14 +147,14 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val,  n_epochs):
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
 
-    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 8 for v in row] for row in to_2d])
 
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
 
     history_callback = Histories((X_reshaped, one_hot_labels))
 
-    trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=32,
-                                verbose=1, shuffle=False, validation_split=0.1,
+    trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
+                                verbose=1, shuffle=False, validation_split=0.15,
                                 sample_weight=_sample_weight,
                                 callbacks=[history_callback]
                                 )
@@ -301,19 +296,24 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
 
     X_splitted, y_splitted = zip(*c)
 
-    X_train = X_splitted[leave_out + 1:]
+    X_train = X_splitted[leave_out:]
     X_test = X_splitted[:leave_out]
-    X_val = [X_splitted[leave_out]]
-    y_train = y_splitted[leave_out + 1:]
+    # _val = [X_splitted[leave_out]]
+    y_train = y_splitted[leave_out:]
     y_test = y_splitted[:leave_out]
-    y_val = [y_splitted[leave_out]]
+    # y_val = [y_splitted[leave_out]]
 
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    '''
+    X_train, X_test, y_train, y_test 
+    = train_test_split(X, y, test_size=0.2, random_state=1)
+
+    X_train, X_val, y_train, y_val 
+    = train_test_split(X_train, y_train, test_size=0.2, random_state=1)
+    '''
+
+    return X_train, y_train, X_test, y_test
 
 
-
-
-# define roc_callback, inspired by https://github.com/keras-team/keras/issues/6050#issuecomment-329996505
 def auc_roc(y_true, y_pred):
     # any tensorflow metric
     value, update_op = tf.contrib.metrics.streaming_auc(y_pred, y_true)
@@ -331,60 +331,6 @@ def auc_roc(y_true, y_pred):
         value = tf.identity(value)
         return value
 
-'''
-def f1_score(y_true, y_pred):
-
-    # Count positive samples.
-    c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
-
-    # If there are no true samples, fix the F1 score at 0.
-    if c3 == 0:
-        return 0
-
-    # How many selected items are relevant?
-    precision = c1 / c2
-
-    # How many relevant items are selected?
-    recall = c1 / c3
-
-    # Calculate f1_score
-    f1_score = 2 * (precision * recall) / (precision + recall)
-    return f1_score
-
-
-def precision(y_true, y_pred):
-
-    # Count positive samples.
-    c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    c2 = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
-
-    # If there are no true samples, fix the F1 score at 0.
-    if c3 == 0:
-        return 0
-
-    # How many selected items are relevant?
-    precision = c1 / c2
-
-    return precision
-
-
-def recall(y_true, y_pred):
-
-    # Count positive samples.
-    c1 = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    c3 = K.sum(K.round(K.clip(y_true, 0, 1)))
-
-    # If there are no true samples, fix the F1 score at 0.
-    if c3 == 0:
-        return 0
-
-    recall = c1 / c3
-
-    return recall
-'''
 
 class Histories(keras.callbacks.Callback):
 
