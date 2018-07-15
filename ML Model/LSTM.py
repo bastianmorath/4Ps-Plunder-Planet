@@ -106,23 +106,23 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.35
+    dropout = 0.15
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
 
-    model.add(LSTM(96, return_sequences=True))
+    model.add(LSTM(160, return_sequences=True))
     model.add(Activation('relu'))
-    # model.add(Dropout(dropout))
+    model.add(Dropout(dropout))
+
+    model.add(Dense(160))
+    model.add(Activation('relu'))
+    model.add(Dropout(dropout))
 
     model.add(Dense(96))
     model.add(Activation('relu'))
-    # model.add(Dropout(dropout))
-
-    model.add(Dense(96))
-    model.add(Activation('relu'))
-    # smodel.add(Dropout(dropout))
+    model.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -154,7 +154,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
 
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
 
-    history_callback = Histories((X_reshaped, one_hot_labels_train))
+    history_callback = Histories((X_reshaped, one_hot_labels_train), n_epochs, drawing_enabled=True)
 
     trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
                       verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
@@ -227,7 +227,9 @@ Helper methods
 """
 
 
-def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train, recalls_val, precisions_train, precisions_val):
+def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train,
+                             recalls_val, precisions_train, precisions_val, n_epochs=None
+                             ):
     """Plots the losses and roc_auc scores that were obtained during the training phase (with the callback).
 
 
@@ -237,7 +239,10 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     :param val_losses: list of losses on validation data
 
     """
-    plt.subplots()
+
+    _, ax = plt.subplots()
+    if n_epochs is not None:
+        ax.set_xlim(0, n_epochs)
     plt.ylabel('roc_auc')
     plt.xlabel('Epochs')
     plt.title('Training and validation roc_auc after each epoch')
@@ -248,7 +253,9 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.legend()
     plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot.pdf')
 
-    plt.subplots()
+    _, ax = plt.subplots()
+    if n_epochs is not None:
+        ax.set_xlim(0, n_epochs)
     plt.ylabel('loss')
     plt.xlabel('Epochs')
     plt.title('Training and validation loss after each epoch')
@@ -259,7 +266,9 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.legend()
     plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
 
-    plt.subplots()
+    _, ax = plt.subplots()
+    if n_epochs is not None:
+        ax.set_xlim(0, n_epochs)
     plt.ylabel('f1')
     plt.xlabel('Epochs')
     plt.title('Training and validation f1 scores after each epoch')
@@ -359,7 +368,7 @@ def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
 
 class Histories(keras.callbacks.Callback):
 
-    def __init__(self, training_data):
+    def __init__(self, training_data, n_epochs, drawing_enabled=True):
         self.aucs_train = []
         self.aucs_val = []
         self.f1s_train = []
@@ -371,6 +380,12 @@ class Histories(keras.callbacks.Callback):
         self.train_losses = []
         self.val_losses = []
         self.training_data = training_data
+        self.count = 0
+        self.n_epochs = n_epochs
+        self.drawing_enabled = drawing_enabled
+        if drawing_enabled:
+            plot_losses_and_roc_aucs([], [], [], [], [], [], [], [], [], [], n_epochs)
+
 
     def on_train_begin(self, logs={}):
         return
@@ -414,6 +429,18 @@ class Histories(keras.callbacks.Callback):
         self.recalls_val.append(round(recall_val, 3))
         self.precisions_train.append(round(precision_train, 3))
         self.precisions_val.append(round(precision_val, 3))
+
+        if self.drawing_enabled and self.count % 10 == 0:  # Redraw plot every 10 iterations
+
+            plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
+            plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,
+                                     self.train_losses, self.val_losses,
+                                     self.f1s_train, self.f1s_val,
+                                     self.recalls_train, self.recalls_val,
+                                     self.precisions_train, self.precisions_val,
+                                     n_epochs=self.n_epochs
+                                     )
+        self.count += 1
 
         return
 
