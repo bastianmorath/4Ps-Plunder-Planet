@@ -62,7 +62,9 @@ def main(args):
                     # TODO: Remove f_selection argument as it is stored as local variable anyways
                     feature_selection=f_factory.use_reduced_features,
                     use_boxcox=False,
+                    argparse=args
             )
+
 
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
     # model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)

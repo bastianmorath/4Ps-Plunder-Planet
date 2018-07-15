@@ -11,9 +11,8 @@ from pathlib import Path
 from scipy import stats
 import numpy as np
 import itertools
-
-from sklearn import preprocessing
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
 
 import setup_dataframes as sd
 import plots_features
@@ -84,7 +83,7 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
 
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
                                  use_boxcox=False, feature_selection=True,
-                                 h_window=hw, c_window=cw, gradient_window=gradient_w):
+                                 h_window=hw, c_window=cw, gradient_window=gradient_w, argparse=None):
 
     """ Computes the feature matrix and the corresponding labels and creates a correlation_matrix
 
@@ -100,7 +99,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :param h_window:                     Size of heartrate window
     :param c_window:                     Size of crash window
     :param gradient_window:              Size of gradient window
-
+    :param argparse:                     argparse object from main.py. Used to determine whether we should do scaling
     :return: Feature matrix, labels
 
     """
@@ -116,21 +115,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['use_reduced_features'] = feature_selection
     globals()['_verbose'] = verbose
 
-    '''
-    if feature_selection:
-        globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
-                                      'lin_regression_hr_slope', 'hr_gradient_changes',
-                                      'points_gradient_changes', 'mean_points', 'std_points', '%crashes',
-                                      'obstacle_arrangement']
 
-    else:
-        globals()['feature_names'] = ['last_obstacle_crash', 'timedelta_to_last_obst', 'mean_hr', 'std_hr',
-                                      'lin_regression_hr_slope', 'hr_gradient_changes',
-                                      'points_gradient_changes', 'mean_points', 'std_points', '%crashes',
-                                      'obstacle_arrangement', 'max_minus_min_hr', 'max_hr', 'min_hr', 'max_over_min_hr',
-                                      'max_points', 'min_points', 'max_minus_min_points']
-
-    '''
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
@@ -196,11 +181,14 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     # Create feature matrix from df
     X = matrix.values
-    scaler1 = MinMaxScaler(feature_range=(0, 1))
-    scaler2 = StandardScaler()
-    X = scaler2.fit_transform(X)
 
-    X = scaler1.fit_transform(X)  # Rescale between 0 and 1
+    # Preprocess data. For lstm, we have to compute mean/var of training data, then subtract from test
+    if argparse is None or (not argparse.get_trained_lstm):
+        scaler1 = MinMaxScaler(feature_range=(0, 1))
+        scaler2 = StandardScaler()
+        X = scaler2.fit_transform(X)
+        X = scaler1.fit_transform(X)  # Rescale between 0 and 1
+
     plots_features.plot_correlation_matrix(matrix)
     if verbose:
         print('Feature matrix and labels created!')

@@ -12,6 +12,8 @@ import keras
 from keras.models import load_model
 from keras.callbacks import EarlyStopping
 from keras import regularizers
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
 from keras.models import Sequential
 from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout, Bidirectional, BatchNormalization, \
     Activation
@@ -20,8 +22,6 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, recall_sc
 from numpy import array
 from sklearn import metrics
 from keras import optimizers
-
-import tensorflow as tf
 
 import model_factory
 import setup_dataframes as sd
@@ -106,28 +106,23 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.3
+    dropout = 0.35
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
-    model.add(Dropout(dropout))
 
-    model.add(LSTM(52, return_sequences=True))
+    model.add(LSTM(96, return_sequences=True))
     model.add(Activation('relu'))
-    model.add(Dropout(dropout))
+    # model.add(Dropout(dropout))
 
-    model.add(Dense(52))
+    model.add(Dense(96))
     model.add(Activation('relu'))
-    model.add(Dropout(dropout))
+    # model.add(Dropout(dropout))
 
-    model.add(Dense(52))
+    model.add(Dense(96))
     model.add(Activation('relu'))
-    model.add(Dropout(dropout))
-
-    model.add(Dense(52))
-    model.add(Activation('relu'))
-    model.add(Dropout(dropout))
+    # smodel.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -137,7 +132,7 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.0004, decay=0.000001, amsgrad=True)
+    adam = optimizers.adam(lr=0.0004, decay=0.000005, amsgrad=True)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
@@ -162,7 +157,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
     history_callback = Histories((X_reshaped, one_hot_labels_train))
 
     trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
-                      verbose=1, shuffle=False, validation_data=(X_val, one_hot_labels_val),
+                      verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
                       sample_weight=_sample_weight,
                       callbacks=[history_callback]
                       )
@@ -282,10 +277,10 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.title('Training and validation precision/recall scores after each epoch')
     index = np.arange(len(train_losses))
 
-    plt.plot(index, recalls_train, label='recall training')
-    plt.plot(index, recalls_val, label='recall validation')
-    plt.plot(index, precisions_train, label='precision training')
-    plt.plot(index, precisions_val, label='precision validation')
+    plt.plot(index, recalls_train, label='recall training', color='#89CFF0')
+    plt.plot(index, recalls_val, label='recall validation', color='#57A0D3')
+    plt.plot(index, precisions_train, label='precision training', color='#00A86B')
+    plt.plot(index, precisions_val, label='precision validation', color='#0B6623')
 
     plt.legend()
     plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall.pdf')
@@ -316,7 +311,8 @@ def get_splitted_up_feature_matrix_and_labels(X, y):
 def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
     """
     Splits up the list of Feature matrices and labels into Training, test and validation sets, where size of
-    test_set = leave_out, val_set=2, training_set=rest
+    test_set = leave_out, val_set=2, training_set=rest.
+    Also does preprocessing by computing mean/var on training_set only, then subtract on test_set
 
     :param X_splitted:
     :param y_splitted:
@@ -333,26 +329,32 @@ def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
 
     X_splitted, y_splitted = zip(*c)
 
-    X_train = X_splitted[leave_out+1:]  # from leave_out up to end
+    X_train = X_splitted[leave_out+2:]  # from leave_out up to end
     X_test = X_splitted[:leave_out]  # 0 up to and including leave_out-1
-    X_val = [X_splitted[leave_out]]  # index leave_out itself
-    y_train = y_splitted[leave_out+1:]
+    X_val = [X_splitted[leave_out], X_splitted[leave_out+1]]  # index leave_out itself
+    y_train = y_splitted[leave_out+2:]
     y_test = y_splitted[:leave_out]
-    y_val = [y_splitted[leave_out]]
-    print([len(X) for X in X_train])
-    print([len(X) for X in X_test])
-    print([len(X) for X in X_val])
+    y_val = [y_splitted[leave_out], y_splitted[leave_out+1]]
 
-    '''
-    X_train, X_test, y_train, y_test 
-    = train_test_split(X, y, test_size=0.2, random_state=1)
+    scaler1 = MinMaxScaler(feature_range=(0, 1))
+    scaler2 = StandardScaler()
+    train_arr = np.vstack(X_train)
+    test_arr = np.vstack(X_test)
+    val_arr = np.vstack(X_val)
+    conc = np.vstack([train_arr, test_arr, val_arr])
 
-    X_train, X_val, y_train, y_val 
-    = train_test_split(X_train, y_train, test_size=0.2, random_state=1)
-    '''
+    # MinMaxScaler: Fit on entire
+    scaler1.fit(conc)
+    X_train = [scaler1.transform(X) for X in X_train]
+    X_test = [scaler1.transform(X) for X in X_test]
+    X_val = [scaler1.transform(X) for X in X_val]
+    # StandardScaler: Fit only on Training-data
+    scaler2.fit(train_arr)
+    X_train = [scaler2.transform(X) for X in X_train]
+    X_test = [scaler2.transform(X) for X in X_test]
+    X_val = [scaler2.transform(X) for X in X_val]
 
     return X_train, y_train, X_test, y_test, X_val, y_val
-
 
 
 class Histories(keras.callbacks.Callback):
