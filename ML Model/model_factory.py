@@ -141,8 +141,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-    # if clf_name == 'Decision Tree':
-    #     plots_features.plot_graph_of_decision_classifier(model, X, y)
+    if clf_name == 'Decision Tree':
+        plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,

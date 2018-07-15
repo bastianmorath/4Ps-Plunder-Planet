@@ -15,9 +15,8 @@ from keras import regularizers
 from keras.models import Sequential
 from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout, Bidirectional, BatchNormalization, \
     Activation
-from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
-from sklearn.metrics import confusion_matrix, roc_auc_score
+from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, recall_score, precision_score
 from numpy import array
 from sklearn import metrics
 from keras import optimizers
@@ -46,13 +45,14 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list = split_into_train_and_test_data(X_list, y_list, leave_out=2)
+    X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = split_into_train_test_val_data(X_list, y_list, leave_out=2)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
+    X_val, y_val = get_reshaped_matrices(X_val, y_val)
 
     model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    trained_model = train_lstm(model, X_lstm, y_lstm, n_epochs)
+    trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs)
     print('Performance training set: ')
     calculate_performance(X_lstm, y_lstm, trained_model)
     print('Performance test set: ')
@@ -106,18 +106,26 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.2
+    dropout = 0.3
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
     model.add(Dropout(dropout))
 
-    model.add(LSTM(96, return_sequences=True))
+    model.add(LSTM(52, return_sequences=True))
     model.add(Activation('relu'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(32))
+    model.add(Dense(52))
+    model.add(Activation('relu'))
+    model.add(Dropout(dropout))
+
+    model.add(Dense(52))
+    model.add(Activation('relu'))
+    model.add(Dropout(dropout))
+
+    model.add(Dense(52))
     model.add(Activation('relu'))
     model.add(Dropout(dropout))
 
@@ -129,17 +137,17 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.0005, decay=0.000001)
-    rms_prop = RMSprop(lr=0.03)
+    adam = optimizers.adam(lr=0.0004, decay=0.000001, amsgrad=True)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
 
-def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
+def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
     print('\nShape X: ' + str(X_reshaped.shape))
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
-    one_hot_labels = keras.utils.to_categorical(y_reshaped, num_classes=2)
+    one_hot_labels_train = keras.utils.to_categorical(y_reshaped, num_classes=2)
+    one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
     # my_callbacks = [EarlyStopping(monitor='loss', patience=500, min_delta=0.001, verbose=1, mode='min')]
 
     to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])    # sample_weights need a 2D array with shape
@@ -147,25 +155,28 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, n_epochs):
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
 
-    _sample_weight = np.array([[1 if v == 0 else 8 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 5 for v in row] for row in to_2d])
 
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
 
-    history_callback = Histories((X_reshaped, one_hot_labels))
+    history_callback = Histories((X_reshaped, one_hot_labels_train))
 
-    trained_model.fit(X_reshaped, one_hot_labels, epochs=n_epochs, batch_size=64,
-                                verbose=1, shuffle=False, validation_split=0.15,
-                                sample_weight=_sample_weight,
-                                callbacks=[history_callback]
-                                )
-
+    trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
+                      verbose=1, shuffle=False, validation_data=(X_val, one_hot_labels_val),
+                      sample_weight=_sample_weight,
+                      callbacks=[history_callback]
+                      )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
     print(trained_model.summary())
 
     # Plot
     plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
-                             history_callback.train_losses, history_callback.val_losses)
+                             history_callback.train_losses, history_callback.val_losses,
+                             history_callback.f1s_train, history_callback.f1s_val,
+                             history_callback.recalls_train, history_callback.recalls_val,
+                             history_callback.precisions_train, history_callback.precisions_val,
+                             )
 
     return trained_model
 
@@ -221,7 +232,7 @@ Helper methods
 """
 
 
-def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses):
+def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train, recalls_val, precisions_train, precisions_val):
     """Plots the losses and roc_auc scores that were obtained during the training phase (with the callback).
 
 
@@ -253,6 +264,32 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses):
     plt.legend()
     plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
 
+    plt.subplots()
+    plt.ylabel('f1')
+    plt.xlabel('Epochs')
+    plt.title('Training and validation f1 scores after each epoch')
+    index = np.arange(len(train_losses))
+
+    plt.plot(index, f1s_train, label='f1 training')
+    plt.plot(index, f1s_val, label='f1 validation')
+
+    plt.legend()
+    plots_helpers.save_plot(plt, 'LSTM/', 'f1s.pdf')
+
+    plt.subplots()
+    plt.ylabel('precision/recall')
+    plt.xlabel('Epochs')
+    plt.title('Training and validation precision/recall scores after each epoch')
+    index = np.arange(len(train_losses))
+
+    plt.plot(index, recalls_train, label='recall training')
+    plt.plot(index, recalls_val, label='recall validation')
+    plt.plot(index, precisions_train, label='precision training')
+    plt.plot(index, precisions_val, label='precision validation')
+
+    plt.legend()
+    plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall.pdf')
+
 
 def get_splitted_up_feature_matrix_and_labels(X, y):
     """
@@ -276,10 +313,10 @@ def get_splitted_up_feature_matrix_and_labels(X, y):
     return feature_matrices, label_lists
 
 
-def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
+def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
     """
-    Splits up the list of Feature matrices and labels into Training and test sets, where size of
-    test_set = leave_out
+    Splits up the list of Feature matrices and labels into Training, test and validation sets, where size of
+    test_set = leave_out, val_set=2, training_set=rest
 
     :param X_splitted:
     :param y_splitted:
@@ -296,12 +333,15 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
 
     X_splitted, y_splitted = zip(*c)
 
-    X_train = X_splitted[leave_out:]
-    X_test = X_splitted[:leave_out]
-    # _val = [X_splitted[leave_out]]
-    y_train = y_splitted[leave_out:]
+    X_train = X_splitted[leave_out+1:]  # from leave_out up to end
+    X_test = X_splitted[:leave_out]  # 0 up to and including leave_out-1
+    X_val = [X_splitted[leave_out]]  # index leave_out itself
+    y_train = y_splitted[leave_out+1:]
     y_test = y_splitted[:leave_out]
-    # y_val = [y_splitted[leave_out]]
+    y_val = [y_splitted[leave_out]]
+    print([len(X) for X in X_train])
+    print([len(X) for X in X_test])
+    print([len(X) for X in X_val])
 
     '''
     X_train, X_test, y_train, y_test 
@@ -311,25 +351,8 @@ def split_into_train_and_test_data(X_splitted, y_splitted, leave_out=1):
     = train_test_split(X_train, y_train, test_size=0.2, random_state=1)
     '''
 
-    return X_train, y_train, X_test, y_test
+    return X_train, y_train, X_test, y_test, X_val, y_val
 
-
-def auc_roc(y_true, y_pred):
-    # any tensorflow metric
-    value, update_op = tf.contrib.metrics.streaming_auc(y_pred, y_true)
-
-    # find all variables created for this metric
-    metric_vars = [i for i in tf.local_variables() if 'auc_roc' in i.name.split('/')[1]]
-
-    # Add metric variables to GLOBAL_VARIABLES collection.
-    # They will be initialized for new session.
-    for v in metric_vars:
-        tf.add_to_collection(tf.GraphKeys.GLOBAL_VARIABLES, v)
-
-    # force to update metric values
-    with tf.control_dependencies([update_op]):
-        value = tf.identity(value)
-        return value
 
 
 class Histories(keras.callbacks.Callback):
@@ -337,6 +360,12 @@ class Histories(keras.callbacks.Callback):
     def __init__(self, training_data):
         self.aucs_train = []
         self.aucs_val = []
+        self.f1s_train = []
+        self.f1s_val = []
+        self.recalls_train = []
+        self.recalls_val = []
+        self.precisions_train = []
+        self.precisions_val = []
         self.train_losses = []
         self.val_losses = []
         self.training_data = training_data
@@ -360,17 +389,29 @@ class Histories(keras.callbacks.Callback):
         y_true_train_conc = np.argmax(y_true_train, axis=1)
 
         roc_auc_train = roc_auc_score(y_true_train_conc, y_pred_train_conc)
+        f1_train = f1_score(y_true_train_conc, y_pred_train_conc)
+        recall_train = recall_score(y_true_train_conc, y_pred_train_conc)
+        precision_train = precision_score(y_true_train_conc, y_pred_train_conc)
         # print('Roc_auc on training set: ' + str(round(roc_auc_train, 3)))
 
         val_x = self.validation_data[0]
         val_y_conc = list(itertools.chain.from_iterable(self.validation_data[1]))
         y_pred_conc = list(itertools.chain.from_iterable(self.model.predict_classes(val_x)))
         y_true_conc = np.argmax(val_y_conc, axis=1)
-        roc_auc_test = roc_auc_score(y_true_conc, y_pred_conc)
+        roc_auc_val = roc_auc_score(y_true_conc, y_pred_conc)
+        f1_val = f1_score(y_true_conc, y_pred_conc)
+        recall_val = recall_score(y_true_conc, y_pred_conc)
+        precision_val = precision_score(y_true_conc, y_pred_conc)
         # print('Roc_auc on validation set: ' + str(round(roc_auc_test, 3)))
 
         self.aucs_train.append(round(roc_auc_train, 3))
-        self.aucs_val.append(round(roc_auc_test, 3))
+        self.aucs_val.append(round(roc_auc_val, 3))
+        self.f1s_train.append(round(f1_train, 3))
+        self.f1s_val.append(round(f1_val, 3))
+        self.recalls_train.append(round(recall_train, 3))
+        self.recalls_val.append(round(recall_val, 3))
+        self.precisions_train.append(round(precision_train, 3))
+        self.precisions_val.append(round(precision_val, 3))
 
         return
 
