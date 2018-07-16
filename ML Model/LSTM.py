@@ -10,7 +10,7 @@ import itertools
 
 import keras
 from keras.models import load_model
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras import regularizers
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
@@ -46,7 +46,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
     X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-        split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=3)
+        split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=1)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
     X_val, y_val = get_reshaped_matrices(X_val, y_val)
@@ -107,35 +107,34 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.3
+    dropout = 0.2
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
-    # model.add(Bidirectional(LSTM(64, return_sequences=True)))
 
-    model.add(LSTM(64, return_sequences=True))
+    model.add(LSTM(512, return_sequences=True))
     model.add(Activation('relu'))
-    model.add(Dropout(dropout))
+    # model.add(Dropout(dropout))
 
-    model.add(Dense(32))
+    model.add(Dense(256))
     model.add(Activation('relu'))
-    model.add(Dropout(dropout))
+    # model.add(Dropout(dropout))
 
-    model.add(Dense(32))
+    model.add(Dense(128))
     model.add(Activation('relu'))
-    model.add(Dropout(dropout))
+    # model.add(Dropout(dropout))
+
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
     # loss = WeightedCategoricalCrossEntropy({0: 1, 1: 8})
-    # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
-    # loss = weighted_categorical_crossentropy(weights)
+    weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
+    loss = weighted_categorical_crossentropy(weights)
 
-
-    adam = optimizers.adam(lr=0.0012, decay=0.000005, amsgrad=False)
-    model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
+    adam = optimizers.adam(lr=0.007, decay=0.000005, amsgrad=True)
+    model.compile(loss='categorical_crossentropy', optimizer='adam', sample_weight_mode='temporal')
 
     return model
 
@@ -154,14 +153,16 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
     _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
 
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
-    early_stopping_callback = EarlyStopping(monitor='loss', patience=30, min_delta=0.001, verbose=1, mode='min')
+    early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.001, verbose=1, mode='min')
 
     history_callback = Histories((X_reshaped, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
+    filepath = "weights.best.hdf5"
+    checkpoint_smallest_loss_training = ModelCheckpoint(filepath, monitor='loss', verbose=0, save_best_only=True, mode='min')
 
     trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
                       verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
                       sample_weight=_sample_weight,
-                      callbacks=[history_callback, early_stopping_callback]
+                      callbacks=[history_callback, checkpoint_smallest_loss_training]
                       )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
@@ -332,6 +333,7 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
     """
     Splits up the list of Feature matrices and labels into Training, test and validation sets, where size of
     test_set = leave_out, val_set=2, training_set=rest.
+
     Also does preprocessing by computing mean/var on training_set only, then subtract on test_set
 
     :param X_splitted:
@@ -462,3 +464,42 @@ class Histories(keras.callbacks.Callback):
 
     def on_batch_end(self, batch, logs={}):
         return
+
+class WeightedCategoricalCrossEntropy(object):
+    def __init__(self, weights):
+        nb_cl = len(weights)
+        self.weights = np.ones((nb_cl, nb_cl))
+        for class_idx, class_weight in weights.items():
+            self.weights[0][class_idx] = class_weight
+            self.weights[class_idx][0] = class_weight
+        self.__name__ = 'w_categorical_crossentropy'
+
+    def __call__(self, y_true, y_pred):
+        return self.w_categorical_crossentropy(y_true, y_pred)
+
+    def w_categorical_crossentropy(self, y_true, y_pred):
+        nb_cl = len(self.weights)
+        final_mask = K.zeros_like(y_pred[..., 0])
+        y_pred_max = K.max(y_pred, axis=-1)
+        y_pred_max = K.expand_dims(y_pred_max, axis=-1)
+        y_pred_max_mat = K.equal(y_pred, y_pred_max)
+        for c_p, c_t in itertools.product(range(nb_cl), range(nb_cl)):
+            w = K.cast(self.weights[c_t, c_p], K.floatx())
+            y_p = K.cast(y_pred_max_mat[..., c_p], K.floatx())
+            y_t = K.cast(y_true[..., c_t], K.floatx())
+            final_mask += w * y_p * y_t
+        return K.categorical_crossentropy(y_pred, y_true) * final_mask
+
+
+def weighted_categorical_crossentropy(weights):
+    weights = K.variable(weights)
+
+    def loss(y_true, y_pred):
+        # scale predictions so that the class probas of each sample sum to 1
+        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
+        # clip to prevent NaN's and Inf's
+        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
+        # calc
+        loss = y_true * K.log(y_pred) * weights
+        loss = -K.sum(loss, -1)
+        return loss
