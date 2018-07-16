@@ -10,10 +10,11 @@ import random
 
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
-from sklearn.metrics import (auc, confusion_matrix, roc_curve, precision_recall_curve)
+from sklearn.metrics import (auc, confusion_matrix, roc_curve, precision_recall_curve, roc_auc_score)
 from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate)
-
+from sklearn import metrics
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.model_selection import cross_val_predict
 
 import features_factory as f_factory
 import setup_dataframes as sd
@@ -122,12 +123,12 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         print('Calculating performance of %s...' % clf_name)
 
     # Compute performance scores
-    y_pred = cross_val_predict(model, X, y, cv=5)
+    y_pred = cross_val_predict(model, X, y, cv=10)
     conf_mat = confusion_matrix(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
 
     # Calculates one score of each fold and returns it in a list (-> Macro averaging)
-    scores = cross_validate(model, X, y, cv=5, scoring=['roc_auc', 'recall', 'precision'])
+    scores = cross_validate(model, X, y, cv=10, scoring=['roc_auc', 'recall', 'precision'])
 
     precisions_ = scores['test_precision']
     recalls_ = scores['test_recall']
@@ -141,10 +142,18 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-
-    if clf_name == 'Decision Tree':
-        plots_features.plot_graph_of_decision_classifier(model, X, y)
-
+    '''
+    print(roc_aucs_)
+    recall = metrics.recall_score(y, y_pred, average='weighted')
+    roc_auc = metrics.roc_auc_score(y, y_pred, average='weighted')
+    precision = metrics.precision_score(y, y_pred, average='weighted')
+    
+    # print('Roc-auc: \tMacro  ' + str(round(roc_auc_mean, 3)) + ' vs. ' + str(round(roc_auc, 3)) + ' Micro')
+    # print('Recall: \tMacro: ' + str(round(recall_mean, 3)) + ' vs. ' + str(round(recall, 3)) + ' Micro')
+    # print('Precision: \tMacro: ' + str(round(precision_mean, 3)) + ' vs. ' + str(round(precision, 3)) + ' Micro')
+    '''
+    # if clf_name == 'Decision Tree':
+    #    plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
@@ -543,6 +552,7 @@ def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filen
                                 lbl='auc_score',
                                 filename=filename,
                                 std_err=roc_auc_scores_std,
+                                plot_random_guess_line=True
                                 )
 
 
@@ -567,7 +577,7 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
     for idx, [a, b] in enumerate(probas):
         if y_test[idx] != y_predicted[idx]:
             print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: '
-                  + str(max(a,b)*100) + '%')
+                  + str(max(a, b)*100) + '%')
 
 
 

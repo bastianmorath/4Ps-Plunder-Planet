@@ -45,7 +45,8 @@ def get_trained_lstm_classifier(X, y, n_epochs):
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = split_into_train_test_val_data(X_list, y_list, leave_out=2)
+    X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
+        split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=3)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
     X_val, y_val = get_reshaped_matrices(X_val, y_val)
@@ -106,20 +107,23 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.2
+    dropout = 0.3
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
 
-    model.add(LSTM(128, return_sequences=True, kernel_regularizer=regularizers.l1_l2(l1=0.0, l2=0.01)))
+    model.add(LSTM(64, return_sequences=True))
     model.add(Activation('relu'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(96, kernel_regularizer=regularizers.l1_l2(l1=0.0, l2=0.01)))
+    model.add(Dense(32))
     model.add(Activation('relu'))
     model.add(Dropout(dropout))
 
+    model.add(Dense(32))
+    model.add(Activation('relu'))
+    model.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -129,7 +133,8 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.0009, decay=0.000005, amsgrad=True)
+
+    adam = optimizers.adam(lr=0.0012, decay=0.000005, amsgrad=False)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
@@ -255,7 +260,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
 
     plt.plot(index, aucs_train, label='roc_auc train')
     plt.plot(index, aucs_val, label='roc_auc validation')
-    plt.axhline(y=0.5, color=plots_helpers.red_color, linestyle='-', label='random guess')
+    plt.axhline(y=0.5, color=plots_helpers.red_color, linestyle='--', label='random guess')
     plt.legend()
     plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot.pdf')
 
@@ -323,7 +328,7 @@ def get_splitted_up_feature_matrix_and_labels(X, y):
     return feature_matrices, label_lists
 
 
-def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
+def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size_val_set=3):
     """
     Splits up the list of Feature matrices and labels into Training, test and validation sets, where size of
     test_set = leave_out, val_set=2, training_set=rest.
@@ -331,25 +336,26 @@ def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
 
     :param X_splitted:
     :param y_splitted:
-    :param leave_out:
-
+    :param size_test_set:
+    :param size_val_set:
     :return: X_train, X_test, y_train, y_test, each as a list
     """
-    if leave_out == 0:
+    if size_test_set == 0:
         return X_splitted, y_splitted, [], []
 
     import random
+    random.seed(15)  # TODO: AT the end, I can use random splits
     c = list(zip(X_splitted, y_splitted))
     random.shuffle(c)
 
     X_splitted, y_splitted = zip(*c)
 
-    X_train = X_splitted[leave_out+2:]  # from leave_out up to end
-    X_test = X_splitted[:leave_out]  # 0 up to and including leave_out-1
-    X_val = [X_splitted[leave_out], X_splitted[leave_out+1]]  # index leave_out itself
-    y_train = y_splitted[leave_out+2:]
-    y_test = y_splitted[:leave_out]
-    y_val = [y_splitted[leave_out], y_splitted[leave_out+1]]
+    X_train = X_splitted[size_test_set+size_val_set:]  # from leave_out up to end
+    X_test = X_splitted[:size_test_set]  # 0 up to and including leave_out-1
+    X_val = X_splitted[size_test_set:size_test_set+size_val_set]  # index leave_out itself
+    y_train = y_splitted[size_test_set+size_val_set:]
+    y_test = y_splitted[:size_test_set]
+    y_val = y_splitted[size_test_set:size_test_set+size_val_set]
 
     scaler1 = MinMaxScaler(feature_range=(0, 1))
     scaler2 = StandardScaler()
@@ -358,7 +364,7 @@ def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
     val_arr = np.vstack(X_val)
     conc = np.vstack([train_arr, test_arr, val_arr])
 
-    # MinMaxScaler: Fit on entire
+    # MinMaxScaler: Fit on entire dataset
     scaler1.fit(conc)
     X_train = [scaler1.transform(X) for X in X_train]
     X_test = [scaler1.transform(X) for X in X_test]
@@ -393,7 +399,6 @@ class Histories(keras.callbacks.Callback):
 
         if drawing_enabled:
             plot_losses_and_roc_aucs([], [], [], [], [], [], [], [], [], [], n_epochs)
-
 
     def on_train_begin(self, logs={}):
         return

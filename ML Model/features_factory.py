@@ -156,7 +156,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             # One hot encoding
             matrix = pd.get_dummies(matrix, columns=['obstacle_arrangement'], prefix=['arr_'])
 
-        # Sgorten and clean up the column names (especially the obstacle_arrangements)
+        # Shorten and clean up the column names (especially the obstacle_arrangements)
         matrix.columns = matrix.columns.str.strip().str.replace(',', '_').str.replace('MIDDLE', 'M') \
             .str.replace('BOTTOMLEFT', 'BL').str.replace('BOTTOMRIGHT', 'BR').str.replace('TOPRIGHT', 'TR') \
             .str.replace('TOPLEFT', 'TL').str.replace('FARBOTTOMRIGHT', 'FR').str.replace('FARBOTTOMLEFT',
@@ -198,6 +198,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         X = scaler1.fit_transform(X)  # Rescale between 0 and 1
 
     plots_features.plot_correlation_matrix(matrix)
+
     if verbose:
         print('Feature matrix and labels created!')
 

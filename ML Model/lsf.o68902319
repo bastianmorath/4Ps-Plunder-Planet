@@ -1,0 +1,43 @@
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=2000 for Random Forest...
+Time elapsed for hyperparameter tuning: 895.4799790382385
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.656 (std: 0.026)
+		Parameters: {'criterion': 'entropy', 'max_depth': 3, 'min_samples_leaf': 6, 'min_samples_split': 7}
+	Model with rank: 2
+		Mean validation score: 0.655 (std: 0.027)
+		Parameters: {'criterion': 'gini', 'max_depth': 1, 'min_samples_leaf': 5, 'min_samples_split': 15}
+	Model with rank: 3
+		Mean validation score: 0.655 (std: 0.022)
+		Parameters: {'criterion': 'entropy', 'max_depth': 1, 'min_samples_leaf': 5, 'min_samples_split': 7}
+
+Calculating performance of Random Forest...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+
+******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'max_depth': 3, 'min_samples_split': 7, 'min_samples_leaf': 6, 'criterion': 'entropy'},
+	roc_auc: 0.644 (+-0.04), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4780    0] 
+				 [1048    1]
+
+
+Time elapsed: 900.5058197975159

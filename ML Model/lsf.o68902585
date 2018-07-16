@@ -1,0 +1,41 @@
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=20000 for Random Forest...
+Time elapsed for hyperparameter tuning: 9276.808071136475
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.660 (std: 0.025)
+		Parameters: {'criterion': 'gini', 'max_depth': 3, 'min_samples_leaf': 3, 'min_samples_split': 13}
+	Model with rank: 2
+		Mean validation score: 0.659 (std: 0.031)
+		Parameters: {'criterion': 'entropy', 'max_depth': 2, 'min_samples_leaf': 8, 'min_samples_split': 14}
+	Model with rank: 3
+		Mean validation score: 0.659 (std: 0.019)
+		Parameters: {'criterion': 'entropy', 'max_depth': 1, 'min_samples_leaf': 2, 'min_samples_split': 7}
+
+Calculating performance of Random Forest...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+
+******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'max_depth': 3, 'min_samples_split': 13, 'min_samples_leaf': 3, 'criterion': 'gini'},
+	roc_auc: 0.643 (+-0.04), recall: 0.001 (+-0.00), specificity: 0.998, precision: 0.200 (+-0.40) 
+
+	Confusion matrix: 	 [4770   10] 
+				 [1041    8]
+
+
+Time elapsed: 9281.58369064331

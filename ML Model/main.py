@@ -10,7 +10,6 @@ matplotlib.use('Agg')
 
 import time
 import argparse
-
 import setup_dataframes
 import synthesized_data
 import features_factory as f_factory

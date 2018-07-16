@@ -59,7 +59,8 @@ def save_plot(plot, folder, filename):
     plot.close('all')
 
 
-def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None, verbose=True):
+def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None, verbose=True,
+                  plot_random_guess_line=False):
     """Helper function to plot a barchart with the given arguments
 
     :param title: Title of the plot
@@ -70,15 +71,15 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     :param lbl: Name of the values label
     :param filename: filename to be stored
     :param std_err: if given, then plot std error of each bar
+    :param plot_random_guess_line: If we plot roc_auc scores, we can plot a horizontal line at y=05 for random guess
 
     :return: The plot
     """
 
     fix, ax = plt.subplots()
     bar_width = 0.3
-    index = np.arange(len(x_tick_labels))
-
     line_width = 0.3
+    index = np.arange(len(x_tick_labels))
 
     ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
     ax.set_axisbelow(True)  # Put vertical grid in background of plot
@@ -91,7 +92,11 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
             error_kw={'elinewidth': line_width,
                       'capsize': 1.4,
                       'markeredgewidth': line_width},
+            zorder=2
             )
+
+    if plot_random_guess_line:
+        plt.axhline(y=0.5, color=red_color, linestyle='--', label='random guess', zorder=0)
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

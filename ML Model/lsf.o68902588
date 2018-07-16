@@ -1,0 +1,37 @@
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=100000 for Decision Tree...
+Time elapsed for hyperparameter tuning: 12471.993524074554
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.657 (std: 0.023)
+		Parameters: {'criterion': 'entropy', 'max_depth': 4, 'min_samples_leaf': 12, 'min_samples_split': 9, 'splitter': 'random'}
+	Model with rank: 2
+		Mean validation score: 0.656 (std: 0.043)
+		Parameters: {'criterion': 'gini', 'max_depth': 5, 'min_samples_leaf': 4, 'min_samples_split': 5, 'splitter': 'random'}
+	Model with rank: 3
+		Mean validation score: 0.656 (std: 0.024)
+		Parameters: {'criterion': 'entropy', 'max_depth': 4, 'min_samples_leaf': 16, 'min_samples_split': 12, 'splitter': 'random'}
+
+Calculating performance of Decision Tree...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+
+******** Scores for Decision Tree (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'criterion': 'entropy', 'splitter': 'random', 'max_depth': 4, 'min_samples_split': 9, 'min_samples_leaf': 12},
+	roc_auc: 0.637 (+-0.03), recall: 0.012 (+-0.01), specificity: 0.986, precision: 0.260 (+-0.25) 
+
+	Confusion matrix: 	 [4715   65] 
+				 [1008   41]
+
+
+Time elapsed: 12476.236177682877

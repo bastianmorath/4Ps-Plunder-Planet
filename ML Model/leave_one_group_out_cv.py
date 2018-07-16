@@ -135,7 +135,7 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
 
     auc_mean = np.mean(aucs)  # Calculating MACRO-average
     auc_std = np.std(aucs)
-
+    print(auc_mean)
     if plot_auc_score_per_user:
         title = r'Auc scores per user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, auc_mean, auc_std)
         filename = 'LeaveOneGroupOut/performance_per_user_' + clf_name + '.pdf'
