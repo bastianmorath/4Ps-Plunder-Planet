@@ -5,6 +5,8 @@ classifier with this name.
 
 from __future__ import division, print_function  # s.t. division uses float result
 
+import time
+
 import numpy as np
 import pandas as pd
 
@@ -69,11 +71,13 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
 
     else:
         print('Doing RandomizedSearchCV with n_iter=' + str(c_classifier.num_iter) + ' for ' + clf_name + '...')
+        start = time.time()
 
         clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=5,
                                  scoring='roc_auc', n_iter=c_classifier.num_iter)
         clf.fit(X, y)
-
+        end = time.time()
+        print("Time elapsed for hyperparameter tuning: " + str(end - start))
         if verbose:
             report(clf.cv_results_)
 

@@ -43,7 +43,6 @@ def plot_heartrate_and_events():
             times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
             heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
                                  for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
-            print(sd.names_logfiles[idx], len(times_crashes))
             s = plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='crash')
 
             # Plot Brokenships

@@ -106,23 +106,20 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.15
+    dropout = 0.2
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
     # model.add(Bidirectional(LSTM(64, return_sequences=True)))
 
-    model.add(LSTM(160, return_sequences=True))
+    model.add(LSTM(128, return_sequences=True, kernel_regularizer=regularizers.l1_l2(l1=0.0, l2=0.01)))
     model.add(Activation('relu'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(160))
+    model.add(Dense(96, kernel_regularizer=regularizers.l1_l2(l1=0.0, l2=0.01)))
     model.add(Activation('relu'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(96))
-    model.add(Activation('relu'))
-    model.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -132,7 +129,7 @@ def generate_lstm_classifier(shape):
     # weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
     # loss = weighted_categorical_crossentropy(weights)
 
-    adam = optimizers.adam(lr=0.0004, decay=0.000005, amsgrad=True)
+    adam = optimizers.adam(lr=0.0009, decay=0.000005, amsgrad=True)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
@@ -143,23 +140,23 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
     one_hot_labels_train = keras.utils.to_categorical(y_reshaped, num_classes=2)
     one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
-    # my_callbacks = [EarlyStopping(monitor='loss', patience=500, min_delta=0.001, verbose=1, mode='min')]
 
     to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])    # sample_weights need a 2D array with shape
                                                                             # `(samples, sequence_length)`,
                                                                             # to apply a different weight to every
                                                                             # timestep of every sample.
 
-    _sample_weight = np.array([[1 if v == 0 else 5 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
 
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
+    early_stopping_callback = EarlyStopping(monitor='loss', patience=30, min_delta=0.001, verbose=1, mode='min')
 
-    history_callback = Histories((X_reshaped, one_hot_labels_train), n_epochs, drawing_enabled=True)
+    history_callback = Histories((X_reshaped, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
 
     trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
                       verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
                       sample_weight=_sample_weight,
-                      callbacks=[history_callback]
+                      callbacks=[history_callback, early_stopping_callback]
                       )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
@@ -230,14 +227,22 @@ Helper methods
 def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train,
                              recalls_val, precisions_train, precisions_val, n_epochs=None
                              ):
-    """Plots the losses and roc_auc scores that were obtained during the training phase (with the callback).
+    """
+    Plots the losses, roc_auc/recall/precision/f1 scores that were obtained during the training phase
+    (with the help of the callback).
 
 
     :param aucs_train: list of roc_auc scores on training data
     :param aucs_val: list of roc_auc scores on validation data
     :param train_losses: list of losses on training data
     :param val_losses: list of losses on validation data
-
+    :param f1s_train:
+    :param f1s_val:
+    :param recalls_train:
+    :param recalls_val:
+    :param precisions_train:
+    :param precisions_val:
+    :param n_epochs:
     """
 
     _, ax = plt.subplots()
@@ -250,6 +255,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
 
     plt.plot(index, aucs_train, label='roc_auc train')
     plt.plot(index, aucs_val, label='roc_auc validation')
+    plt.axhline(y=0.5, color=plots_helpers.red_color, linestyle='-', label='random guess')
     plt.legend()
     plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot.pdf')
 
@@ -368,7 +374,7 @@ def split_into_train_test_val_data(X_splitted, y_splitted, leave_out=1):
 
 class Histories(keras.callbacks.Callback):
 
-    def __init__(self, training_data, n_epochs, drawing_enabled=True):
+    def __init__(self, training_data, n_epochs, interval=10, drawing_enabled=True):
         self.aucs_train = []
         self.aucs_val = []
         self.f1s_train = []
@@ -381,8 +387,10 @@ class Histories(keras.callbacks.Callback):
         self.val_losses = []
         self.training_data = training_data
         self.count = 0
+        self.interval = interval
         self.n_epochs = n_epochs
         self.drawing_enabled = drawing_enabled
+
         if drawing_enabled:
             plot_losses_and_roc_aucs([], [], [], [], [], [], [], [], [], [], n_epochs)
 
@@ -430,7 +438,7 @@ class Histories(keras.callbacks.Callback):
         self.precisions_train.append(round(precision_train, 3))
         self.precisions_val.append(round(precision_val, 3))
 
-        if self.drawing_enabled and self.count % 10 == 0:  # Redraw plot every 10 iterations
+        if self.drawing_enabled and self.count % self.interval == 0:  # Redraw plot every 10 iterations
 
             plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
             plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,

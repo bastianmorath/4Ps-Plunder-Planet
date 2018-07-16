@@ -142,9 +142,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['mean_points'] = get_standard_feature('mean', 'Points')
         matrix['std_points'] = get_standard_feature('std', 'Points')
         matrix['%crashes'] = get_percentage_crashes_feature()
-        matrix['obstacle_arrangement'] = get_obstacle_arrangement_feature()
 
         if not use_reduced_features:
+
             matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
             matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
             matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
@@ -152,14 +152,22 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['max_points'] = get_standard_feature('max', 'Points')
             matrix['min_points'] = get_standard_feature('min', 'Points')
             matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
+            matrix['obstacle_arrangement'] = get_obstacle_arrangement_feature()
+            # One hot encoding
+            matrix = pd.get_dummies(matrix, columns=['obstacle_arrangement'], prefix=['arr_'])
 
-        # One hot encoding
-        matrix = pd.get_dummies(matrix, columns=['obstacle_arrangement'], prefix=['arr_'])
+        # Sgorten and clean up the column names (especially the obstacle_arrangements)
+        matrix.columns = matrix.columns.str.strip().str.replace(',', '_').str.replace('MIDDLE', 'M') \
+            .str.replace('BOTTOMLEFT', 'BL').str.replace('BOTTOMRIGHT', 'BR').str.replace('TOPRIGHT', 'TR') \
+            .str.replace('TOPLEFT', 'TL').str.replace('FARBOTTOMRIGHT', 'FR').str.replace('FARBOTTOMLEFT',
+            'FL').str.lower()
+
         # Boxcox transformation
         if use_boxcox:
             # Values must be positive. If not, shift it
+            non_boxcox = ['last_obstacle_crash', 'obstacle_arrangement']
             for feature in feature_names:
-                if not feature == 'last_obstacle_crash':  # Doesn't makes sense to do boxcox here
+                if feature not in non_boxcox:  # Doesn't makes sense to do boxcox here
                     if matrix[feature].min() <= 0:
                         matrix[feature] = stats.boxcox(matrix[feature] - matrix[feature].min() + 0.01)[0]
                     else:
