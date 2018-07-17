@@ -1,0 +1,6 @@
+.vscode/
+.ipynb_checkpoints/
+.idea/
+.git/
+*.DS_Store
+4Ps/__pycache__/
