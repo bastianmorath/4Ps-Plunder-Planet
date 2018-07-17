@@ -1,20 +1,40 @@
-# Performance Predictor: Machine learning based prediction of user performance in the game “Plunder Planet”
+# 4Ps: A Machine Learning based prediction of user performance in the game “Plunder Planet”
 
-I built a model that in the game Plunder Planet predicts whether the user will crash into the next appearing obstacle or not.
+## Description
+
+4Ps (The Plunder Planet Performance Predictor) builds a model that in the game Plunder Planet predicts whether the user will crash into the next appearing obstacle or not.
 For this I have datapoints of users that played the game. At approximately each second, we have given the heartrate, the number of points, the difficulty level and -if there is an obstacle- how it looks like.
 From this data we generate features that are then used by the machine learning model.
 
 ## Requirements
 
-python 3.6, pandas 0.22, sklearn 0.19, seaborn 0.8, scipy 1.0, numpy1.14, matplotlib 2.2,
-keras 2.1.5, tensorflow 1.8, graphviz 0.8, 
+Keras==2.1.5, matplotlib==2.2.2, scipy==1.0.0, graphviz==0.8.3, numpy==1.14.2, seaborn==0.8.1, pandas==0.22.0, scikit_learn==0.19.2
+
 
 Call 
 ```
 $python -m pip install --user -r requirements.txt 
 ```
-to install requirements
+to automatically install all requirements
 
+## Installation
+
+It is recommended to install 4P inside a virtual environment.
+
+Setup a virtual environment:
+```
+virtualenv --python=python3 <venv-name>
+source <venv-name>/bin/activate
+```
+
+Install 4Ps:
+
+```
+git clone https://github.com/bastianmorath/4Ps
+cd 4Ps
+pip install -r requirements.txt
+python setup.py install 
+```
 
 
 ## Usage
@@ -96,9 +116,12 @@ The thesis is divided into three parts:
 2. Basic Machine Learning models
   After generating the features, we use standard supervised ML models, namely SVM, NearestNeighbors, DecisionTreeClassifier, Naive Bayes and Ada Boost
   
-  We achieved a performance of around roc_auc=0.95
+  We achieved a performance of around auroc=0.65
 
-3. LSTM Recurrent Neural Network. 
+3. LSTM Recurrent Neural Network
+  We generate a Long-Short-Term-Memory Recurrent Neural Network. 
+  
+  We achieved a performance of around aurc=0.63
 
 
 ## Publications
