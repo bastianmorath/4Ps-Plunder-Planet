@@ -112,29 +112,22 @@ def generate_lstm_classifier(shape):
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
 
-    model.add(LSTM(512, return_sequences=True))
-    model.add(Activation('relu'))
+    model.add(LSTM(128, return_sequences=True, activation='tanh'))
     # model.add(Dropout(dropout))
 
-    model.add(Dense(256))
-    model.add(Activation('relu'))
+    model.add(Dense(96, activation='relu'))
     # model.add(Dropout(dropout))
 
-    model.add(Dense(128))
-    model.add(Activation('relu'))
+    model.add(Dense(64, activation='relu'))
     # model.add(Dropout(dropout))
-
+    # model.add(Dense(16, activation='relu'))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    # loss = WeightedCategoricalCrossEntropy({0: 1, 1: 8})
-    weights = np.array([1, 6])  # Higher weight on class 1 should translate to higher recall
-    loss = weighted_categorical_crossentropy(weights)
-
-    adam = optimizers.adam(lr=0.007, decay=0.000005, amsgrad=True)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', sample_weight_mode='temporal')
+    adam = optimizers.adam(lr=0.003, decay=0.000006, amsgrad=True)
+    model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
@@ -144,16 +137,15 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
     print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
     one_hot_labels_train = keras.utils.to_categorical(y_reshaped, num_classes=2)
     one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
-
-    to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])    # sample_weights need a 2D array with shape
-                                                                            # `(samples, sequence_length)`,
-                                                                            # to apply a different weight to every
-                                                                            # timestep of every sample.
+    # sample_weights need a 2D array with shape `(samples, sequence_length)`,
+    # to apply a different weight to every timestep of every sample.
+    to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])
 
     _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
 
     # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
-    early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.001, verbose=1, mode='min')
+    early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.0004, verbose=1, mode='min')
+    early_stopping_callback = EarlyStopping(monitor='loss', patience=3, min_delta=0.04, verbose=1, mode='min')
 
     history_callback = Histories((X_reshaped, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
     filepath = "weights.best.hdf5"
@@ -162,7 +154,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
     trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
                       verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
                       sample_weight=_sample_weight,
-                      callbacks=[history_callback, checkpoint_smallest_loss_training]
+                      callbacks=[history_callback]
                       )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
@@ -174,6 +166,7 @@ def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
                              history_callback.f1s_train, history_callback.f1s_val,
                              history_callback.recalls_train, history_callback.recalls_val,
                              history_callback.precisions_train, history_callback.precisions_val,
+                             n_epochs
                              )
 
     return trained_model
@@ -231,7 +224,7 @@ Helper methods
 
 
 def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train,
-                             recalls_val, precisions_train, precisions_val, n_epochs=None
+                             recalls_val, precisions_train, precisions_val, n_epochs
                              ):
     """
     Plots the losses, roc_auc/recall/precision/f1 scores that were obtained during the training phase
@@ -263,7 +256,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, aucs_val, label='roc_auc validation')
     plt.axhline(y=0.5, color=plots_helpers.red_color, linestyle='--', label='random guess')
     plt.legend()
-    plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot.pdf')
+    plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot_' + str(n_epochs) + '.pdf')
 
     _, ax = plt.subplots()
     if n_epochs is not None:
@@ -276,7 +269,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, train_losses, label='training loss')
     plt.plot(index, val_losses, label='validation loss')
     plt.legend()
-    plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
+    plots_helpers.save_plot(plt, 'LSTM/', 'losses_' + str(n_epochs) + '.pdf')
 
     _, ax = plt.subplots()
     if n_epochs is not None:
@@ -290,7 +283,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, f1s_val, label='f1 validation')
 
     plt.legend()
-    plots_helpers.save_plot(plt, 'LSTM/', 'f1s.pdf')
+    plots_helpers.save_plot(plt, 'LSTM/', 'f1s_' + str(n_epochs) + '.pdf')
 
     plt.subplots()
     plt.ylabel('precision/recall')
@@ -304,7 +297,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, precisions_val, label='precision validation', color='#0B6623')
 
     plt.legend()
-    plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall.pdf')
+    plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall_' + str(n_epochs) + '.pdf')
 
 
 def get_splitted_up_feature_matrix_and_labels(X, y):
@@ -372,10 +365,6 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
     X_test = [scaler1.transform(X) for X in X_test]
     X_val = [scaler1.transform(X) for X in X_val]
     # StandardScaler: Fit only on Training-data
-    scaler2.fit(train_arr)
-    X_train = [scaler2.transform(X) for X in X_train]
-    X_test = [scaler2.transform(X) for X in X_test]
-    X_val = [scaler2.transform(X) for X in X_val]
 
     return X_train, y_train, X_test, y_test, X_val, y_val
 
@@ -446,8 +435,6 @@ class Histories(keras.callbacks.Callback):
         self.precisions_val.append(round(precision_val, 3))
 
         if self.drawing_enabled and self.count % self.interval == 0:  # Redraw plot every 10 iterations
-
-            plots_helpers.save_plot(plt, 'LSTM/', 'losses.pdf')
             plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,
                                      self.train_losses, self.val_losses,
                                      self.f1s_train, self.f1s_val,
