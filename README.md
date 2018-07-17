@@ -6,36 +6,37 @@
 For this I have datapoints of users that played the game. At approximately each second, we have given the heartrate, the number of points, the difficulty level and -if there is an obstacle- how it looks like.
 From this data we generate features that are then used by the machine learning model.
 
-## Requirements
-
-Keras==2.1.5, matplotlib==2.2.2, scipy==1.0.0, graphviz==0.8.3, numpy==1.14.2, seaborn==0.8.1, pandas==0.22.0, scikit_learn==0.19.2
-
-
-Call 
-```
-$python -m pip install --user -r requirements.txt 
-```
-to automatically install all requirements
-
 ## Installation
 
 It is recommended to install 4P inside a virtual environment.
 
 Setup a virtual environment:
 ```
-virtualenv --python=python3 <venv-name>
-source <venv-name>/bin/activate
+$ virtualenv --python=python3 <venv-name>
+$ source <venv-name>/bin/activate
 ```
 
 Install 4Ps:
 
 ```
-git clone https://github.com/bastianmorath/4Ps
-cd 4Ps
-pip install -r requirements.txt
-python setup.py install 
+$ git clone https://github.com/bastianmorath/4Ps-Plunder-Planet/
+$ cd 4Ps-Plunder-Planet
+$ pip install -r requirements.txt
+$ python setup.py install 
 ```
 
+Setup 4Ps:
+
+We need to manually add the logfiles to the project. Those will be refactored the first time the project runs and saved into Logs/text_logs_refactored/. You can then remove the text_logs_original folder if you want, as it is no longer used: 
+
+```
+$ mkdir Logs
+```
+After putting the unziped folder 'text_logs_original' into the Logs-folder, call:
+```
+$ python main.py
+$ (optionally) rm -r ../Logs/text_logs_original
+```
 
 ## Usage
 
@@ -106,22 +107,21 @@ optional arguments:
 ```
 
 
-## More information
-The thesis is divided into three parts:
+## Additional information
+
+This thesis is divided into three parts:
 
 1. Validating data:
   We made sure that the logfiles have the correct structure, no data is missing and there are no outliers.
   For this we generated various plots from the data. 
 
 2. Basic Machine Learning models
-  After generating the features, we use standard supervised ML models, namely SVM, NearestNeighbors, DecisionTreeClassifier, Naive Bayes and Ada Boost
+  After generating the features, we used standard supervised ML models, namely SVM, NearestNeighbors, DecisionTreeClassifier, Naive Bayes and Ada Boost
   
   We achieved a performance of around auroc=0.65
 
 3. LSTM Recurrent Neural Network
-  We generate a Long-Short-Term-Memory Recurrent Neural Network. 
+  We generated a Long-Short-Term-Memory Recurrent Neural Network. 
   
   We achieved a performance of around aurc=0.63
 
-
-## Publications
