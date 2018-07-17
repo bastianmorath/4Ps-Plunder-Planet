@@ -1,22 +1,20 @@
-"""This module contains different classifier classes. They are all subclasses of the Classifier-class and
-contain hyperparameters to do grid search over and the classifier obejct itself
+"""
+This module contains different classifier classes. They are all subclasses of the Classifier-class and
+contain hyperparameters to do grid search over and the classifier obeject itself
 
 """
 
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingClassifier,
+                              RandomForestClassifier)
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
-from scipy.stats import randint as sp_randint
-
-from sklearn.naive_bayes import GaussianNB
-from scipy.stats import uniform
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.ensemble import (AdaBoostClassifier,
-                              GradientBoostingClassifier,
-                              RandomForestClassifier)
 from sklearn.tree import DecisionTreeClassifier
 
 import features_factory as f_factory
-
+from scipy.stats import randint as sp_randint
+from scipy.stats import uniform
 
 EPSILON = 0.0001
 
@@ -272,5 +270,3 @@ class CNaiveBayes(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = GaussianNB()
-
-

@@ -1,10 +1,15 @@
-import matplotlib
+"""
+This module contains helper methods for setting up and generating plots
+
+"""
+
+
+import os
+
+import numpy as np
 
 import matplotlib.pyplot as plt
-import numpy as np
-import os
 import setup_dataframes as sd
-
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
@@ -117,4 +122,3 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
         print('Barchart plot saved in file Plots/Performance/' + filename)
 
     return plt
-

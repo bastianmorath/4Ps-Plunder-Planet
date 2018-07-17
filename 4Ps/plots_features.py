@@ -1,23 +1,22 @@
 """
-This module is responsible for plotting various things
+This module is responsible for generating plots that are involved with features
 
 """
-import graphviz
+from math import ceil
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
 from sklearn import tree
 from sklearn.preprocessing import MinMaxScaler
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import numpy as np
-import pandas as pd
-import seaborn as sb
-from math import ceil
-
-import seaborn as sns
-import setup_dataframes as sd
-import features_factory as f_factory
-import plots_helpers as hp
 import classifiers
+import features_factory as f_factory
+import graphviz
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import plots_helpers as hp
+import setup_dataframes as sd
 
 green_color = '#AEBD38'
 blue_color = '#68829E'

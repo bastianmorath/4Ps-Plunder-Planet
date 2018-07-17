@@ -1,4 +1,9 @@
+"""
+This module is responsible for setting up argparse
+
+"""
 import argparse
+
 
 def get_argparse():
     parser = argparse.ArgumentParser()

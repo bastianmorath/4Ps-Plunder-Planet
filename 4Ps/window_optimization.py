@@ -6,13 +6,14 @@
 
 """
 
-from __future__ import division, print_function  # s.t. division uses float result
+from __future__ import (division,  # s.t. division uses float result
+                        print_function)
 
 import numpy as np
-import model_factory
+
 import features_factory as f_factory
 import matplotlib.pyplot as plt
-
+import model_factory
 import plots_helpers
 
 
@@ -128,4 +129,3 @@ def test_all_windows():
     ax.set_xlabel(name2)
     plt.colorbar()
     plots_helpers.save_plot(plt, 'Performance/Windows/', filename)
-

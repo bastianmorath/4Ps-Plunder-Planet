@@ -12,30 +12,28 @@ It is recommended to install 4P inside a virtual environment.
 
 Setup a virtual environment:
 ```
-$ virtualenv --python=python3 <venv-name>
-$ source <venv-name>/bin/activate
+virtualenv --python=python3 <venv-name>
+source <venv-name>/bin/activate
 ```
 
 Install 4Ps:
 
 ```
-$ git clone https://github.com/bastianmorath/4Ps-Plunder-Planet/
-$ cd 4Ps-Plunder-Planet
-$ pip install -r requirements.txt
-$ python setup.py install 
+git clone https://github.com/bastianmorath/4Ps-Plunder-Planet/
+cd 4Ps-Plunder-Planet
+pip install -r requirements.txt
 ```
 
-Setup 4Ps:
 
-We need to manually add the logfiles to the project. Those will be refactored the first time the project runs and saved into Logs/text_logs_refactored/. You can then remove the text_logs_original folder if you want, as it is no longer used: 
+We need to manually add the logfiles to the project. These will be refactored the first time the project runs and saved into Logs/text_logs_refactored/. You can then remove the text_logs_original folder if you want, as it is no longer used: 
 
 ```
-$ mkdir Logs
+mkdir Logs
 ```
 After putting the unziped folder 'text_logs_original' into the Logs-folder, call:
 ```
-$ python main.py
-$ (optionally) rm -r ../Logs/text_logs_original
+python main.py
+(optionally) rm -r ../Logs/text_logs_original
 ```
 
 ## Usage

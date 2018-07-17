@@ -1,18 +1,21 @@
+"""This module is responsible for testin the classifier performances when doing normal K-fold CrossValidation
+vs. LeaveOneGroupOut-Crossvalidation, i.e. training on all but one logfile, and then test on the last one.
+
+"""
 
 from __future__ import division  # s.t. division uses float result
-import matplotlib.pyplot as plt
-import pandas as pd
+
 import numpy as np
-
+import pandas as pd
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import (LeaveOneGroupOut, cross_val_predict)
+from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 
-
+import classifiers
+import features_factory as f_factory
+import matplotlib.pyplot as plt
+import model_factory
 import plots_helpers
 import setup_dataframes as sd
-import features_factory as f_factory
-import classifiers
-import model_factory
 
 
 def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=False):

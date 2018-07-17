@@ -5,15 +5,13 @@
 """
 
 
-import pandas as pd
 import numpy as np
-from scipy.stats import truncnorm
+import pandas as pd
 
-import setup_dataframes as sd
 import matplotlib.pyplot as plt
-
-import setup_dataframes
 import plots_helpers
+import setup_dataframes as sd
+from scipy.stats import truncnorm
 
 make_plots = False
 

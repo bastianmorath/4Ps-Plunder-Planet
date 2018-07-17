@@ -1,22 +1,21 @@
 """
-This module is responsible to generate all the features from the data/logfiles
+This module is responsible to generate features from the data/logfiles
 
 """
 
-import pandas as pd
+import itertools
 import math
 import os
 from pathlib import Path
 
-from scipy import stats
 import numpy as np
-import itertools
+import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-
-import setup_dataframes as sd
 import plots_features
+import setup_dataframes as sd
 import synthesized_data
+from scipy import stats
 
 """INITIALIZATION"""
 
@@ -543,4 +542,3 @@ def get_gradient_changes_column(idx, data_name):
             return num_sign_changes if not math.isnan(num_sign_changes) else compute_gradient_changes(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
-

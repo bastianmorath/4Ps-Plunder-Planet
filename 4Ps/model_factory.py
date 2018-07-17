@@ -1,29 +1,26 @@
-"""This module mainly serves as a factory with various methods used by the machine learning modules
+"""This module serves as a factory with various methods used by the machine learning modules
 
 """
 from __future__ import division  # s.t. division uses float result
 
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import random
 
+import numpy as np
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
-from sklearn.metrics import (auc, confusion_matrix, roc_curve, precision_recall_curve, roc_auc_score)
-from sklearn.model_selection import (cross_val_predict, train_test_split, cross_validate)
-from sklearn import metrics
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import (auc, confusion_matrix, precision_recall_curve,
+                             roc_curve)
+from sklearn.model_selection import (cross_val_predict, cross_validate,
+                                     train_test_split)
 
-import features_factory as f_factory
-import setup_dataframes as sd
-import plots_helpers
-import plots_features
 import classifiers
-import setup_dataframes
+import features_factory as f_factory
 import hyperparameter_optimization
-
+import matplotlib.pyplot as plt
+import plots_helpers
+import setup_dataframes as sd
 
 # High level functions
 
@@ -578,8 +575,3 @@ def print_confidentiality_scores(X_train, X_test, y_train, y_test):
         if y_test[idx] != y_predicted[idx]:
             print('True/Predicted: (' + str(y_test[idx]) + ', ' + str(y_predicted[idx]) + '), Confidentiality: '
                   + str(max(a, b)*100) + '%')
-
-
-
-
-

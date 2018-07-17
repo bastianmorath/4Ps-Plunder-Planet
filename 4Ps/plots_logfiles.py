@@ -1,14 +1,18 @@
+"""
+This module is responsible for generating plots that are involved with statistics about logfiles
+
+"""
+
 from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 
-from matplotlib.ticker import MaxNLocator
-import matplotlib.pyplot as plt
-
-import setup_dataframes as sd
 import features_factory as f_factory
+import matplotlib.pyplot as plt
 import plots_helpers as hp
+import setup_dataframes as sd
+from matplotlib.ticker import MaxNLocator
 
 green_color = '#AEBD38'
 blue_color = '#68829E'
@@ -423,4 +427,3 @@ def crashes_per_obstacle_arrangement():
     plt.bar(df.index, df['Crashes in %'])
 
     hp.save_plot(plt, 'Logfiles/', 'crashes_per_obstacle_arrangement.pdf')
-

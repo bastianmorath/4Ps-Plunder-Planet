@@ -1,12 +1,14 @@
 """
-This module does some refactoring to the logfiles, mostly at the very beginning of the process
+This module is responsible for refactoring the logfiles, which is mostly only done the very first time the
+project is running
 """
 
 import os
 import re
-from pathlib import Path
-import pandas as pd
 from datetime import timedelta
+from pathlib import Path
+
+import pandas as pd
 
 import setup_dataframes as sd
 
@@ -190,8 +192,3 @@ def refactor_crashes():
 
         new_df.to_csv(sd.abs_path_logfiles + '/../text_logs_refactored/' + new_name + '.log', header=False,
                       index=False, sep=';')
-
-
-
-
-

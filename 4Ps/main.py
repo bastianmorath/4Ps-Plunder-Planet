@@ -1,26 +1,30 @@
 """
-Type $ python main.py -h for how to use this module
+Entry point of this project.
+Type 'python main.py -h' for how to use this module
 
 """
 
-from __future__ import division, print_function  # s.t. division uses float result
+from __future__ import division  # s.t. division uses float result
+from __future__ import print_function
 
-import matplotlib
-matplotlib.use('Agg')
 import time
 
-import setup_dataframes
-import synthesized_data
+import argparse_setup
+import classifiers
 import features_factory as f_factory
-import window_optimization
 import hyperparameter_optimization
-import model_factory
 import leave_one_group_out_cv
 import LSTM
-import classifiers
+import matplotlib
+import model_factory
 import plots_features as fp
 import plots_logfiles as lp
-import argparse_setup
+import setup_dataframes
+import synthesized_data
+import window_optimization
+
+matplotlib.use('Agg')
+
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
@@ -159,6 +163,3 @@ if __name__ == "__main__":
 
     args = argparse_setup.get_argparse()
     main(args)
-
-
-

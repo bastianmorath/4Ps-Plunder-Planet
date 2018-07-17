@@ -1,31 +1,30 @@
 """
-This module is responsible to for the LSTM network
+This module is responsible to for setting up, compiling, training and evaluating a LSTM Recurrent Neural Network
 
 """
+
+import itertools
 from functools import partial
 
-import matplotlib.pyplot as plt
 import numpy as np
-import itertools
-
-import keras
-from keras.models import load_model
-from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras import regularizers
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
-from keras.models import Sequential
-from keras.layers import LSTM, K, Dense, TimeDistributed, Masking, RNN, Dropout, Bidirectional, BatchNormalization, \
-    Activation
-from keras.preprocessing import sequence
-from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, recall_score, precision_score
 from numpy import array
 from sklearn import metrics
-from keras import optimizers
+from sklearn.metrics import (confusion_matrix, f1_score, precision_score,
+                             recall_score, roc_auc_score)
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
+import keras
+import matplotlib.pyplot as plt
 import model_factory
-import setup_dataframes as sd
 import plots_helpers
+import setup_dataframes as sd
+from keras import optimizers, regularizers
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers import (LSTM, RNN, Activation, BatchNormalization,
+                          Bidirectional, Dense, Dropout, K, Masking,
+                          TimeDistributed)
+from keras.models import Sequential, load_model
+from keras.preprocessing import sequence
 
 _maxlen = 0
 

@@ -1,25 +1,24 @@
-"""This module takes a classifier name and n_iter and does RandomizedSearchCV to find the best hyperparameters of the
+"""
+This module takes a classifier name and n_iter and does RandomizedSearchCV to find the best hyperparameters of the
 
 classifier with this name.
 """
 
-from __future__ import division, print_function  # s.t. division uses float result
+from __future__ import (division,  # s.t. division uses float result
+                        print_function)
 
 import time
 
 import numpy as np
 import pandas as pd
-
-from sklearn.model_selection import (RandomizedSearchCV)
-
-import matplotlib.pyplot as plt
-
 import seaborn as sns
+from sklearn.model_selection import RandomizedSearchCV
 
-import model_factory
 import classifiers
-import plots_helpers
 import features_factory as f_factory
+import matplotlib.pyplot as plt
+import model_factory
+import plots_helpers
 import synthesized_data
 
 
