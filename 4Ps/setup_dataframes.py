@@ -27,8 +27,8 @@ import refactoring_logfiles as refactoring
 
 use_fewer_data = False  # Can be used for debugging (fewer data is used)
 
-working_directory_path = os.path.abspath(os.path.dirname(__file__))
-project_path = os.path.abspath(os.path.join(working_directory_path, "../../.."))
+working_directory_path = os.path.abspath(os.path.dirname(__file__))  # Working directory
+project_path = os.path.abspath(os.path.join(working_directory_path, "../"))  # Top level path
 
 abs_path_logfiles = project_path + "/Logs/text_logs_refactored"  # Logfiles to use
 names_logfiles = []  # Name of the logfiles
@@ -52,6 +52,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
     """
 
     print("Loading dataframes...")
+
 
     if not Path(abs_path_logfiles).exists():
         # The very first time, we need to refactor the original logfiles to speed up everything afterwards

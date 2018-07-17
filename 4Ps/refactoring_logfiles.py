@@ -181,7 +181,12 @@ def refactor_crashes():
         if (new_df['Points'] == 0).all():
             new_name += '_np'
         new_name += '_' + new_df['logID'][0]
-        print(new_name)
+
+        # print('Refactored ' + new_name)
+
+        import sys
+        sys.stdout.write("\r{0}>".format("=" * df_idx))
+        sys.stdout.flush()
 
         new_df.to_csv(sd.abs_path_logfiles + '/../text_logs_refactored/' + new_name + '.log', header=False,
                       index=False, sep=';')
