@@ -6,8 +6,11 @@ Type $ python main.py -h for how to use this module
 from __future__ import division, print_function  # s.t. division uses float result
 
 import matplotlib
-matplotlib.use('Agg')
+import sklearn
+from sklearn.model_selection import train_test_split
 
+matplotlib.use('Agg')
+import numpy as np
 import time
 import argparse
 import setup_dataframes
@@ -21,7 +24,6 @@ import LSTM
 import classifiers
 import plots_features as fp
 import plots_logfiles as lp
-
 
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
@@ -69,7 +71,16 @@ def main(args):
     # model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)
     # window_optimization.test_all_windows()
     # model_factory.test_clf_with_timedelta_only()
+    '''
+    from tpot import TPOTClassifier
+    X_train, X_test, y_train, y_test = train_test_split(X, y,
+        train_size=0.75, test_size=0.25)
 
+    tpot = TPOTClassifier(scoring='roc_auc', generations=4, population_size=20, verbosity=2)
+    tpot.fit(X_train, y_train)
+    print(tpot.score(X_test, np.array(y_test)))
+    tpot.export('tpot_best_pipeline.py')
+    '''
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
 

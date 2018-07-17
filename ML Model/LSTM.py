@@ -107,51 +107,49 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.2
+    dropout = 0.35
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
 
     model.add(LSTM(128, return_sequences=True, activation='tanh'))
-    # model.add(Dropout(dropout))
+    model.add(Dropout(dropout))
 
     model.add(Dense(96, activation='relu'))
-    # model.add(Dropout(dropout))
+    model.add(Dropout(dropout))
 
     model.add(Dense(64, activation='relu'))
-    # model.add(Dropout(dropout))
-    # model.add(Dense(16, activation='relu'))
+    model.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    adam = optimizers.adam(lr=0.003, decay=0.000006, amsgrad=True)
+    adam = optimizers.adam(lr=0.0025, decay=0.000006, amsgrad=True)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
 
-def train_lstm(trained_model, X_reshaped, y_reshaped, X_val, y_val, n_epochs):
-    print('\nShape X: ' + str(X_reshaped.shape))
-    print('Shape y: ' + str(array(y_reshaped).shape) + '\n')
-    one_hot_labels_train = keras.utils.to_categorical(y_reshaped, num_classes=2)
+def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs):
+    print('\nShape X: ' + str(X_train.shape))
+    print('Shape y: ' + str(array(y_train).shape) + '\n')
+    one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
     one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
     # sample_weights need a 2D array with shape `(samples, sequence_length)`,
     # to apply a different weight to every timestep of every sample.
-    to_2d = y_reshaped.reshape(y_reshaped.shape[0], y_reshaped.shape[1])
+    to_2d = y_train.reshape(y_train.shape[0], y_train.shape[1])
 
     _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
 
-    # early_stopping = EarlyStopping(monitor='val_loss', patience=20)
     early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.0004, verbose=1, mode='min')
-    early_stopping_callback = EarlyStopping(monitor='loss', patience=3, min_delta=0.04, verbose=1, mode='min')
+    early_stopping_callback = EarlyStopping(monitor='val_loss', patience=20, min_delta=0, verbose=1, mode='auto')
 
-    history_callback = Histories((X_reshaped, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
+    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
     filepath = "weights.best.hdf5"
     checkpoint_smallest_loss_training = ModelCheckpoint(filepath, monitor='loss', verbose=0, save_best_only=True, mode='min')
 
-    trained_model.fit(X_reshaped, one_hot_labels_train, epochs=n_epochs, batch_size=64,
+    trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
                       verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
                       sample_weight=_sample_weight,
                       callbacks=[history_callback]
@@ -339,7 +337,7 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
         return X_splitted, y_splitted, [], []
 
     import random
-    random.seed(15)  # TODO: AT the end, I can use random splits
+    random.seed(15)  # TODO: At the end, I can use random splits
     c = list(zip(X_splitted, y_splitted))
     random.shuffle(c)
 
@@ -353,7 +351,7 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
     y_val = y_splitted[size_test_set:size_test_set+size_val_set]
 
     scaler1 = MinMaxScaler(feature_range=(0, 1))
-    scaler2 = StandardScaler()
+    # scaler2 = StandardScaler()
     train_arr = np.vstack(X_train)
     test_arr = np.vstack(X_test)
     val_arr = np.vstack(X_val)
