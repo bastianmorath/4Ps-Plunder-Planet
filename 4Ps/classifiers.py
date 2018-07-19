@@ -18,31 +18,16 @@ from scipy.stats import uniform
 
 EPSILON = 0.0001
 
-# names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Gradient Boosting', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
 names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
 
-length_param_list = 1000
 # Note: Whenever there is 'auto' or None as an option, I add it 'length_param_list/3' times to the hyperparameter list,
 # such that the likelhoode of drawing this is very high (because the default parameters often give good performance)
+length_param_list = 1000
 
-random_search_multiplier = 10
-'''
-Doing RandomizedSearchCV with n_iter=100 for SVM...
-Time elapsed for hyperparameter tuning: 961.285950422287
-Doing RandomizedSearchCV with n_iter=100 for Linear SVM...
-Time elapsed for hyperparameter tuning: 17.088313817977905
-Doing RandomizedSearchCV with n_iter=1000 for Nearest Neighbor...
-Time elapsed for hyperparameter tuning: 5337.050488948822
-Doing RandomizedSearchCV with n_iter=300 for QDA...
-Time elapsed for hyperparameter tuning: 10.625414371490479
-Doing RandomizedSearchCV with n_iter=1000 for Decision Tree...
-Time elapsed for hyperparameter tuning: 114.10209083557129
-Doing RandomizedSearchCV with n_iter=1000 for Random Forest...
-Time elapsed for hyperparameter tuning: 453.9819383621216
-Doing RandomizedSearchCV with n_iter=1000 for Ada Boost...
-Time elapsed for hyperparameter tuning: 2124.2861289978027
-
-'''
+# RandomizedSearchCV parameter space is defined such that all classifiers should approximately take
+# the same amount of time. With 'random_search_multiplier', one can increase or decrease the space linearily.
+# multiplier = 1 -> ca. 50 seconds per classifier on i5 MacBook Pro 2017 and Euler cluster
+random_search_multiplier = 1
 
 
 def get_cclassifier_with_name(clf_name, X, y):
@@ -108,7 +93,7 @@ class CLinearSVM(CClassifier):
     param2 = ['l1', 'l2']  # penalty
     param2_name = 'penalty'
     tuned_params = {'C': param1, 'penalty': param2}
-    num_iter = 30 * random_search_multiplier
+    num_iter = 300 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -123,7 +108,7 @@ class CNearestNeighbors(CClassifier):
     param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
     param2_name = 'metric'
     tuned_params = {'n_neighbors': param1, 'metric': param2}
-    num_iter = 3 * random_search_multiplier
+    num_iter = 20 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -138,7 +123,7 @@ class CQuadraticDiscriminantAnalysis(CClassifier):
     param2 = uniform(EPSILON, 0.1)  # tol
     param2_name = 'tol'
     tuned_params = {'reg_param': param1, 'tol': param2}
-    num_iter = 300 * random_search_multiplier
+    num_iter = 1000 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -164,7 +149,7 @@ class CGradientBoostingClassifier(CClassifier):
     param8 = uniform(EPSILON, 1)  # subsample
     param8_name = 'subsample'
 
-    num_iter = 10* random_search_multiplier
+    num_iter = 10 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -197,7 +182,7 @@ class CDecisionTreeClassifier(CClassifier):
     param5 = sp_randint(1, 20)  # min_samples_leaf
     param5_name = 'min_samples_leaf'
 
-    num_iter = 100 * random_search_multiplier
+    num_iter = 500 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -226,7 +211,7 @@ class CRandomForest(CClassifier):
     param5 = ['gini', 'entropy']  # criterion
     param5_name = 'criterion'
 
-    num_iter = 20 * random_search_multiplier
+    num_iter = 100 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -255,7 +240,7 @@ class CAdaBoost(CClassifier):
                     'algorithm': param3,
                     }
 
-    num_iter = 5 * random_search_multiplier
+    num_iter = 25 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)

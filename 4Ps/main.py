@@ -6,7 +6,8 @@ Type 'python main.py -h' for how to use this module
 
 from __future__ import division  # s.t. division uses float result
 from __future__ import print_function
-
+import matplotlib
+matplotlib.use('Agg')
 import time
 
 import argparse_setup
@@ -15,7 +16,7 @@ import features_factory as f_factory
 import hyperparameter_optimization
 import leave_one_group_out_cv
 import LSTM
-import matplotlib
+
 import model_factory
 import plots_features as fp
 import plots_logfiles as lp
@@ -23,7 +24,6 @@ import setup_dataframes
 import synthesized_data
 import window_optimization
 
-matplotlib.use('Agg')
 
 
 # TODO: Put underscore in front of private functions

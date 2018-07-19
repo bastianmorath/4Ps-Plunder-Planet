@@ -24,23 +24,32 @@ import setup_dataframes as sd
 
 # High level functions
 
-def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=False,
+
+def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True,
                         create_barchart=True, create_curves=True, do_write_to_file=True):
-    """Given a list of classifiers, computes performance (roc_auc, recall, specificity, precision, confusion matrix),
-       writes it into a file and plots roc_auc scores of the classifiers in a barchart.
+    """Computes performance (roc_auc, recall, specificity, precision, confusion matrix) of either all
+    or only reduced classifiers, and optionally writes it into a file and plots roc_auc scores  in a barchart.
 
-
-    :param clf_list: list of classifiers the performance should be computed from
-    :param clf_names: names of the classifiers
     :param X: feature matrix
     :param y: labels
-    :param hyperparameters_are_tuned: Whether or not hyperparameter are tuned (RandomizedSearchCV) -> To simplify printing scores
+    :param tune_hyperparameters: Whether or not hyperparameter should be tuned (RandomizedSearchCV) -> To simplify printing scores
+    :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_curves: Create roc_curves and precision_recall curve
     :param do_write_to_file: Write summary of performance into a file (optional)
 
     :return list of roc_aucs, list of roc_auc_stds (one score for each classifier) and formatted string of scores
     """
+
+    if reduced_clfs:
+        clf_names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'Decision Tree', 'Naive Bayes']
+    else:
+        clf_names = classifiers.names
+
+    clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
+    if tune_hyperparameters:
+        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
+                    verbose=False)[0] for name in clf_names]
 
     scores_mean = []
     scores_std = []
@@ -50,7 +59,7 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
 
     windows = str(f_factory.hw) + '_' + str(f_factory.cw) + '_' + str(f_factory.gradient_w)
 
-    filename = 'clf_performances_with_hp_tuning_' + windows if hyperparameters_are_tuned \
+    filename = 'clf_performances_with_hp_tuning_' + windows if tune_hyperparameters \
         else 'clf_performances_without_hp_tuning_' + windows
 
     for idx, clf in enumerate(clf_list):
@@ -73,7 +82,7 @@ def analyse_performance(clf_list, clf_names, X, y, hyperparameters_are_tuned=Fal
         conf_mats.append(conf_mat)
 
     if create_barchart:
-        title = 'Scores by classifier with hyperparameter tuning' if hyperparameters_are_tuned \
+        title = 'Scores by classifier with hyperparameter tuning' if tune_hyperparameters \
                 else 'Scores by classifier without hyperparameter tuning'
         plot_barchart_scores(names, [s[0] for s in scores_mean], [s[0] for s in scores_std], title, filename + '.pdf')
 
@@ -139,16 +148,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-    '''
-    print(roc_aucs_)
-    recall = metrics.recall_score(y, y_pred, average='weighted')
-    roc_auc = metrics.roc_auc_score(y, y_pred, average='weighted')
-    precision = metrics.precision_score(y, y_pred, average='weighted')
-    
-    # print('Roc-auc: \tMacro  ' + str(round(roc_auc_mean, 3)) + ' vs. ' + str(round(roc_auc, 3)) + ' Micro')
-    # print('Recall: \tMacro: ' + str(round(recall_mean, 3)) + ' vs. ' + str(round(recall, 3)) + ' Micro')
-    # print('Precision: \tMacro: ' + str(round(precision_mean, 3)) + ' vs. ' + str(round(precision, 3)) + ' Micro')
-    '''
     # if clf_name == 'Decision Tree':
     #    plots_features.plot_graph_of_decision_classifier(model, X, y)
 
@@ -160,10 +159,9 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
                                       specificity, precision_mean, precision_std, conf_mat, tuned_params_dict)
 
-    if create_curves:
-        fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys \
+    if create_curves:  # TODO: Wrongggg, name is always with_hp_tuning...
+        fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
-
         plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
         plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
@@ -176,36 +174,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     return roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std, conf_mat, s
 
 # TODO: For each "write_to"file", say under what name it gets saved
-
-
-def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=False, do_write_to_file=True):
-    """
-
-    :param X: Feature matrix
-    :param y: labels
-    :param tune_hyperparameters: Whether to do hyperparameter optimization or not
-    :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
-    :param do_write_to_file: Write scores to file
-    :return list of roc_auc means , list of roc_auc_stds (one score for each classifier), string of scores
-    """
-
-    if reduced_clfs:
-        clf_names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'Decision Tree', 'Naive Bayes']
-    else:
-        clf_names = classifiers.names
-
-    clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
-
-    if tune_hyperparameters:
-        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
-                    verbose=False)[0] for name in clf_names]
-
-    # Compute performance; Write to file and plot barchart
-
-    auc_mean_scores, auc_std_scores, s = analyse_performance(clf_list, clf_names, X, y, tune_hyperparameters,
-                                                             do_write_to_file=do_write_to_file)
-
-    return auc_mean_scores, auc_std_scores, s
 
 
 # Helper functions
@@ -371,7 +339,9 @@ def test_clf_with_timedelta_only():
 
     clf = classifiers.get_cclassifier_with_name('Decision Tree', x_train, y_train).clf
     score_dict = cross_validate(clf, x_train, y_train, scoring='roc_auc', cv=10)
+
     print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
+
 
     ''' Timedeltas correctly computed
     timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_to_last_obst']

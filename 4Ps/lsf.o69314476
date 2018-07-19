@@ -1,0 +1,122 @@
+Sender: LSF System <lsfadmin@eu-ms-002-10>
+Subject: Job 69314476: <python main.py -t 'all'> in cluster <euler> Done
+
+Job <python main.py -t 'all'> was submitted from host <eu-login-10> by user <morathba> in cluster <euler> at Thu Jul 19 09:29:19 2018.
+Job was executed on host(s) <eu-ms-002-10>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Thu Jul 19 09:29:42 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Thu Jul 19 09:29:42 2018.
+Terminated at Thu Jul 19 09:33:43 2018.
+Results reported at Thu Jul 19 09:33:43 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -t 'all'
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   237.36 sec.
+    Max Memory :                                 515 MB
+    Average Memory :                             404.14 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               509.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   250 sec.
+    Turnaround time :                            264 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=5 for SVM...
+Time elapsed for hyperparameter tuning: 50.78884696960449
+Doing RandomizedSearchCV with n_iter=30 for Linear SVM...
+Time elapsed for hyperparameter tuning: 5.493895530700684
+Doing RandomizedSearchCV with n_iter=3 for Nearest Neighbor...
+Time elapsed for hyperparameter tuning: 13.758441925048828
+Doing RandomizedSearchCV with n_iter=300 for QDA...
+Time elapsed for hyperparameter tuning: 10.151671648025513
+Doing RandomizedSearchCV with n_iter=100 for Decision Tree...
+Time elapsed for hyperparameter tuning: 11.658979415893555
+Doing RandomizedSearchCV with n_iter=20 for Random Forest...
+Time elapsed for hyperparameter tuning: 9.850357055664062
+Doing RandomizedSearchCV with n_iter=5 for Ada Boost...
+Time elapsed for hyperparameter tuning: 10.644521951675415
+Feature matrix already cached!
+Feature matrix and labels created!
+Calculating performance of SVM...
+Calculating performance of Linear SVM...
+Calculating performance of Nearest Neighbor...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+Calculating performance of QDA...
+Calculating performance of Decision Tree...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+Calculating performance of Random Forest...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+Calculating performance of Ada Boost...
+Feature matrix already cached!
+Feature matrix and labels created!
+Calculating performance of Naive Bayes...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+Barchart plot saved in file Plots/Performance/clf_performances_with_hp_tuning_10_5_10.pdf
+
+Scores written to file /Evaluation/Performance//clf_performances_with_hp_tuning_10_5_10.txt
+Time elapsed: 235.02153134346008

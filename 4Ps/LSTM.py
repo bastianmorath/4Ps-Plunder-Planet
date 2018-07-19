@@ -7,6 +7,7 @@ import itertools
 from functools import partial
 
 import numpy as np
+from matplotlib.ticker import FormatStrFormatter
 from numpy import array
 from sklearn import metrics
 from sklearn.metrics import (confusion_matrix, f1_score, precision_score,
@@ -45,7 +46,7 @@ def get_trained_lstm_classifier(X, y, n_epochs):
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
     X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-        split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=1)
+        split_into_train_test_val_data(X_list, y_list, size_test_set=4, size_val_set=1)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
     X_val, y_val = get_reshaped_matrices(X_val, y_val)
@@ -253,6 +254,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, aucs_val, label='roc_auc validation')
     plt.axhline(y=0.5, color=plots_helpers.red_color, linestyle='--', label='random guess')
     plt.legend()
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot_' + str(n_epochs) + '.pdf')
 
     _, ax = plt.subplots()
@@ -266,6 +268,8 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, train_losses, label='training loss')
     plt.plot(index, val_losses, label='validation loss')
     plt.legend()
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
     plots_helpers.save_plot(plt, 'LSTM/', 'losses_' + str(n_epochs) + '.pdf')
 
     _, ax = plt.subplots()
@@ -278,8 +282,8 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
 
     plt.plot(index, f1s_train, label='f1 training')
     plt.plot(index, f1s_val, label='f1 validation')
-
     plt.legend()
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'f1s_' + str(n_epochs) + '.pdf')
 
     plt.subplots()
@@ -294,6 +298,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, precisions_val, label='precision validation', color='#0B6623')
 
     plt.legend()
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall_' + str(n_epochs) + '.pdf')
 
 
