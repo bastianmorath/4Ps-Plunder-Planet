@@ -21,47 +21,63 @@ import plots_helpers
 import setup_dataframes as sd
 from keras import optimizers, regularizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import (LSTM, RNN, Activation, BatchNormalization,
-                          Bidirectional, Dense, Dropout, K, Masking,
+from keras.layers import (LSTM,
+                          Dense, Dropout, K, Masking,
                           TimeDistributed)
 from keras.models import Sequential, load_model
 from keras.preprocessing import sequence
 
 _maxlen = 0
-
+_seed = 1  # Seed 1 or 6 give around 0.61 on both test and validation set
 # TODO: Save model in pickle file for later use
 # TODO: https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
 
 
-def get_trained_lstm_classifier(X, y, n_epochs):
+def get_finalscore(X, y, n_epochs, verbose=0):
+    roc_aucs_mean = []
+    f1s_mean = []
+    for i in range(0, 2):
+        roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose)
+        roc_aucs_mean.append(roc_mean)
+        f1s_mean.append(f1_mean)
+
+    print([round(r, 2) for r in roc_aucs_mean])
+
+    print('Max roc: ' + str(round(np.max(roc_aucs_mean), 3)))
+    print('Mean roc: ' + str(round(np.mean(roc_aucs_mean), 3)) +
+          ', (+-' + str(round(np.std(roc_aucs_mean), 3)) + ')')
+    print('Max f1: ' + str(round(np.max(f1s_mean), 3)))
+    print('Mean f1: ' + str(round(np.mean(f1s_mean), 3)) +
+          ', (+-' + str(round(np.std(f1s_mean), 3)) + ')')
+
+
+def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
     """
     Reshapes feature matrix X, applies LSTM and returns the performance of the neural network
 
     :param X: List of non-reshaped/original feature matrices (one per logfile)
     :param y: labels
 
-    :return: neural network
+    :return mean auroc, std auroc
     """
 
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
     X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-        split_into_train_test_val_data(X_list, y_list, size_test_set=4, size_val_set=1)
+        split_into_train_test_val_data(X_list, y_list, size_test_set=5, size_val_set=0)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
-    X_val, y_val = get_reshaped_matrices(X_val, y_val)
+    # X_val, y_val = get_reshaped_matrices(X_val, y_val)
 
     model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs)
-    print('Performance training set: ')
-    calculate_performance(X_lstm, y_lstm, trained_model)
-    print('Performance test set: ')
-    calculate_performance(X_test_list, y_test_list, trained_model)
-
+    trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs, verbose)
+    # print('Performance training set: ')
     # calculate_performance(X_lstm, y_lstm, trained_model)
-
-    return model
+    # print('Performance test set: ')
+    mean_auroc, std_auroc = calculate_performance(X_test_list, y_test_list
+        , trained_model)
+    return mean_auroc, std_auroc
 
 
 """
@@ -84,9 +100,9 @@ def get_reshaped_matrices(new_X, new_y):
     :return: Reshaped feature matrix (3D) as arrays
     """
 
-    _minlen = min(len(fm) for fm in new_X)
+    # _minlen = min(len(fm) for fm in new_X)
 
-    print('Maxlen (=Max. #obstacles of logfiles) is ' + str(_maxlen) + ', minlen is ' + str(_minlen))
+    # print('Maxlen (=Max. #obstacles of logfiles) is ' + str(_maxlen) + ', minlen is ' + str(_minlen))
     # I pad with 0s (Even though there are features that also are 0, it never occurs that ALL features of one timestep
     # are all 0, so those won't be masked later :)
     new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64')
@@ -107,33 +123,37 @@ def generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
-    dropout = 0.35
+
+    dropout = 0.2
     print('Compiling lstm network...')
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
 
-    model.add(LSTM(128, return_sequences=True, activation='tanh'))
+    model.add(LSTM(96, return_sequences=True, activation='tanh', kernel_regularizer=regularizers.l2(0.003)))
     model.add(Dropout(dropout))
 
-    model.add(Dense(96, activation='relu'))
+    model.add(Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.003)))
+    # model.add(Dense(64, activation='relu'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(64, activation='relu'))
+    model.add(Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.003)))
+    # model.add(Dense(32, activation='relu'))
     model.add(Dropout(dropout))
+
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    adam = optimizers.adam(lr=0.0025, decay=0.000006, amsgrad=True)
+    adam = optimizers.adam(lr=0.0003, decay=0.000004, amsgrad=True)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
 
     return model
 
 
-def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs):
-    print('\nShape X: ' + str(X_train.shape))
-    print('Shape y: ' + str(array(y_train).shape) + '\n')
+def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=1):
+    # print('\nShape X: ' + str(X_train.shape))
+    # print('Shape y: ' + str(array(y_train).shape) + '\n')
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
     one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
     # sample_weights need a 2D array with shape `(samples, sequence_length)`,
@@ -143,22 +163,24 @@ def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs):
     _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
 
     early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.0004, verbose=1, mode='min')
-    early_stopping_callback = EarlyStopping(monitor='val_loss', patience=20, min_delta=0, verbose=1, mode='auto')
+
+    filepath = "weights.best.hdf5"
+    # checkpoint_smallest_loss_training = ModelCheckpoint(filepath, monitor='loss', verbose=0, save_best_only=True, mode='min')
 
     history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
     filepath = "weights.best.hdf5"
-    checkpoint_smallest_loss_training = ModelCheckpoint(filepath, monitor='loss', verbose=0, save_best_only=True, mode='min')
 
     trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                      verbose=1, shuffle=True, validation_data=(X_val, one_hot_labels_val),
+                      verbose=verbose, shuffle=True,
                       sample_weight=_sample_weight,
-                      callbacks=[history_callback]
+                     
                       )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
     print(trained_model.summary())
 
     # Plot
+    '''
     plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
                              history_callback.train_losses, history_callback.val_losses,
                              history_callback.f1s_train, history_callback.f1s_val,
@@ -166,6 +188,7 @@ def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs):
                              history_callback.precisions_train, history_callback.precisions_val,
                              n_epochs
                              )
+    '''
 
     return trained_model
 
@@ -182,10 +205,13 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
     :param X_test_list:
     :param y_test_list:
     :param lstm_model:
+
+    :return mean auroc, mean f1
     """
     y_pred_list = []
     _roc_auc_scores = []
     _precision_scores = []
+    _f1_scores = []
     _specificity_scores = []
     _recall_scores = []
     for idx, X in enumerate(X_test_list):
@@ -203,6 +229,7 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
         _roc_auc_scores.append(metrics.roc_auc_score(y_true, y_pred))
         _recall_scores.append(metrics.recall_score(y_true, y_pred))
         _precision_scores.append(metrics.precision_score(y_true, y_pred))
+        _f1_scores.append(metrics.f1_score(y_true, y_pred))
         conf_mat = confusion_matrix(y_true, y_pred)
         _specificity_scores.append(conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1]))
 
@@ -210,11 +237,12 @@ def calculate_performance(X_test_list, y_test_list, lstm_model):
     y_true = list(itertools.chain.from_iterable(y_test_list))
 
     conf_mat = confusion_matrix(y_true, y_pred)
-    print(_roc_auc_scores)
+
     print(model_factory.create_string_from_scores('LSTM', np.mean(_roc_auc_scores), np.std(_roc_auc_scores),
           np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.mean(_precision_scores),
           np.std(_precision_scores), conf_mat))
 
+    return np.mean(_roc_auc_scores), np.mean(_f1_scores)
 
 """
 Helper methods
@@ -242,6 +270,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     :param n_epochs:
     """
 
+    # AUCS
     _, ax = plt.subplots()
     if n_epochs is not None:
         ax.set_xlim(0, n_epochs)
@@ -255,8 +284,10 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.axhline(y=0.5, color=plots_helpers.red_color, linestyle='--', label='random guess')
     plt.legend()
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'roc_auc_plot_' + str(n_epochs) + '.pdf')
 
+    # LOSSES
     _, ax = plt.subplots()
     if n_epochs is not None:
         ax.set_xlim(0, n_epochs)
@@ -269,9 +300,11 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, val_losses, label='validation loss')
     plt.legend()
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
 
     plots_helpers.save_plot(plt, 'LSTM/', 'losses_' + str(n_epochs) + '.pdf')
-
+    '''
+    # F1
     _, ax = plt.subplots()
     if n_epochs is not None:
         ax.set_xlim(0, n_epochs)
@@ -284,8 +317,10 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     plt.plot(index, f1s_val, label='f1 validation')
     plt.legend()
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'f1s_' + str(n_epochs) + '.pdf')
 
+    # RECALL/PRECISION
     plt.subplots()
     plt.ylabel('precision/recall')
     plt.xlabel('Epochs')
@@ -299,7 +334,9 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
 
     plt.legend()
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall_' + str(n_epochs) + '.pdf')
+    '''
 
 
 def get_splitted_up_feature_matrix_and_labels(X, y):
@@ -337,11 +374,10 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
     :param size_val_set:
     :return: X_train, X_test, y_train, y_test, each as a list
     """
-    if size_test_set == 0:
-        return X_splitted, y_splitted, [], []
+
 
     import random
-    random.seed(15)  # TODO: At the end, I can use random splits
+    # random.seed(_seed)  # TODO: At the end, I can use random splits
     c = list(zip(X_splitted, y_splitted))
     random.shuffle(c)
 
@@ -349,24 +385,11 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
 
     X_train = X_splitted[size_test_set+size_val_set:]  # from leave_out up to end
     X_test = X_splitted[:size_test_set]  # 0 up to and including leave_out-1
+
     X_val = X_splitted[size_test_set:size_test_set+size_val_set]  # index leave_out itself
     y_train = y_splitted[size_test_set+size_val_set:]
     y_test = y_splitted[:size_test_set]
     y_val = y_splitted[size_test_set:size_test_set+size_val_set]
-
-    scaler1 = MinMaxScaler(feature_range=(0, 1))
-    # scaler2 = StandardScaler()
-    train_arr = np.vstack(X_train)
-    test_arr = np.vstack(X_test)
-    val_arr = np.vstack(X_val)
-    conc = np.vstack([train_arr, test_arr, val_arr])
-
-    # MinMaxScaler: Fit on entire dataset
-    scaler1.fit(conc)
-    X_train = [scaler1.transform(X) for X in X_train]
-    X_test = [scaler1.transform(X) for X in X_test]
-    X_val = [scaler1.transform(X) for X in X_val]
-    # StandardScaler: Fit only on Training-data
 
     return X_train, y_train, X_test, y_test, X_val, y_val
 
@@ -412,9 +435,9 @@ class Histories(keras.callbacks.Callback):
         y_true_train_conc = np.argmax(y_true_train, axis=1)
 
         roc_auc_train = roc_auc_score(y_true_train_conc, y_pred_train_conc)
-        f1_train = f1_score(y_true_train_conc, y_pred_train_conc)
-        recall_train = recall_score(y_true_train_conc, y_pred_train_conc)
-        precision_train = precision_score(y_true_train_conc, y_pred_train_conc)
+        # f1_train = f1_score(y_true_train_conc, y_pred_train_conc)
+        # recall_train = recall_score(y_true_train_conc, y_pred_train_conc)
+        # precision_train = precision_score(y_true_train_conc, y_pred_train_conc)
         # print('Roc_auc on training set: ' + str(round(roc_auc_train, 3)))
 
         val_x = self.validation_data[0]
@@ -422,19 +445,19 @@ class Histories(keras.callbacks.Callback):
         y_pred_conc = list(itertools.chain.from_iterable(self.model.predict_classes(val_x)))
         y_true_conc = np.argmax(val_y_conc, axis=1)
         roc_auc_val = roc_auc_score(y_true_conc, y_pred_conc)
-        f1_val = f1_score(y_true_conc, y_pred_conc)
-        recall_val = recall_score(y_true_conc, y_pred_conc)
-        precision_val = precision_score(y_true_conc, y_pred_conc)
+        # f1_val = f1_score(y_true_conc, y_pred_conc)
+        # recall_val = recall_score(y_true_conc, y_pred_conc)
+        # precision_val = precision_score(y_true_conc, y_pred_conc)
         # print('Roc_auc on validation set: ' + str(round(roc_auc_test, 3)))
 
         self.aucs_train.append(round(roc_auc_train, 3))
         self.aucs_val.append(round(roc_auc_val, 3))
-        self.f1s_train.append(round(f1_train, 3))
-        self.f1s_val.append(round(f1_val, 3))
-        self.recalls_train.append(round(recall_train, 3))
-        self.recalls_val.append(round(recall_val, 3))
-        self.precisions_train.append(round(precision_train, 3))
-        self.precisions_val.append(round(precision_val, 3))
+        # self.f1s_train.append(round(f1_train, 3))
+        # self.f1s_val.append(round(f1_val, 3))
+        # self.recalls_train.append(round(recall_train, 3))
+        # self.recalls_val.append(round(recall_val, 3))
+        # self.precisions_train.append(round(precision_train, 3))
+        # self.precisions_val.append(round(precision_val, 3))
 
         if self.drawing_enabled and self.count % self.interval == 0:  # Redraw plot every 10 iterations
             plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,

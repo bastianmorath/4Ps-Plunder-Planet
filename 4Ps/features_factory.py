@@ -188,13 +188,10 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     # Create feature matrix from df
     X = matrix.values
-
-    # Preprocess data. For lstm, we have to compute mean/var of training data, then subtract from test
-    if argparse is None or (not argparse.get_trained_lstm):
-        scaler1 = MinMaxScaler(feature_range=(0, 1))
-        scaler2 = StandardScaler()
-        X = scaler2.fit_transform(X)
-        X = scaler1.fit_transform(X)  # Rescale between 0 and 1
+    scaler1 = MinMaxScaler(feature_range=(0, 1))
+    # scaler2 = StandardScaler()   # StandardScaler for LSTM makes convergence very slow
+    # X = scaler2.fit_transform(X)
+    X = scaler1.fit_transform(X)  # Rescale between 0 and 1
 
     plots_features.plot_correlation_matrix(matrix)
 

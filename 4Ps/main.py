@@ -25,11 +25,9 @@ import synthesized_data
 import window_optimization
 
 
-
 # TODO: Put underscore in front of private functions
 # TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
 # TODO: Add :type in docstrings where necessary
-
 
 def main(args):
     start = time.time()
@@ -134,7 +132,8 @@ def main(args):
 
     if args.get_trained_lstm:
         print("\n################# Get trained LSTM #################\n")
-        LSTM.get_trained_lstm_classifier(X, y, n_epochs=args.get_trained_lstm[0])
+        # LSTM.get_trained_lstm_classifier(X, y, n_epochs=args.get_trained_lstm[0])
+        LSTM.get_finalscore(X, y, n_epochs=args.get_trained_lstm[0])
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")

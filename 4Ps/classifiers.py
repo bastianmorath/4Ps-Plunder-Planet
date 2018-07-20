@@ -74,7 +74,7 @@ class CClassifier(object):
 
 class CSVM(CClassifier):
     name = 'SVM'
-    param1 = sp_randint(1, 100)  # C
+    param1 = sp_randint(1, 1000)  # C
     param1_name = 'C'
     param2 = get_list_with_distr_and_opt_param(uniform(EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
@@ -120,7 +120,7 @@ class CQuadraticDiscriminantAnalysis(CClassifier):
 
     param1 = uniform(0, 1)  # reg_param
     param1_name = 'reg_param'
-    param2 = uniform(EPSILON, 0.1)  # tol
+    param2 = uniform(EPSILON, 0.4)  # tol
     param2_name = 'tol'
     tuned_params = {'reg_param': param1, 'tol': param2}
     num_iter = 1000 * random_search_multiplier
@@ -141,9 +141,9 @@ class CGradientBoostingClassifier(CClassifier):
     param3_name = 'n_estimators'
     param4 = sp_randint(1, 100)  # max_depth
     param4_name = 'max_depth'
-    param5 = sp_randint(2, 20)  # min_samples_split
+    param5 = sp_randint(2, 30)  # min_samples_split
     param5_name = 'min_samples_split'
-    param6 = sp_randint(1, 5)  # min_samples_leaf
+    param6 = sp_randint(1, 10)  # min_samples_leaf
     param6_name = 'min_samples_leaf'
 
     param8 = uniform(EPSILON, 1)  # subsample
@@ -177,9 +177,9 @@ class CDecisionTreeClassifier(CClassifier):
     param2_name = 'splitter'
     param3 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)   # max_depth
     param3_name = 'max_depth'
-    param4 = sp_randint(2, 20)  # min_samples_split
+    param4 = sp_randint(2, 30)  # min_samples_split
     param4_name = 'min_samples_split'
-    param5 = sp_randint(1, 20)  # min_samples_leaf
+    param5 = sp_randint(1, 30)  # min_samples_leaf
     param5_name = 'min_samples_leaf'
 
     num_iter = 500 * random_search_multiplier
@@ -204,9 +204,9 @@ class CRandomForest(CClassifier):
     param1 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)  # max_depth
     param1_name = 'max_depth'
 
-    param3 = sp_randint(2, 20)  # min_samples_split
+    param3 = sp_randint(2, 40)  # min_samples_split
     param3_name = 'min_samples_split'
-    param4 = sp_randint(1, 11)  # min_samples_leaf
+    param4 = sp_randint(1, 20)  # min_samples_leaf
     param4_name = 'min_samples_leaf'
     param5 = ['gini', 'entropy']  # criterion
     param5_name = 'criterion'
@@ -229,7 +229,7 @@ class CAdaBoost(CClassifier):
 
     name = 'Ada Boost'
 
-    param1 = sp_randint(1, 200)  # n_estimators
+    param1 = sp_randint(1, 500)  # n_estimators
     param1_name = 'n_estimators'
     param2 = uniform(EPSILON, 1)  # learning_rate
     param2_name = 'learning_rate'
@@ -240,7 +240,7 @@ class CAdaBoost(CClassifier):
                     'algorithm': param3,
                     }
 
-    num_iter = 25 * random_search_multiplier
+    num_iter = 20 * random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
