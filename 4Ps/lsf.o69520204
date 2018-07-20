@@ -1,47 +1,50 @@
-Sender: LSF System <lsfadmin@eu-ms-015-31>
-Subject: Job 69486174: <python /cluster/home/morathba/4Ps-Plunder-Planet/4Ps/main.py -m 210> in cluster <euler> Done
+Sender: LSF System <lsfadmin@eu-ms-003-31>
+Subject: Job 69520204: <python /cluster/home/morathba/4Ps-Plunder-Planet/4Ps/main.py -m 150> in cluster <euler> Done
 
-Job <python /cluster/home/morathba/4Ps-Plunder-Planet/4Ps/main.py -m 210> was submitted from host <eu-ms-009-11> by user <morathba> in cluster <euler> at Fri Jul 20 14:24:12 2018.
-Job was executed on host(s) <eu-ms-015-31>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Fri Jul 20 14:24:34 2018.
+Job <python /cluster/home/morathba/4Ps-Plunder-Planet/4Ps/main.py -m 150> was submitted from host <eu-ms-021-16> by user <morathba> in cluster <euler> at Fri Jul 20 21:10:41 2018.
+Job was executed on host(s) <eu-ms-003-31>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Fri Jul 20 21:11:09 2018.
 </cluster/home/morathba> was used as the home directory.
 </cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
-Started at Fri Jul 20 14:24:34 2018.
-Terminated at Fri Jul 20 14:43:51 2018.
-Results reported at Fri Jul 20 14:43:51 2018.
+Started at Fri Jul 20 21:11:09 2018.
+Terminated at Fri Jul 20 21:29:03 2018.
+Results reported at Fri Jul 20 21:29:03 2018.
 
 Your job looked like:
 
 ------------------------------------------------------------
 # LSBATCH: User input
-python /cluster/home/morathba/4Ps-Plunder-Planet/4Ps/main.py -m 210
+python /cluster/home/morathba/4Ps-Plunder-Planet/4Ps/main.py -m 150
 ------------------------------------------------------------
 
 Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   2177.34 sec.
-    Max Memory :                                 994 MB
-    Average Memory :                             652.46 MB
+    CPU time :                                   1985.05 sec.
+    Max Memory :                                 1275 MB
+    Average Memory :                             834.50 MB
     Total Requested Memory :                     1024.00 MB
-    Delta Memory :                               30.00 MB
+    Delta Memory :                               -251.00 MB
     Max Swap :                                   -
     Max Processes :                              3
     Max Threads :                                8
-    Run time :                                   1157 sec.
-    Turnaround time :                            1179 sec.
+    Run time :                                   1074 sec.
+    Turnaround time :                            1102 sec.
 
 The output (if any) follows:
 
 Using TensorFlow backend.
 WARNING:tensorflow:Variable *= will be deprecated. Use variable.assign_mul if you want assignment to the variable value or 'x = x * y' if you want a new python Tensor object.
-2018-07-20 14:24:44.885391: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2018-07-20 21:11:20.447943: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
 Loading dataframes...
 Feature matrix already cached!
 Feature matrix and labels created!
 
 ################# Get trained LSTM #################
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -56,14 +59,14 @@ dense_1 (Dense)              (None, 334, 96)           9312
 _________________________________________________________________
 dropout_2 (Dropout)          (None, 334, 96)           0         
 _________________________________________________________________
-dense_2 (Dense)              (None, 334, 64)           6208      
+dense_2 (Dense)              (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_3 (Dropout)          (None, 334, 64)           0         
+dropout_3 (Dropout)          (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_1 (TimeDist (None, 334, 2)            130       
+time_distributed_1 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -71,13 +74,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.576 (+-0.04), recall: 0.651 (+-0.10), specificity: 0.500, precision: 0.276 (+-0.10) 
+	roc_auc: 0.604 (+-0.04), recall: 0.421 (+-0.13), specificity: 0.788, precision: 0.271 (+-0.05) 
 
-	Confusion matrix: 	 [584 588] 
-				 [114 214]
+	Confusion matrix: 	 [1041  274] 
+				 [132 108]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -92,14 +98,14 @@ dense_4 (Dense)              (None, 334, 96)           9312
 _________________________________________________________________
 dropout_5 (Dropout)          (None, 334, 96)           0         
 _________________________________________________________________
-dense_5 (Dense)              (None, 334, 64)           6208      
+dense_5 (Dense)              (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_6 (Dropout)          (None, 334, 64)           0         
+dropout_6 (Dropout)          (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_2 (TimeDist (None, 334, 2)            130       
+time_distributed_2 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -107,13 +113,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.614 (+-0.07), recall: 0.746 (+-0.17), specificity: 0.482, precision: 0.279 (+-0.06) 
+	roc_auc: 0.593 (+-0.05), recall: 0.384 (+-0.14), specificity: 0.801, precision: 0.289 (+-0.06) 
 
-	Confusion matrix: 	 [620 623] 
-				 [ 64 224]
+	Confusion matrix: 	 [1018  252] 
+				 [161 109]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -128,14 +137,14 @@ dense_7 (Dense)              (None, 334, 96)           9312
 _________________________________________________________________
 dropout_8 (Dropout)          (None, 334, 96)           0         
 _________________________________________________________________
-dense_8 (Dense)              (None, 334, 64)           6208      
+dense_8 (Dense)              (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_9 (Dropout)          (None, 334, 64)           0         
+dropout_9 (Dropout)          (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_3 (TimeDist (None, 334, 2)            130       
+time_distributed_3 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -143,13 +152,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.601 (+-0.04), recall: 0.604 (+-0.13), specificity: 0.598, precision: 0.239 (+-0.06) 
+	roc_auc: 0.599 (+-0.08), recall: 0.420 (+-0.18), specificity: 0.779, precision: 0.315 (+-0.13) 
 
-	Confusion matrix: 	 [784 508] 
-				 [ 94 171]
+	Confusion matrix: 	 [906 268] 
+				 [178 123]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -164,14 +176,14 @@ dense_10 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_11 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_11 (Dense)             (None, 334, 64)           6208      
+dense_11 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_12 (Dropout)         (None, 334, 64)           0         
+dropout_12 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_4 (TimeDist (None, 334, 2)            130       
+time_distributed_4 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -179,13 +191,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.553 (+-0.05), recall: 0.587 (+-0.25), specificity: 0.520, precision: 0.196 (+-0.05) 
+	roc_auc: 0.589 (+-0.07), recall: 0.526 (+-0.19), specificity: 0.652, precision: 0.270 (+-0.09) 
 
-	Confusion matrix: 	 [676 587] 
-				 [ 85 159]
+	Confusion matrix: 	 [842 426] 
+				 [125 145]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -200,14 +215,14 @@ dense_13 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_14 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_14 (Dense)             (None, 334, 64)           6208      
+dense_14 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_15 (Dropout)         (None, 334, 64)           0         
+dropout_15 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_5 (TimeDist (None, 334, 2)            130       
+time_distributed_5 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -215,13 +230,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.579 (+-0.04), recall: 0.702 (+-0.18), specificity: 0.455, precision: 0.267 (+-0.12) 
+	roc_auc: 0.596 (+-0.06), recall: 0.365 (+-0.19), specificity: 0.828, precision: 0.270 (+-0.08) 
 
-	Confusion matrix: 	 [523 705] 
-				 [105 210]
+	Confusion matrix: 	 [1081  219] 
+				 [133  98]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -236,14 +254,14 @@ dense_16 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_17 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_17 (Dense)             (None, 334, 64)           6208      
+dense_17 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_18 (Dropout)         (None, 334, 64)           0         
+dropout_18 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_6 (TimeDist (None, 334, 2)            130       
+time_distributed_6 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -251,13 +269,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.607 (+-0.08), recall: 0.714 (+-0.15), specificity: 0.499, precision: 0.244 (+-0.07) 
+	roc_auc: 0.601 (+-0.01), recall: 0.423 (+-0.11), specificity: 0.779, precision: 0.281 (+-0.07) 
 
-	Confusion matrix: 	 [670 645] 
-				 [ 66 202]
+	Confusion matrix: 	 [1017  288] 
+				 [136 112]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -272,14 +293,14 @@ dense_19 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_20 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_20 (Dense)             (None, 334, 64)           6208      
+dense_20 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_21 (Dropout)         (None, 334, 64)           0         
+dropout_21 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_7 (TimeDist (None, 334, 2)            130       
+time_distributed_7 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -287,13 +308,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.566 (+-0.05), recall: 0.674 (+-0.17), specificity: 0.457, precision: 0.301 (+-0.11) 
+	roc_auc: 0.638 (+-0.06), recall: 0.436 (+-0.13), specificity: 0.840, precision: 0.301 (+-0.08) 
 
-	Confusion matrix: 	 [494 645] 
-				 [122 246]
+	Confusion matrix: 	 [1142  215] 
+				 [119  96]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -308,14 +332,14 @@ dense_22 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_23 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_23 (Dense)             (None, 334, 64)           6208      
+dense_23 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_24 (Dropout)         (None, 334, 64)           0         
+dropout_24 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_8 (TimeDist (None, 334, 2)            130       
+time_distributed_8 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -323,13 +347,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.606 (+-0.04), recall: 0.675 (+-0.07), specificity: 0.537, precision: 0.267 (+-0.05) 
+	roc_auc: 0.604 (+-0.06), recall: 0.394 (+-0.10), specificity: 0.814, precision: 0.301 (+-0.09) 
 
-	Confusion matrix: 	 [689 591] 
-				 [ 98 207]
+	Confusion matrix: 	 [1048  235] 
+				 [151  99]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -344,14 +371,14 @@ dense_25 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_26 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_26 (Dense)             (None, 334, 64)           6208      
+dense_26 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_27 (Dropout)         (None, 334, 64)           0         
+dropout_27 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_9 (TimeDist (None, 334, 2)            130       
+time_distributed_9 (TimeDist (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -359,13 +386,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.631 (+-0.04), recall: 0.737 (+-0.08), specificity: 0.525, precision: 0.251 (+-0.04) 
+	roc_auc: 0.621 (+-0.07), recall: 0.556 (+-0.21), specificity: 0.686, precision: 0.288 (+-0.07) 
 
-	Confusion matrix: 	 [708 637] 
-				 [ 73 211]
+	Confusion matrix: 	 [916 385] 
+				 [101 155]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -380,14 +410,14 @@ dense_28 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_29 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_29 (Dense)             (None, 334, 64)           6208      
+dense_29 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_30 (Dropout)         (None, 334, 64)           0         
+dropout_30 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_10 (TimeDis (None, 334, 2)            130       
+time_distributed_10 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -395,13 +425,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.598 (+-0.05), recall: 0.551 (+-0.17), specificity: 0.646, precision: 0.294 (+-0.13) 
+	roc_auc: 0.573 (+-0.05), recall: 0.378 (+-0.11), specificity: 0.769, precision: 0.237 (+-0.06) 
 
-	Confusion matrix: 	 [746 416] 
-				 [127 170]
+	Confusion matrix: 	 [1007  298] 
+				 [148  98]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -416,14 +449,14 @@ dense_31 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_32 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_32 (Dense)             (None, 334, 64)           6208      
+dense_32 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_33 (Dropout)         (None, 334, 64)           0         
+dropout_33 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_11 (TimeDis (None, 334, 2)            130       
+time_distributed_11 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -431,13 +464,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.594 (+-0.07), recall: 0.628 (+-0.14), specificity: 0.560, precision: 0.246 (+-0.07) 
+	roc_auc: 0.584 (+-0.06), recall: 0.451 (+-0.23), specificity: 0.717, precision: 0.285 (+-0.11) 
 
-	Confusion matrix: 	 [719 536] 
-				 [ 93 177]
+	Confusion matrix: 	 [843 370] 
+				 [173 128]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -452,14 +488,14 @@ dense_34 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_35 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_35 (Dense)             (None, 334, 64)           6208      
+dense_35 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_36 (Dropout)         (None, 334, 64)           0         
+dropout_36 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_12 (TimeDis (None, 334, 2)            130       
+time_distributed_12 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -467,13 +503,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.567 (+-0.02), recall: 0.624 (+-0.22), specificity: 0.510, precision: 0.193 (+-0.04) 
+	roc_auc: 0.564 (+-0.02), recall: 0.330 (+-0.06), specificity: 0.797, precision: 0.194 (+-0.03) 
 
-	Confusion matrix: 	 [683 640] 
-				 [ 73 168]
+	Confusion matrix: 	 [1068  270] 
+				 [128  66]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -488,14 +527,14 @@ dense_37 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_38 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_38 (Dense)             (None, 334, 64)           6208      
+dense_38 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_39 (Dropout)         (None, 334, 64)           0         
+dropout_39 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_13 (TimeDis (None, 334, 2)            130       
+time_distributed_13 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -503,13 +542,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.589 (+-0.04), recall: 0.709 (+-0.22), specificity: 0.469, precision: 0.222 (+-0.05) 
+	roc_auc: 0.599 (+-0.02), recall: 0.444 (+-0.09), specificity: 0.754, precision: 0.309 (+-0.05) 
 
-	Confusion matrix: 	 [638 698] 
-				 [ 61 211]
+	Confusion matrix: 	 [937 301] 
+				 [163 140]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -524,14 +566,14 @@ dense_40 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_41 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_41 (Dense)             (None, 334, 64)           6208      
+dense_41 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_42 (Dropout)         (None, 334, 64)           0         
+dropout_42 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_14 (TimeDis (None, 334, 2)            130       
+time_distributed_14 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -539,13 +581,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.579 (+-0.05), recall: 0.829 (+-0.08), specificity: 0.328, precision: 0.249 (+-0.05) 
+	roc_auc: 0.584 (+-0.08), recall: 0.328 (+-0.16), specificity: 0.840, precision: 0.336 (+-0.13) 
 
-	Confusion matrix: 	 [413 821] 
-				 [ 53 270]
+	Confusion matrix: 	 [962 193] 
+				 [203  82]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -560,14 +605,14 @@ dense_43 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_44 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_44 (Dense)             (None, 334, 64)           6208      
+dense_44 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_45 (Dropout)         (None, 334, 64)           0         
+dropout_45 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_15 (TimeDis (None, 334, 2)            130       
+time_distributed_15 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -575,13 +620,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.571 (+-0.06), recall: 0.739 (+-0.11), specificity: 0.403, precision: 0.229 (+-0.07) 
+	roc_auc: 0.568 (+-0.05), recall: 0.312 (+-0.11), specificity: 0.823, precision: 0.271 (+-0.13) 
 
-	Confusion matrix: 	 [529 739] 
-				 [ 69 206]
+	Confusion matrix: 	 [1003  213] 
+				 [177  79]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -596,14 +644,14 @@ dense_46 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_47 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_47 (Dense)             (None, 334, 64)           6208      
+dense_47 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_48 (Dropout)         (None, 334, 64)           0         
+dropout_48 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_16 (TimeDis (None, 334, 2)            130       
+time_distributed_16 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -611,13 +659,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.578 (+-0.03), recall: 0.440 (+-0.12), specificity: 0.716, precision: 0.280 (+-0.13) 
+	roc_auc: 0.593 (+-0.03), recall: 0.470 (+-0.08), specificity: 0.716, precision: 0.300 (+-0.07) 
 
-	Confusion matrix: 	 [810 343] 
-				 [167 113]
+	Confusion matrix: 	 [881 349] 
+				 [166 156]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -632,14 +683,14 @@ dense_49 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_50 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_50 (Dense)             (None, 334, 64)           6208      
+dense_50 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_51 (Dropout)         (None, 334, 64)           0         
+dropout_51 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_17 (TimeDis (None, 334, 2)            130       
+time_distributed_17 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -647,13 +698,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.578 (+-0.04), recall: 0.517 (+-0.24), specificity: 0.638, precision: 0.297 (+-0.16) 
+	roc_auc: 0.582 (+-0.03), recall: 0.498 (+-0.22), specificity: 0.665, precision: 0.232 (+-0.04) 
 
-	Confusion matrix: 	 [693 442] 
-				 [162 140]
+	Confusion matrix: 	 [889 418] 
+				 [105 127]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -668,14 +722,14 @@ dense_52 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_53 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_53 (Dense)             (None, 334, 64)           6208      
+dense_53 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_54 (Dropout)         (None, 334, 64)           0         
+dropout_54 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_18 (TimeDis (None, 334, 2)            130       
+time_distributed_18 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -683,13 +737,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.651 (+-0.02), recall: 0.648 (+-0.08), specificity: 0.654, precision: 0.294 (+-0.02) 
+	roc_auc: 0.609 (+-0.04), recall: 0.480 (+-0.10), specificity: 0.738, precision: 0.283 (+-0.05) 
 
-	Confusion matrix: 	 [858 449] 
-				 [ 98 188]
+	Confusion matrix: 	 [976 344] 
+				 [141 137]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -704,14 +761,14 @@ dense_55 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_56 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_56 (Dense)             (None, 334, 64)           6208      
+dense_56 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_57 (Dropout)         (None, 334, 64)           0         
+dropout_57 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_19 (TimeDis (None, 334, 2)            130       
+time_distributed_19 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -719,13 +776,16 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.565 (+-0.07), recall: 0.665 (+-0.20), specificity: 0.464, precision: 0.208 (+-0.06) 
+	roc_auc: 0.634 (+-0.07), recall: 0.569 (+-0.21), specificity: 0.699, precision: 0.320 (+-0.07) 
 
-	Confusion matrix: 	 [611 678] 
-				 [ 82 176]
+	Confusion matrix: 	 [926 381] 
+				 [113 171]
 
 
 
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
 Compiling lstm network...
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #   
@@ -740,14 +800,14 @@ dense_58 (Dense)             (None, 334, 96)           9312
 _________________________________________________________________
 dropout_59 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-dense_59 (Dense)             (None, 334, 64)           6208      
+dense_59 (Dense)             (None, 334, 96)           9312      
 _________________________________________________________________
-dropout_60 (Dropout)         (None, 334, 64)           0         
+dropout_60 (Dropout)         (None, 334, 96)           0         
 _________________________________________________________________
-time_distributed_20 (TimeDis (None, 334, 2)            130       
+time_distributed_20 (TimeDis (None, 334, 2)            194       
 =================================================================
-Total params: 56,738
-Trainable params: 56,738
+Total params: 59,906
+Trainable params: 59,906
 Non-trainable params: 0
 _________________________________________________________________
 None
@@ -755,15 +815,211 @@ None
 
 ******** Scores for LSTM (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.584 (+-0.04), recall: 0.592 (+-0.21), specificity: 0.576, precision: 0.225 (+-0.06) 
+	roc_auc: 0.550 (+-0.04), recall: 0.366 (+-0.14), specificity: 0.735, precision: 0.205 (+-0.05) 
 
-	Confusion matrix: 	 [739 533] 
-				 [ 91 172]
+	Confusion matrix: 	 [937 343] 
+				 [150  92]
 
 
 
-[0.58, 0.61, 0.6, 0.55, 0.58, 0.61, 0.57, 0.61, 0.63, 0.6, 0.59, 0.57, 0.59, 0.58, 0.57, 0.58, 0.58, 0.65, 0.56, 0.58]
-Max roc: 0.651
-Min roc: 1.0
-Mean roc: 0.589, (+-0.023)
-Time elapsed: 1150.6739263534546
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
+Compiling lstm network...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_21 (Masking)         (None, 334, 10)           0         
+_________________________________________________________________
+lstm_21 (LSTM)               (None, 334, 96)           41088     
+_________________________________________________________________
+dropout_61 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_61 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_62 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_62 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_63 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+time_distributed_21 (TimeDis (None, 334, 2)            194       
+=================================================================
+Total params: 59,906
+Trainable params: 59,906
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.612 (+-0.07), recall: 0.459 (+-0.17), specificity: 0.765, precision: 0.351 (+-0.09) 
+
+	Confusion matrix: 	 [902 293] 
+				 [182 132]
+
+
+
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
+Compiling lstm network...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_22 (Masking)         (None, 334, 10)           0         
+_________________________________________________________________
+lstm_22 (LSTM)               (None, 334, 96)           41088     
+_________________________________________________________________
+dropout_64 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_64 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_65 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_65 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_66 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+time_distributed_22 (TimeDis (None, 334, 2)            194       
+=================================================================
+Total params: 59,906
+Trainable params: 59,906
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.621 (+-0.07), recall: 0.519 (+-0.21), specificity: 0.723, precision: 0.281 (+-0.09) 
+
+	Confusion matrix: 	 [959 354] 
+				 [107 139]
+
+
+
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
+Compiling lstm network...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_23 (Masking)         (None, 334, 10)           0         
+_________________________________________________________________
+lstm_23 (LSTM)               (None, 334, 96)           41088     
+_________________________________________________________________
+dropout_67 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_67 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_68 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_68 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_69 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+time_distributed_23 (TimeDis (None, 334, 2)            194       
+=================================================================
+Total params: 59,906
+Trainable params: 59,906
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.602 (+-0.04), recall: 0.427 (+-0.10), specificity: 0.777, precision: 0.317 (+-0.05) 
+
+	Confusion matrix: 	 [980 277] 
+				 [169 133]
+
+
+
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
+Compiling lstm network...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_24 (Masking)         (None, 334, 10)           0         
+_________________________________________________________________
+lstm_24 (LSTM)               (None, 334, 96)           41088     
+_________________________________________________________________
+dropout_70 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_70 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_71 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_71 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_72 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+time_distributed_24 (TimeDis (None, 334, 2)            194       
+=================================================================
+Total params: 59,906
+Trainable params: 59,906
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.612 (+-0.06), recall: 0.529 (+-0.09), specificity: 0.696, precision: 0.347 (+-0.08) 
+
+	Confusion matrix: 	 [826 359] 
+				 [167 188]
+
+
+
+DROPOUT=0.2
+optimizer:::::: adam lr=0.0003, decay=0.000004, amsgrad=True 
+Weighted :::::: 1 to 6 
+Compiling lstm network...
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+masking_25 (Masking)         (None, 334, 10)           0         
+_________________________________________________________________
+lstm_25 (LSTM)               (None, 334, 96)           41088     
+_________________________________________________________________
+dropout_73 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_73 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_74 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+dense_74 (Dense)             (None, 334, 96)           9312      
+_________________________________________________________________
+dropout_75 (Dropout)         (None, 334, 96)           0         
+_________________________________________________________________
+time_distributed_25 (TimeDis (None, 334, 2)            194       
+=================================================================
+Total params: 59,906
+Trainable params: 59,906
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.583 (+-0.02), recall: 0.515 (+-0.15), specificity: 0.651, precision: 0.278 (+-0.04) 
+
+	Confusion matrix: 	 [831 424] 
+				 [150 160]
+
+
+
+[0.6, 0.59, 0.6, 0.59, 0.6, 0.6, 0.64, 0.6, 0.62, 0.57, 0.58, 0.56, 0.6, 0.58, 0.57, 0.59, 0.58, 0.61, 0.63, 0.55, 0.61, 0.62, 0.6, 0.61, 0.58]
+Max roc: 0.638
+Mean roc: 0.597, (+-0.021)
+Max f1: 0.415
+Mean f1: 0.333, (+-0.04)
+Time elapsed: 1067.238460302353

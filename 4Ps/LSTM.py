@@ -28,7 +28,7 @@ from keras.models import Sequential, load_model
 from keras.preprocessing import sequence
 
 _maxlen = 0
-_seed = 1  # Seed 1 or 6 give around 0.61 on both test and validation set
+# _seed = 1  # Seed 1 or 6 give around 0.61 on both test and validation set
 # TODO: Save model in pickle file for later use
 # TODO: https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
 
@@ -36,7 +36,7 @@ _seed = 1  # Seed 1 or 6 give around 0.61 on both test and validation set
 def get_finalscore(X, y, n_epochs, verbose=0):
     roc_aucs_mean = []
     f1s_mean = []
-    for i in range(0, 2):
+    for i in range(0, 25):
         roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose)
         roc_aucs_mean.append(roc_mean)
         f1s_mean.append(f1_mean)
@@ -64,19 +64,19 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
     X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
     X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-        split_into_train_test_val_data(X_list, y_list, size_test_set=5, size_val_set=0)
+        split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=2)
 
     X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
-    # X_val, y_val = get_reshaped_matrices(X_val, y_val)
+    X_val, y_val = get_reshaped_matrices(X_val, y_val)
 
     model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
     trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs, verbose)
-    # print('Performance training set: ')
-    # calculate_performance(X_lstm, y_lstm, trained_model)
-    # print('Performance test set: ')
+    print('Performance training set: ')
+    calculate_performance(X_lstm, y_lstm, trained_model)
+    print('Performance test set: ')
     mean_auroc, std_auroc = calculate_performance(X_test_list, y_test_list
-        , trained_model)
+                                                  , trained_model)
     return mean_auroc, std_auroc
 
 
@@ -129,17 +129,16 @@ def generate_lstm_classifier(shape):
     model = Sequential()
     model.add(Masking(input_shape=shape))  # Mask out padded rows
 
-    model.add(LSTM(96, return_sequences=True, activation='tanh', kernel_regularizer=regularizers.l2(0.003)))
+    model.add(LSTM(96, return_sequences=True, activation='tanh'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.003)))
+    model.add(Dense(96, activation='relu'))
     # model.add(Dense(64, activation='relu'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.003)))
+    model.add(Dense(96, activation='relu'))
     # model.add(Dense(32, activation='relu'))
     model.add(Dropout(dropout))
-
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
@@ -156,31 +155,28 @@ def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=
     # print('Shape y: ' + str(array(y_train).shape) + '\n')
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
     one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
+
     # sample_weights need a 2D array with shape `(samples, sequence_length)`,
     # to apply a different weight to every timestep of every sample.
     to_2d = y_train.reshape(y_train.shape[0], y_train.shape[1])
 
-    _sample_weight = np.array([[1 if v == 0 else 6 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
 
     early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.0004, verbose=1, mode='min')
 
-    filepath = "weights.best.hdf5"
-    # checkpoint_smallest_loss_training = ModelCheckpoint(filepath, monitor='loss', verbose=0, save_best_only=True, mode='min')
-
     history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
-    filepath = "weights.best.hdf5"
 
     trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                      verbose=verbose, shuffle=True,
+                      verbose=verbose, shuffle=True, validation_data=(X_val, one_hot_labels_val),
                       sample_weight=_sample_weight,
-                     
+                      callbacks=[history_callback]
                       )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
     print(trained_model.summary())
 
     # Plot
-    '''
+
     plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
                              history_callback.train_losses, history_callback.val_losses,
                              history_callback.f1s_train, history_callback.f1s_val,
@@ -188,7 +184,7 @@ def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=
                              history_callback.precisions_train, history_callback.precisions_val,
                              n_epochs
                              )
-    '''
+
 
     return trained_model
 
