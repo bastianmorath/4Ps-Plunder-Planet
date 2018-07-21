@@ -7,14 +7,14 @@ from __future__ import division  # s.t. division uses float result
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 
 import classifiers
-import features_factory as f_factory
-import matplotlib.pyplot as plt
 import model_factory
 import plots_helpers
+import features_factory as f_factory
 import setup_dataframes as sd
 
 
@@ -41,10 +41,9 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
     # Get scores for scenario 1 (normal crossvalidation)
     print('\n***** Scenario 1 (normal crossvalidation) *****\n')
-    auc_scores_scenario_1, auc_stds_scenario_1, s = model_factory.analyse_performance(clf_list, clf_names, X, y,
-                                                                                      create_barchart=False,
-                                                                                      create_curves=False,
-                                                                                      do_write_to_file=False)
+    auc_scores_scenario_1, auc_stds_scenario_1, s = model_factory. \
+        calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
+                                             reduced_clfs=False, create_curves=False, do_write_to_file=False)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
     print('\n***** Scenario 2  (Leave one user out in training phase) ***** \n')
@@ -56,17 +55,18 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
         # If NaiveBayes classifier is used, then use Boxcox since features must be gaussian distributed
         if name == 'Naive Bayes':
             feature_selection = 'selected' if reduced_features else 'all'
-            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=feature_selection,
+            X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False,
+                                                                use_cached_feature_matrix=feature_selection,
                                                                 save_as_pickle_file=True, use_boxcox=True)
             classifier.fit(X_nb, y_nb)
 
-            auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
-                                                        X_nb, y_nb, plot_auc_score_per_user)
+            auc_mean, auc_std = _apply_cv_per_user_model(classifier, name,
+                                                         X_nb, y_nb, plot_auc_score_per_user)
         else:
             classifier.fit(X, y)
 
-            auc_mean, auc_std = apply_cv_per_user_model(classifier, name,
-                                                        X, y, plot_auc_score_per_user)
+            auc_mean, auc_std = _apply_cv_per_user_model(classifier, name,
+                                                         X, y, plot_auc_score_per_user)
 
         auc_scores_scenario_2.append(auc_mean)
         auc_stds_scenario_2.append(auc_std)
@@ -75,7 +75,7 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
                                                     auc_scores_scenario_2, auc_stds_scenario_2)
 
 
-def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True):
+def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True):
     # TODO: Maybe sort along names (Now it's order of LeaveOneGroupOut)
     """Takes one entire user (i.e. two logfiles most of the time) out of training phase and does prediction
     on left out user. Result can be used as an indication which users are hard to predict
@@ -136,9 +136,9 @@ def apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True)
     names = list(dict.fromkeys(names))  # Filter duplicates while preserving order
     aucs = [a[0] for a in scores_and_ids]
 
-    auc_mean = np.mean(aucs)  # Calculating MACRO-average
-    auc_std = np.std(aucs)
-    print(auc_mean)
+    auc_mean: float = np.mean(aucs)  # Calculating MACRO-average
+    auc_std: float = np.std(aucs)
+
     if plot_auc_score_per_user:
         title = r'Auc scores per user with %s  ($\mu$=%.3f, $\sigma$=%.3f))' % (clf_name, auc_mean, auc_std)
         filename = 'LeaveOneGroupOut/performance_per_user_' + clf_name + '.pdf'
@@ -172,23 +172,23 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
     ax.set_axisbelow(True)
     [i.set_linewidth(line_width) for i in ax.spines.values()]
 
-    r1 = plt.bar(index, auc_scores_scenario_1, bar_width,
-                 color=plots_helpers.blue_color,
-                 label='roc_auc normal CV',
-                 yerr=auc_stds_scenario_1,
-                 error_kw={'elinewidth': line_width,
-                           'capsize': 1.4,
-                           'markeredgewidth': line_width},
-                 )
+    plt.bar(index, auc_scores_scenario_1, bar_width,
+            color=plots_helpers.blue_color,
+            label='roc_auc normal CV',
+            yerr=auc_stds_scenario_1,
+            error_kw={'elinewidth': line_width,
+                      'capsize': 1.4,
+                      'markeredgewidth': line_width},
+            )
 
-    r2 = plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
-                 color=plots_helpers.red_color,
-                 label='roc_auc LeaveOneGroupOut CV',
-                 yerr=auc_stds_scenario_2,
-                 error_kw={'elinewidth': line_width,
-                           'capsize': 1.4,
-                           'markeredgewidth': line_width},
-                 )
+    plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
+            color=plots_helpers.red_color,
+            label='roc_auc LeaveOneGroupOut CV',
+            yerr=auc_stds_scenario_2,
+            error_kw={'elinewidth': line_width,
+                      'capsize': 1.4,
+                      'markeredgewidth': line_width},
+            )
 
     plt.ylabel('roc_auc')
     plt.title('Performance when leaving one user out in training phase')
@@ -196,6 +196,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
     ax.set_ylim([0, 1.2])
     plt.legend(prop={'size': 6})
 
+    '''
     def autolabel(rects):
         """
            Attach a text label above each bar displaying its height
@@ -208,6 +209,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
 
     # autolabel(r1)
     # autolabel(r2)
+    '''
 
     plt.tight_layout()
 
@@ -229,7 +231,6 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
 
     """
 
-    s = ''
     # Print mean score
     auc_mean = np.mean([a[0] for a in scores])
     recall_mean = np.mean([a[1] for a in scores])
@@ -249,7 +250,8 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
     s += '\n\nroc_auc score for each user that was left out in training set and predicted on in test_set:'
     for i, (auc, rec, spec, prec, user_id) in enumerate(scores):
         name = names[i]
-        s += '\n' + name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, Precision = %.3f' % (auc, rec, spec, prec)
+        s += '\n' + name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, Precision = %.3f' \
+             % (auc, rec, spec, prec)
 
     # Write log to file
 

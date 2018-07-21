@@ -4,36 +4,39 @@ contain hyperparameters to do grid search over and the classifier obeject itself
 
 """
 
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.ensemble import (AdaBoostClassifier, GradientBoostingClassifier,
-                              RandomForestClassifier)
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC, LinearSVC
-from sklearn.tree import DecisionTreeClassifier
-
-import features_factory as f_factory
 from scipy.stats import randint as sp_randint
 from scipy.stats import uniform
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import (
+    AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
+)
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
-EPSILON = 0.0001
+import features_factory as f_factory
+
+_EPSILON = 0.0001
 
 names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
 
 # Note: Whenever there is 'auto' or None as an option, I add it 'length_param_list/3' times to the hyperparameter list,
 # such that the likelhoode of drawing this is very high (because the default parameters often give good performance)
-length_param_list = 1000
+_length_param_list = 1000
 
 # RandomizedSearchCV parameter space is defined such that all classifiers should approximately take
 # the same amount of time. With 'random_search_multiplier', one can increase or decrease the space linearily.
 # multiplier = 1 -> ca. 50 seconds per classifier on i5 MacBook Pro 2017 and Euler cluster
-random_search_multiplier = 1
+_random_search_multiplier = 1
 
 
 def get_cclassifier_with_name(clf_name, X, y):
     """Returns the CClassifier with the given name
 
     :param clf_name: name of the classifier
+    :param X: Feature matrix
+    :param y: labels
 
     :return: classifier
     """
@@ -57,12 +60,16 @@ def get_cclassifier_with_name(clf_name, X, y):
 
 def get_list_with_distr_and_opt_param(distr, param):
     """
+    Whenever there is 'auto' or None as an option, I add it 'length_param_list/3' times to the hyperparameter list,
+    such that the likelhoode of drawing this is very high (because the default parameters often give good performance)
 
-    :param dist:
-    :param param:
-    :return:
+    :param distr: Distribution obejct, s.a. uniform
+    :param param: Parameter ('auto' or None)
+
+    :return: list with auto/none and samples from the distribution
     """
-    return ([param] * int(length_param_list/2)) + list(distr.rvs(size=length_param_list))
+
+    return ([param] * int(_length_param_list/2)) + list(distr.rvs(size=_length_param_list))
 
 
 class CClassifier(object):
@@ -76,10 +83,10 @@ class CSVM(CClassifier):
     name = 'SVM'
     param1 = sp_randint(1, 1000)  # C
     param1_name = 'C'
-    param2 = get_list_with_distr_and_opt_param(uniform(EPSILON, 10), 'auto')  # gamma
+    param2 = get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
     tuned_params = {'C': param1, 'gamma': param2}
-    num_iter = 5 * random_search_multiplier
+    num_iter = 5 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -93,7 +100,7 @@ class CLinearSVM(CClassifier):
     param2 = ['l1', 'l2']  # penalty
     param2_name = 'penalty'
     tuned_params = {'C': param1, 'penalty': param2}
-    num_iter = 300 * random_search_multiplier
+    num_iter = 300 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -108,7 +115,7 @@ class CNearestNeighbors(CClassifier):
     param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
     param2_name = 'metric'
     tuned_params = {'n_neighbors': param1, 'metric': param2}
-    num_iter = 20 * random_search_multiplier
+    num_iter = 20 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -120,10 +127,10 @@ class CQuadraticDiscriminantAnalysis(CClassifier):
 
     param1 = uniform(0, 1)  # reg_param
     param1_name = 'reg_param'
-    param2 = uniform(EPSILON, 0.4)  # tol
+    param2 = uniform(_EPSILON, 0.4)  # tol
     param2_name = 'tol'
     tuned_params = {'reg_param': param1, 'tol': param2}
-    num_iter = 1000 * random_search_multiplier
+    num_iter = 1000 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -135,7 +142,7 @@ class CGradientBoostingClassifier(CClassifier):
 
     param1 = ['deviance', 'exponential']  # loss
     param1_name = 'loss'
-    param2 = uniform(EPSILON, 1)  # learning_rate
+    param2 = uniform(_EPSILON, 1)  # learning_rate
     param2_name = 'learning_rate'
     param3 = sp_randint(1, 10000)  # n_estimators
     param3_name = 'n_estimators'
@@ -146,10 +153,10 @@ class CGradientBoostingClassifier(CClassifier):
     param6 = sp_randint(1, 10)  # min_samples_leaf
     param6_name = 'min_samples_leaf'
 
-    param8 = uniform(EPSILON, 1)  # subsample
+    param8 = uniform(_EPSILON, 1)  # subsample
     param8_name = 'subsample'
 
-    num_iter = 10 * random_search_multiplier
+    num_iter = 10 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -182,17 +189,15 @@ class CDecisionTreeClassifier(CClassifier):
     param5 = sp_randint(1, 30)  # min_samples_leaf
     param5_name = 'min_samples_leaf'
 
-    num_iter = 500 * random_search_multiplier
+    num_iter = 5 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        # Compute this after instantiations since feature_names is [] otherwise
-        # self.param6 = get_list_with_distr_and_opt_param(sp_randint(1, len(f_factory.feature_names)),
-        #                                                 None)   # max_features
-        self.param6_name = 'max_features'
+
         self.tuned_params = {'criterion': CDecisionTreeClassifier.param1, 'splitter': CDecisionTreeClassifier.param2,
-                             'max_depth': CDecisionTreeClassifier.param3, 'min_samples_split': CDecisionTreeClassifier.param4,
-                             'min_samples_leaf': CDecisionTreeClassifier.param5
+                             'max_depth': CDecisionTreeClassifier.param3,
+                             'min_samples_split': CDecisionTreeClassifier.param4,
+                             'min_samples_leaf': CDecisionTreeClassifier.param5,
                              }
 
     clf = DecisionTreeClassifier()
@@ -211,18 +216,14 @@ class CRandomForest(CClassifier):
     param5 = ['gini', 'entropy']  # criterion
     param5_name = 'criterion'
 
-    num_iter = 100 * random_search_multiplier
+    num_iter = 100 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier()
 
-        # self.param2 = get_list_with_distr_and_opt_param(sp_randint(len(f_factory.feature_names) - 5, len(f_factory.feature_names)),
-        #                                                 'auto')  # max_features
-        # self.param2_name = 'max_features'
-        self.tuned_params = {'max_depth': CRandomForest.param1,
-                             'min_samples_split': CRandomForest.param3, 'min_samples_leaf': CRandomForest.param4,
-                             'criterion': CRandomForest.param5}
+        self.tuned_params = {'max_depth': CRandomForest.param1, 'min_samples_split': CRandomForest.param3,
+                             'min_samples_leaf': CRandomForest.param4, 'criterion': CRandomForest.param5}
 
 
 class CAdaBoost(CClassifier):
@@ -231,7 +232,7 @@ class CAdaBoost(CClassifier):
 
     param1 = sp_randint(1, 500)  # n_estimators
     param1_name = 'n_estimators'
-    param2 = uniform(EPSILON, 1)  # learning_rate
+    param2 = uniform(_EPSILON, 1)  # learning_rate
     param2_name = 'learning_rate'
     param3 = ['SAMME', 'SAMME.R']  # algorithm
     param3_name = 'algorithm'
@@ -240,7 +241,7 @@ class CAdaBoost(CClassifier):
                     'algorithm': param3,
                     }
 
-    num_iter = 20 * random_search_multiplier
+    num_iter = 20 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)

@@ -94,49 +94,49 @@ Is:		 Auc= 0.553, Recall = 0.229, Specificity= 0.746, Precision = 0.214
 
 ******** Scores for Decision Tree (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.454 (+-0.03), recall: 0.232 (+-0.08), specificity: 0.683, precision: 0.175 (+-0.07) 
+	roc_auc: 0.461 (+-0.03), recall: 0.234 (+-0.09), specificity: 0.673, precision: 0.178 (+-0.09) 
 
-	Confusion matrix: 	 [3835  945] 
-				 [787 262]
+	Confusion matrix: 	 [3804  976] 
+				 [788 261]
 
 
 
 
 roc_auc score for each user that was left out in training set and predicted on in test_set:
-Lo:		 Auc= 0.457, Recall = 0.305, Specificity= 0.621, Precision = 0.218
-MH:		 Auc= 0.487, Recall = 0.255, Specificity= 0.732, Precision = 0.139
-MK:		 Auc= 0.442, Recall = 0.109, Specificity= 0.780, Precision = 0.056
-MR:		 Auc= 0.499, Recall = 0.225, Specificity= 0.795, Precision = 0.182
-NK:		 Auc= 0.468, Recall = 0.208, Specificity= 0.779, Precision = 0.192
-PG:		 Auc= 0.457, Recall = 0.220, Specificity= 0.686, Precision = 0.171
-TW:		 Auc= 0.423, Recall = 0.396, Specificity= 0.423, Precision = 0.321
-Un:		 Auc= 0.421, Recall = 0.168, Specificity= 0.701, Precision = 0.168
-EK:		 Auc= 0.491, Recall = 0.260, Specificity= 0.689, Precision = 0.217
-FM:		 Auc= 0.457, Recall = 0.132, Specificity= 0.785, Precision = 0.057
-Is:		 Auc= 0.397, Recall = 0.270, Specificity= 0.520, Precision = 0.199
+Lo:		 Auc= 0.418, Recall = 0.205, Specificity= 0.612, Precision = 0.184
+MH:		 Auc= 0.490, Recall = 0.218, Specificity= 0.721, Precision = 0.139
+MK:		 Auc= 0.460, Recall = 0.148, Specificity= 0.757, Precision = 0.076
+MR:		 Auc= 0.522, Recall = 0.255, Specificity= 0.774, Precision = 0.220
+NK:		 Auc= 0.468, Recall = 0.185, Specificity= 0.725, Precision = 0.068
+PG:		 Auc= 0.465, Recall = 0.228, Specificity= 0.682, Precision = 0.175
+TW:		 Auc= 0.458, Recall = 0.439, Specificity= 0.451, Precision = 0.372
+Un:		 Auc= 0.428, Recall = 0.157, Specificity= 0.705, Precision = 0.183
+EK:		 Auc= 0.479, Recall = 0.281, Specificity= 0.664, Precision = 0.209
+FM:		 Auc= 0.449, Recall = 0.132, Specificity= 0.785, Precision = 0.058
+Is:		 Auc= 0.440, Recall = 0.327, Specificity= 0.524, Precision = 0.278
 
 ******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
 
-	roc_auc: 0.460 (+-0.07), recall: 0.094 (+-0.08), specificity: 0.856, precision: 0.154 (+-0.10) 
+	roc_auc: 0.466 (+-0.06), recall: 0.090 (+-0.08), specificity: 0.853, precision: 0.144 (+-0.14) 
 
-	Confusion matrix: 	 [4598  182] 
-				 [984  65]
+	Confusion matrix: 	 [4620  160] 
+				 [990  59]
 
 
 
 
 roc_auc score for each user that was left out in training set and predicted on in test_set:
-Lo:		 Auc= 0.378, Recall = 0.100, Specificity= 0.763, Precision = 0.087
-MH:		 Auc= 0.552, Recall = 0.164, Specificity= 0.890, Precision = 0.177
-MK:		 Auc= 0.374, Recall = 0.014, Specificity= 0.941, Precision = 0.050
-MR:		 Auc= 0.458, Recall = 0.009, Specificity= 0.932, Precision = 0.025
-NK:		 Auc= 0.550, Recall = 0.087, Specificity= 0.926, Precision = 0.097
-PG:		 Auc= 0.550, Recall = 0.101, Specificity= 0.914, Precision = 0.182
-TW:		 Auc= 0.396, Recall = 0.288, Specificity= 0.507, Precision = 0.390
-Un:		 Auc= 0.425, Recall = 0.035, Specificity= 0.854, Precision = 0.140
-EK:		 Auc= 0.522, Recall = 0.075, Specificity= 0.910, Precision = 0.275
-FM:		 Auc= 0.398, Recall = 0.049, Specificity= 0.943, Precision = 0.128
-Is:		 Auc= 0.459, Recall = 0.114, Specificity= 0.831, Precision = 0.139
+Lo:		 Auc= 0.404, Recall = 0.087, Specificity= 0.750, Precision = 0.141
+MH:		 Auc= 0.581, Recall = 0.109, Specificity= 0.931, Precision = 0.273
+MK:		 Auc= 0.438, Recall = 0.000, Specificity= 0.968, Precision = 0.000
+MR:		 Auc= 0.434, Recall = 0.020, Specificity= 0.932, Precision = 0.033
+NK:		 Auc= 0.496, Recall = 0.113, Specificity= 0.881, Precision = 0.104
+PG:		 Auc= 0.561, Recall = 0.086, Specificity= 0.920, Precision = 0.139
+TW:		 Auc= 0.404, Recall = 0.290, Specificity= 0.514, Precision = 0.340
+Un:		 Auc= 0.415, Recall = 0.022, Specificity= 0.872, Precision = 0.042
+EK:		 Auc= 0.534, Recall = 0.176, Specificity= 0.902, Precision = 0.440
+FM:		 Auc= 0.406, Recall = 0.011, Specificity= 0.953, Precision = 0.025
+Is:		 Auc= 0.447, Recall = 0.071, Specificity= 0.758, Precision = 0.050
 
 ******** Scores for Ada Boost (Windows:  10, 5, 10) ******** 
 

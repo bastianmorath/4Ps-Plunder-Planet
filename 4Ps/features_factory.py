@@ -2,20 +2,19 @@
 This module is responsible to generate features from the data/logfiles
 
 """
-
-import itertools
 import math
 import os
+import itertools
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from scipy import stats
+from sklearn.preprocessing import MinMaxScaler
 
 import plots_features
 import setup_dataframes as sd
 import synthesized_data
-from scipy import stats
 
 """INITIALIZATION"""
 
@@ -32,13 +31,13 @@ cw = 5  # Over how many preceeding seconds should %crashes be calculated?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
-path_reduced_features = sd.working_directory_path + '/Pickle/reduced_features/'
-path_all_features = sd.working_directory_path + '/Pickle/all_features/'
-path_reduced_features_boxcox = sd.working_directory_path + '/Pickle/reduced_features_boxcox/'
-path_all_features_boxcox = sd.working_directory_path + '/Pickle/all_features_boxcox/'
+_path_reduced_features = sd.working_directory_path + '/Pickle/reduced_features/'
+_path_all_features = sd.working_directory_path + '/Pickle/all_features/'
+_path_reduced_features_boxcox = sd.working_directory_path + '/Pickle/reduced_features_boxcox/'
+_path_all_features_boxcox = sd.working_directory_path + '/Pickle/all_features_boxcox/'
 
 
-def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection):
+def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection):
     """ If the user wants to use an already saved feature matrix ('all' or 'reduced'), then check if those
     pickle files really exist. If not, new files have to be created
 
@@ -56,15 +55,15 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
     file_name = 'feature_matrix_%s_%s_%s.pickle' % (hw, cw, gradient_w)
     if not feature_selection:
         if use_boxcox:
-            path = path_all_features_boxcox
+            path = _path_all_features_boxcox
         else:
-            path = path_all_features
+            path = _path_all_features
 
     elif feature_selection:
         if use_boxcox:
-            path = path_reduced_features_boxcox
+            path = _path_reduced_features_boxcox
         else:
-            path = path_reduced_features
+            path = _path_reduced_features
 
     file_path = path + file_name
 
@@ -82,7 +81,7 @@ def should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_select
 
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
                                  use_boxcox=False, feature_selection=True,
-                                 h_window=hw, c_window=cw, gradient_window=gradient_w, argparse=None):
+                                 h_window=hw, c_window=cw, gradient_window=gradient_w):
 
     """ Computes the feature matrix and the corresponding labels and creates a correlation_matrix
 
@@ -98,9 +97,8 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :param h_window:                     Size of heartrate window
     :param c_window:                     Size of crash window
     :param gradient_window:              Size of gradient window
-    :param argparse:                     argparse object from main.py. Used to determine whether we should do scaling
-    :return: Feature matrix, labels
 
+    :return: Feature matrix, labels
     """
     for df in sd.df_list:
         assert (max(h_window, c_window, gradient_window) < max(df['Time'])),\
@@ -114,10 +112,10 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['use_reduced_features'] = feature_selection
     globals()['_verbose'] = verbose
 
-
     matrix = pd.DataFrame()
 
-    should_read_from_pickle_file, path = should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection)
+    should_read_from_pickle_file, path = _should_read_from_cache(use_cached_feature_matrix, use_boxcox,
+                                                                 feature_selection)
 
     sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
@@ -131,27 +129,27 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         if _verbose:
             print('Creating feature matrix...')
 
-        matrix['last_obstacle_crash'] = get_last_obstacle_crash_feature()
-        matrix['timedelta_to_last_obst'] = get_timedelta_to_last_obst_feature(do_normalize=False)
-        matrix['mean_hr'] = get_standard_feature('mean', 'Heartrate')
-        matrix['std_hr'] = get_standard_feature('std', 'Heartrate')
-        matrix['lin_regression_hr_slope'] = get_lin_regression_hr_slope_feature()
-        matrix['hr_gradient_changes'] = get_number_of_gradient_changes('Heartrate')
-        matrix['points_gradient_changes'] = get_number_of_gradient_changes('Points')
-        matrix['mean_points'] = get_standard_feature('mean', 'Points')
-        matrix['std_points'] = get_standard_feature('std', 'Points')
-        matrix['%crashes'] = get_percentage_crashes_feature()
+        matrix['last_obstacle_crash'] = _get_last_obstacle_crash_feature()
+        matrix['timedelta_to_last_obst'] = _get_timedelta_to_last_obst_feature(do_normalize=False)
+        matrix['mean_hr'] = _get_standard_feature('mean', 'Heartrate')
+        matrix['std_hr'] = _get_standard_feature('std', 'Heartrate')
+        matrix['lin_regression_hr_slope'] = _get_lin_regression_hr_slope_feature()
+        matrix['hr_gradient_changes'] = _get_number_of_gradient_changes('Heartrate')
+        matrix['points_gradient_changes'] = _get_number_of_gradient_changes('Points')
+        matrix['mean_points'] = _get_standard_feature('mean', 'Points')
+        matrix['std_points'] = _get_standard_feature('std', 'Points')
+        matrix['%crashes'] = _get_percentage_crashes_feature()
 
         if not use_reduced_features:
 
-            matrix['max_minus_min_hr'] = get_standard_feature('max_minus_min', 'Heartrate')
-            matrix['max_hr'] = get_standard_feature('max', 'Heartrate')
-            matrix['min_hr'] = get_standard_feature('min', 'Heartrate')
-            matrix['max_over_min_hr'] = get_standard_feature('max_over_min', 'Heartrate')
-            matrix['max_points'] = get_standard_feature('max', 'Points')
-            matrix['min_points'] = get_standard_feature('min', 'Points')
-            matrix['max_minus_min_points'] = get_standard_feature('max_minus_min', 'Points')
-            matrix['obstacle_arrangement'] = get_obstacle_arrangement_feature()
+            matrix['max_minus_min_hr'] = _get_standard_feature('max_minus_min', 'Heartrate')
+            matrix['max_hr'] = _get_standard_feature('max', 'Heartrate')
+            matrix['min_hr'] = _get_standard_feature('min', 'Heartrate')
+            matrix['max_over_min_hr'] = _get_standard_feature('max_over_min', 'Heartrate')
+            matrix['max_points'] = _get_standard_feature('max', 'Points')
+            matrix['min_points'] = _get_standard_feature('min', 'Points')
+            matrix['max_minus_min_points'] = _get_standard_feature('max_minus_min', 'Points')
+            matrix['obstacle_arrangement'] = _get_obstacle_arrangement_feature()
             # One hot encoding
             matrix = pd.get_dummies(matrix, columns=['obstacle_arrangement'], prefix=['arr_'])
 
@@ -159,7 +157,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix.columns = matrix.columns.str.strip().str.replace(',', '_').str.replace('MIDDLE', 'M') \
             .str.replace('BOTTOMLEFT', 'BL').str.replace('BOTTOMRIGHT', 'BR').str.replace('TOPRIGHT', 'TR') \
             .str.replace('TOPLEFT', 'TL').str.replace('FARBOTTOMRIGHT', 'FR').str.replace('FARBOTTOMLEFT',
-            'FL').str.lower()
+                                                                                          'FL').str.lower()
 
         # Boxcox transformation
         if use_boxcox:
@@ -201,7 +199,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     return X, y
 
 
-def get_obstacle_arrangement_feature():
+def _get_obstacle_arrangement_feature():
     """
     Returns the arrangement of the current obstacle, encoded with LabelEncoder
     """
@@ -212,7 +210,7 @@ def get_obstacle_arrangement_feature():
     obst_arrangements = []
 
     for list_idx, df in enumerate(sd.df_list):
-        arrangement = get_obstacle_arrangement_column(list_idx)
+        arrangement = _get_obstacle_arrangement_column(list_idx)
         obst_arrangements.append(arrangement)
 
     conc = list(itertools.chain.from_iterable(obst_arrangements))
@@ -227,7 +225,7 @@ def get_obstacle_arrangement_feature():
     return conc
 
 
-def get_obstacle_arrangement_column(idx):
+def _get_obstacle_arrangement_column(idx):
     """Returns a dataframe column that indicates at each timestamp the arrangement of the obstacle, encoded with
     LabelEncoder
 
@@ -242,7 +240,7 @@ def get_obstacle_arrangement_column(idx):
     return sd.obstacle_df_list[idx].apply(compute_obst_arrangement, axis=1)
 
 
-def get_timedelta_to_last_obst_feature(do_normalize=False):
+def _get_timedelta_to_last_obst_feature(do_normalize=False):
     """ Returns the timedelta to the previous obstacle
 
     :param do_normalize: Normalize the timedelta with previous timedelta (bc. it varies slightly within and across
@@ -257,7 +255,7 @@ def get_timedelta_to_last_obst_feature(do_normalize=False):
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
             last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
-                                                             (df['Logtype'] == 'EVENT_CRASH'))]
+                                                              (df['Logtype'] == 'EVENT_CRASH'))]
             if last_obstacles.empty:
                 computed_timedeltas.append(2.2)
                 return 1
@@ -292,7 +290,7 @@ def get_timedelta_to_last_obst_feature(do_normalize=False):
     return pd.DataFrame(list(itertools.chain.from_iterable(timedeltas_df_list)), columns=['timedelta_to_last_obst'])
 
 
-def get_standard_feature(feature, data_name):
+def _get_standard_feature(feature, data_name):
     """This is a wrapper to compute common features such as min, max, mean for either Points or Heartrate
 
     :param feature: min, max, mean, std
@@ -306,13 +304,13 @@ def get_standard_feature(feature, data_name):
 
     hr_df_list = []  # list that contains a dataframe with feature for each logfile
     for list_idx, df in enumerate(sd.df_list):
-        hr_df = get_column(list_idx, feature, data_name)
+        hr_df = _get_column(list_idx, feature, data_name)
         hr_df_list.append(hr_df)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(hr_df_list)), columns=[feature])
 
 
-def get_percentage_crashes_feature():
+def _get_percentage_crashes_feature():
     # TODO: Normalize crashes depending on size/assembly of the obstacle
 
     if _verbose:
@@ -320,13 +318,13 @@ def get_percentage_crashes_feature():
 
     crashes_list = []  # list that contains one dataframe with %crashes for each point in time for each logfile
     for list_idx, df in enumerate(sd.df_list):
-        crashes = get_percentage_crashes_column(list_idx)
+        crashes = _get_percentage_crashes_column(list_idx)
         crashes_list.append(crashes)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['%crashes'])
 
 
-def get_last_obstacle_crash_feature():
+def _get_last_obstacle_crash_feature():
     if _verbose:
         print('Creating last_obstacle_crash feature...')
     # list that contains one dataframe with whether last obstacle was a crash or not
@@ -334,32 +332,32 @@ def get_last_obstacle_crash_feature():
     crashes_list = []
 
     for list_idx, df in enumerate(sd.df_list):
-        df_obstacles = get_last_obstacle_crash_column(list_idx)
+        df_obstacles = _get_last_obstacle_crash_column(list_idx)
         # df = df[df['Time'] > max(cw, hw, gradient_w)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(df_obstacles)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['last_obstacle_crash'])
 
 
-def get_lin_regression_hr_slope_feature():
+def _get_lin_regression_hr_slope_feature():
     if _verbose:
         print('Creating lin_regression_hr_slope feature...')
     slopes = []  # list that contains (for each logfile) a dataframe with the slope of the heartrate
 
     for list_idx, df in enumerate(sd.df_list):
-        slope = get_hr_slope_column(list_idx)
+        slope = _get_hr_slope_column(list_idx)
         slopes.append(slope)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(slopes)), columns=['lin_regression_hr_slope'])
 
 
-def get_number_of_gradient_changes(data_name):
+def _get_number_of_gradient_changes(data_name):
     if _verbose:
         print('Creating %s_gradient_changes feature...' % data_name)
     changes_list = []  # list that contains (for each logfile) a dataframe with the number of slope changes
 
     for list_idx, df in enumerate(sd.df_list):
-        changes = get_gradient_changes_column(list_idx, data_name)
+        changes = _get_gradient_changes_column(list_idx, data_name)
         changes_list.append(changes)
 
     if data_name == 'Points':
@@ -371,7 +369,7 @@ def get_number_of_gradient_changes(data_name):
 """The following methods calculate the features as a new dataframe column"""
 
 
-def df_from_to(_from, _to, df):
+def _df_from_to(_from, _to, df):
     """Returns the part of the dataframe where time is between _from and _to
 
     :param _from: Start of dataframe ['Time']
@@ -385,7 +383,7 @@ def df_from_to(_from, _to, df):
     return df[mask]
 
 
-def get_column(idx, applier, data_name):
+def _get_column(idx, applier, data_name):
     """This is a wrapper which returns a dataframe column that indicates at each timestamp the
     heartrate or points over the last 'window' seconds, after applying 'applyer' (e.g. mean, max, min)
 
@@ -403,7 +401,7 @@ def get_column(idx, applier, data_name):
 
     def compute(row):
         if row['Time'] > max(cw, hw, gradient_w):
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - window), row['Time'], df)
+            last_x_seconds_df = _df_from_to(max(0, row['Time'] - window), row['Time'], df)
             res = -1
             if applier == 'mean':
                 res = last_x_seconds_df[data_name].mean()
@@ -414,12 +412,12 @@ def get_column(idx, applier, data_name):
             elif applier == 'std':
                 res = last_x_seconds_df[data_name].std()
             elif applier == 'max_minus_min':
-                last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
+                last_x_seconds_df = _df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
                 max_v = last_x_seconds_df[data_name].max()
                 min_v = last_x_seconds_df[data_name].min()
                 res = max_v - min_v
             elif applier == 'max_over_min':
-                last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
+                last_x_seconds_df = _df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
                 max_v = last_x_seconds_df[data_name].max()
                 min_v = last_x_seconds_df[data_name].min()
                 res = max_v / min_v
@@ -432,7 +430,7 @@ def get_column(idx, applier, data_name):
     return sd.obstacle_df_list[idx].apply(compute, axis=1)
 
 
-def get_percentage_crashes_column(idx):
+def _get_percentage_crashes_column(idx):
     """Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the
         last crash-window-seconds the user crashed into
 
@@ -456,18 +454,18 @@ def get_percentage_crashes_column(idx):
     '''
     def compute_crashes(row):
         if row['Time'] > max(cw, hw, gradient_w):
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
+            last_x_seconds_df = _df_from_to(max(0, row['Time'] - cw), row['Time'], df)
             num_obstacles = len(last_x_seconds_df[(last_x_seconds_df['Logtype'] == 'EVENT_OBSTACLE')
                                                   | (last_x_seconds_df['Logtype'] == 'EVENT_CRASH')].index)
             num_crashes = len(last_x_seconds_df[last_x_seconds_df['Logtype'] == 'EVENT_CRASH'].index)
-            # factor = get_factor(row['Time'] - last_x_seconds_df.iloc[-1]['Time'])
 
-            return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 else 0
+            return (num_crashes/num_obstacles * 100 if num_crashes < num_obstacles else 100) if num_obstacles != 0 \
+                else 0
 
     return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
 
-def get_last_obstacle_crash_column(idx):
+def _get_last_obstacle_crash_column(idx):
     """Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
 
       :param idx: Index into gl.df_list (indicates the dataframe)
@@ -481,7 +479,8 @@ def get_last_obstacle_crash_column(idx):
     def compute_crashes(row):
         if row['Time'] > max(cw, hw, gradient_w):
 
-            last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') | (df['Logtype'] == 'EVENT_CRASH'))]
+            last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
+                                                              (df['Logtype'] == 'EVENT_CRASH'))]
             if last_obstacles.empty:
                 return 0
             return 1 if last_obstacles.iloc[-1]['Logtype'] == 'EVENT_CRASH' else 0
@@ -489,7 +488,7 @@ def get_last_obstacle_crash_column(idx):
     return sd.obstacle_df_list[idx].apply(compute_crashes, axis=1)
 
 
-def get_hr_slope_column(idx):
+def _get_hr_slope_column(idx):
     """Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression
         line over the heartrate in the last hw seconds
 
@@ -503,16 +502,16 @@ def get_hr_slope_column(idx):
 
     def compute_slope(row):
         if row['Time'] > max(cw, hw, gradient_w):
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
+            last_x_seconds_df = _df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
 
-            slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
+            slope = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
             return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute_slope, axis=1)
 
 
-def get_gradient_changes_column(idx, data_name):
+def _get_gradient_changes_column(idx, data_name):
     """Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate)
         have changed from increasing to decreasing and the other way around
 
@@ -528,7 +527,7 @@ def get_gradient_changes_column(idx, data_name):
     def compute_gradient_changes(row):
         if row['Time'] > max(cw, hw, gradient_w):
 
-            last_x_seconds_df = df_from_to(max(0, row['Time'] - cw), row['Time'], df)
+            last_x_seconds_df = _df_from_to(max(0, row['Time'] - cw), row['Time'], df)
             data = last_x_seconds_df[data_name].tolist()
             gradx = np.gradient(data)
             asign = np.sign(gradx)

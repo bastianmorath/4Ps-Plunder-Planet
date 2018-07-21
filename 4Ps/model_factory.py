@@ -7,26 +7,28 @@ import os
 import random
 
 import numpy as np
-from sklearn.calibration import CalibratedClassifierCV
+import matplotlib.pyplot as plt
+from sklearn.metrics import (
+    auc, roc_curve, confusion_matrix, precision_recall_curve
+)
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.model_selection import (
+    cross_validate, train_test_split, cross_val_predict
+)
 from sklearn.feature_selection import SelectFromModel
-from sklearn.metrics import (auc, confusion_matrix, precision_recall_curve,
-                             roc_curve)
-from sklearn.model_selection import (cross_val_predict, cross_validate,
-                                     train_test_split)
 
 import classifiers
-import features_factory as f_factory
-import hyperparameter_optimization
-import matplotlib.pyplot as plt
 import plots_helpers
+import features_factory as f_factory
 import setup_dataframes as sd
+import hyperparameter_optimization
 
 # High level functions
 
 
 def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True,
-                        create_barchart=True, create_curves=True, do_write_to_file=True):
+                                         create_barchart=True, create_curves=True, do_write_to_file=True):
     """Computes performance (roc_auc, recall, specificity, precision, confusion matrix) of either all
     or only reduced classifiers, and optionally writes it into a file and plots roc_auc scores  in a barchart.
 
@@ -84,7 +86,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     if create_barchart:
         title = 'Scores by classifier with hyperparameter tuning' if tune_hyperparameters \
                 else 'Scores by classifier without hyperparameter tuning'
-        plot_barchart_scores(names, [s[0] for s in scores_mean], [s[0] for s in scores_std], title, filename + '.pdf')
+        _plot_barchart_scores(names, [s[0] for s in scores_mean], [s[0] for s in scores_std], title, filename + '.pdf')
 
     s = ''
 
@@ -162,7 +164,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     if create_curves:  # TODO: Wrongggg, name is always with_hp_tuning...
         fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
-        plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
+        _plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
         plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
@@ -251,128 +253,10 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
     return s
 
 
-def feature_selection(X, y, verbose=False):
-    """Feature Selection with ExtraTreesClassifier. Prints and plots the importance of the features
-
-
-    Source: http://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
-
-    :param X:  Feature matrix
-    :param y: labels
-    :param verbose: Whether a detailed report should be printed out
-
-    :return new feature matrix with selected features
-
-    """
-
-    clf = ExtraTreesClassifier(n_estimators=250, class_weight='balanced')
-
-    forest = clf.fit(X, y)
-
-    importances = forest.feature_importances_
-    std = np.std([tree.feature_importances_ for tree in forest.estimators_],
-                 axis=0)
-    indices = np.argsort(importances)[::-1]
-
-    X_new = SelectFromModel(clf).fit_transform(X, y)
-
-    # Print the feature ranking
-    if verbose:
-        print("Feature ranking:")
-        print('\n# features after feature-selection: ' + str(X_new.shape[1]))
-    x_ticks = []
-    for f in range(X.shape[1]):
-        x_ticks.append(f_factory.feature_names[indices[f]])
-        if verbose:
-            print("%d. feature %s (%.3f)" % (f + 1, f_factory.feature_names[indices[f]], importances[indices[f]]))
-
-    # Plot the feature importances of the forest
-    plt.figure()
-    plt.title("Feature importances")
-    plt.bar(range(X.shape[1]), importances[indices],
-            color="r", yerr=std[indices], align="center")
-    plt.xticks(range(X.shape[1]), x_ticks, rotation='vertical')
-    plt.xlim([-1, X.shape[1]])
-    plt.tight_layout()
-
-    plots_helpers.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
-
-    return X_new, y
-
-
-def test_clf_with_timedelta_only():
-    """
-    (Debugging purposes only). Calculates timedelta feature without using any other features. Since this also gives
-    a good score, the timedelta_feature really is a good predictor!
-
-    """
-
-    print("\n################# Testing classifier using timedelta feature only #################\n")
-
-    df_list = random.sample(setup_dataframes.df_list, len(setup_dataframes.df_list))
-    # Compute y_true for each logfile
-    y_list = []
-    for df in df_list:
-        y_true = []
-        for _, row in df.iterrows():
-            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
-                y_true.append(1 if row['Logtype'] == 'EVENT_CRASH' else 0)
-        y_list.append(y_true)
-
-    # compute feature matrix for each logfile
-    X_matrices = []
-    for df in df_list:
-        X = []
-        for _, row in df.iterrows():
-            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
-                last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
-                                                                  (df['Logtype'] == 'EVENT_CRASH'))]
-                if last_obstacles.empty:
-                    X.append(2)
-                else:
-                    X.append(row['Time'] - last_obstacles.iloc[-1]['Time'])
-
-        X_matrices.append(X)
-
-    x_train = np.hstack(X_matrices).reshape(-1, 1)  # reshape bc. only one feature
-    y_train = np.hstack(y_list).reshape(-1, 1)
-
-    clf = classifiers.get_cclassifier_with_name('Decision Tree', x_train, y_train).clf
-    score_dict = cross_validate(clf, x_train, y_train, scoring='roc_auc', cv=10)
-
-    print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
-
-
-    ''' Timedeltas correctly computed
-    timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_to_last_obst']
-    # print(sklearn.metrics.accuracy_score(timedeltas, x_train))
-    for a, b in zip(timedeltas, x_train):
-        print(a, b)
-
-    from sklearn.model_selection import cross_val_score
-
-    # Compute performance scores
-    from sklearn.model_selection import cross_val_predict
-    from sklearn import metrics
-    y_pred = cross_val_predict(clf, x_train, y_train, cv=10)
-    y = y_train
-    from sklearn.metrics import confusion_matrix
-    conf_mat = confusion_matrix(y, y_pred)
-
-    precision = metrics.precision_score(y, y_pred)
-    # if clf_name == 'Decision Tree':
-    #         plots.plot_graph_of_decision_classifier(model, X, y)
-
-    recall = metrics.recall_score(y, y_pred)
-    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    roc_auc = metrics.roc_auc_score(y, y_pred)
-    print(roc_auc, recall, specificity, precision)
-    '''
-
-
 # Plotting
 
-def plot_roc_curve(classifier, X, y, filename, title='ROC'):
+
+def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
     """Plots roc_curve for a given classifier
 
     :param classifier:  Classifier
@@ -453,7 +337,7 @@ def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
     plt.figure()
 
     for idx, name in enumerate(clf_names):
-        plt.plot(fprs[idx], tprs[idx], label=clf_names[idx] + ' (AUC = %0.2f)' % roc_aucs[idx])
+        plt.plot(fprs[idx], tprs[idx], label=name + ' (AUC = %0.2f)' % roc_aucs[idx])
 
     plt.title('Roc curves')
     plt.legend(loc='lower right')
@@ -464,6 +348,28 @@ def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
     plt.xlabel('False Positive Rate')
 
     plots_helpers.save_plot(plt, 'Performance/Roc Curves/', 'roc_curves.pdf')
+
+
+def _plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filename):
+    """Plots the roc_auc scores of each classifier into a barchart
+
+    :param names: list of names of classifiers
+    :param roc_auc_scores: roc_auc of each classifier
+    :param roc_auc_scores_std: standard deviations of roc_auc of each classifier
+    :param title: title of the barchart
+    :param filename: name of the file
+    """
+
+    plots_helpers.plot_barchart(title=title,
+                                xlabel='Classifier',
+                                ylabel='Performance',
+                                x_tick_labels=names,
+                                values=roc_auc_scores,
+                                lbl='auc_score',
+                                filename=filename,
+                                std_err=roc_auc_scores_std,
+                                plot_random_guess_line=True
+                                )
 
 
 def plot_precision_recall_curve(classifier, X, y, filename):
@@ -501,29 +407,129 @@ def plot_precision_recall_curve(classifier, X, y, filename):
               'thus no precision_recall curve can be generated')
 
 
-def plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filename):
-    """Plots the roc_auc scores of each classifier into a barchart
+# Note: Not used in the main program
+def _feature_selection(X, y, verbose=False):
+    """Feature Selection with ExtraTreesClassifier. Prints and plots the importance of the features
 
-    :param names: list of names of classifiers
-    :param roc_auc_scores: roc_auc of each classifier
-    :param roc_auc_scores_std: standard deviations of roc_auc of each classifier
-    :param title: title of the barchart
-    :param filename: name of the file
+
+    Source: http://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
+
+    :param X:  Feature matrix
+    :param y: labels
+    :param verbose: Whether a detailed report should be printed out
+
+    :return new feature matrix with selected features
+
     """
 
-    plots_helpers.plot_barchart(title=title,
-                                xlabel='Classifier',
-                                ylabel='Performance',
-                                x_tick_labels=names,
-                                values=roc_auc_scores,
-                                lbl='auc_score',
-                                filename=filename,
-                                std_err=roc_auc_scores_std,
-                                plot_random_guess_line=True
-                                )
+    clf = ExtraTreesClassifier(n_estimators=250, class_weight='balanced')
+
+    forest = clf.fit(X, y)
+
+    importances = forest.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in forest.estimators_],
+                 axis=0)
+    indices = np.argsort(importances)[::-1]
+
+    X_new = SelectFromModel(clf).fit_transform(X, y)
+
+    # Print the feature ranking
+    if verbose:
+        print("Feature ranking:")
+        print('\n# features after feature-selection: ' + str(X_new.shape[1]))
+    x_ticks = []
+    for f in range(X.shape[1]):
+        x_ticks.append(f_factory.feature_names[indices[f]])
+        if verbose:
+            print("%d. feature %s (%.3f)" % (f + 1, f_factory.feature_names[indices[f]], importances[indices[f]]))
+
+    # Plot the feature importances of the forest
+    plt.figure()
+    plt.title("Feature importances")
+    plt.bar(range(X.shape[1]), importances[indices],
+            color="r", yerr=std[indices], align="center")
+    plt.xticks(range(X.shape[1]), x_ticks, rotation='vertical')
+    plt.xlim([-1, X.shape[1]])
+    plt.tight_layout()
+
+    plots_helpers.save_plot(plt, 'Features/', 'feature_importance_decision_tree.pdf')
+
+    return X_new, y
 
 
-def print_confidentiality_scores(X_train, X_test, y_train, y_test):
+# Note: Not used in the main program
+def _test_clf_with_timedelta_only():
+    """
+    (Debugging purposes only). Calculates timedelta feature without using any other features. Since this also gives
+    a good score, the timedelta_feature really is a good predictor!
+
+    """
+
+    print("\n################# Testing classifier using timedelta feature only #################\n")
+
+    df_list = random.sample(sd.df_list, len(sd.df_list))
+    # Compute y_true for each logfile
+    y_list = []
+    for df in df_list:
+        y_true = []
+        for _, row in df.iterrows():
+            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
+                y_true.append(1 if row['Logtype'] == 'EVENT_CRASH' else 0)
+        y_list.append(y_true)
+
+    # compute feature matrix for each logfile
+    X_matrices = []
+    for df in df_list:
+        X = []
+        for _, row in df.iterrows():
+            if (row['Logtype'] == 'EVENT_CRASH') | (row['Logtype'] == 'EVENT_OBSTACLE'):
+                last_obstacles = df[(df['Time'] < row['Time']) & ((df['Logtype'] == 'EVENT_OBSTACLE') |
+                                                                  (df['Logtype'] == 'EVENT_CRASH'))]
+                if last_obstacles.empty:
+                    X.append(2)
+                else:
+                    X.append(row['Time'] - last_obstacles.iloc[-1]['Time'])
+
+        X_matrices.append(X)
+
+    x_train = np.hstack(X_matrices).reshape(-1, 1)  # reshape bc. only one feature
+    y_train = np.hstack(y_list).reshape(-1, 1)
+
+    clf = classifiers.get_cclassifier_with_name('Decision Tree', x_train, y_train).clf
+    score_dict = cross_validate(clf, x_train, y_train, scoring='roc_auc', cv=10)
+
+    print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
+
+
+    ''' Timedeltas correctly computed
+    timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_to_last_obst']
+    # print(sklearn.metrics.accuracy_score(timedeltas, x_train))
+    for a, b in zip(timedeltas, x_train):
+        print(a, b)
+
+    from sklearn.model_selection import cross_val_score
+
+    # Compute performance scores
+    from sklearn.model_selection import cross_val_predict
+    from sklearn import metrics
+    y_pred = cross_val_predict(clf, x_train, y_train, cv=10)
+    y = y_train
+    from sklearn.metrics import confusion_matrix
+    conf_mat = confusion_matrix(y, y_pred)
+
+    precision = metrics.precision_score(y, y_pred)
+    # if clf_name == 'Decision Tree':
+    #         plots.plot_graph_of_decision_classifier(model, X, y)
+
+    recall = metrics.recall_score(y, y_pred)
+    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+    roc_auc = metrics.roc_auc_score(y, y_pred)
+    print(roc_auc, recall, specificity, precision)
+    '''
+
+
+# Note: Not used in the main program
+def _print_confidentiality_scores(X_train, X_test, y_train, y_test):
     """Prints all wrongly classifed datapoints of KNeighborsClassifier and with which confidentiality the classifier
     classified them
 

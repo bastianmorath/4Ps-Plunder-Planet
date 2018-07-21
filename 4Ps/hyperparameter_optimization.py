@@ -4,25 +4,25 @@ This module takes a classifier name and n_iter and does RandomizedSearchCV to fi
 classifier with this name.
 """
 
-from __future__ import (division,  # s.t. division uses float result
-                        print_function)
+from __future__ import division  # s.t. division uses float result
+from __future__ import print_function
 
 import time
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.model_selection import RandomizedSearchCV
 
 import classifiers
-import features_factory as f_factory
-import matplotlib.pyplot as plt
 import model_factory
 import plots_helpers
+import features_factory as f_factory
 import synthesized_data
 
 
-def report(results, n_top=3):
+def _report(results, n_top=3):
     """Prints a  report with the scores from the n_top hyperparameter configurations with the best score
 
     :param results: cv_results of GridSearch/RandomizedSearchCV
@@ -60,9 +60,9 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
         if synthesized_data.synthesized_data_enabled:
-            X_n, y_n = f_factory.get_feature_matrix_and_label(False, False, True, True, f_factory.use_reduced_features)  # Use features with boxcox
+            X_n, y_n = f_factory.get_feature_matrix_and_label(False, False, True, True, f_factory.use_reduced_features)
         else:
-            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, f_factory.use_reduced_features)  # Use features with boxcox
+            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, f_factory.use_reduced_features)
 
         c_classifier.clf.fit(X_n, y_n)
 
@@ -78,12 +78,13 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
         end = time.time()
         print("Time elapsed for hyperparameter tuning: " + str(end - start))
         if verbose:
-            report(clf.cv_results_)
+            _report(clf.cv_results_)
 
-    return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_, list(c_classifier.tuned_params.keys()))
+    return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_,
+                                                                    list(c_classifier.tuned_params.keys()))
 
 
-def plot_heat_map_of_grid_search(cv_results, Classifier):
+def _plot_heat_map_of_grid_search(cv_results, Classifier):
     """Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
         Problem: We can only show 2 hyperparameters
     :param cv_results: cv_results of RandomizedSearchCV

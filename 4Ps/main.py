@@ -6,30 +6,33 @@ Type 'python main.py -h' for how to use this module
 
 from __future__ import division  # s.t. division uses float result
 from __future__ import print_function
-import matplotlib
-matplotlib.use('Agg')
+
 import time
 
-import argparse_setup
-import classifiers
-import features_factory as f_factory
-import hyperparameter_optimization
-import leave_one_group_out_cv
-import LSTM
+import matplotlib
 
+import LSTM
+import classifiers
 import model_factory
+import argparse_setup
 import plots_features as fp
 import plots_logfiles as lp
+import features_factory as f_factory
 import setup_dataframes
 import synthesized_data
 import window_optimization
+import leave_one_group_out_cv
+import hyperparameter_optimization
 
+matplotlib.use('Agg')
 
-# TODO: Put underscore in front of private functions
-# TODO: Store X, y somewhere s.t. we don't have to pass it to method calls everytime
-# TODO: Add :type in docstrings where necessary
+# TODO: Structure modules with comments s.a. helpers, main, PRivate etc.
+# TODO: clean up unused imports and code/commented code
+# TODO: fix all pep8 warnings
+
 
 def main(args):
+
     start = time.time()
 
     f_factory.use_reduced_features = not args.use_all_features
@@ -55,16 +58,14 @@ def main(args):
             normalize_heartrate=(not args.do_not_normalize_heartrate),
         )
 
-        if not args.test_windows:  # We most likely have to calculate new feature matrix anyways
-            X, y = f_factory.get_feature_matrix_and_label(
-                    verbose=True,
-                    use_cached_feature_matrix=True,
-                    save_as_pickle_file=True,
-                    # TODO: Remove f_selection argument as it is stored as local variable anyways
-                    feature_selection=f_factory.use_reduced_features,
-                    use_boxcox=False,
-                    argparse=args
-            )
+        X, y = f_factory.get_feature_matrix_and_label(
+                verbose=True,
+                use_cached_feature_matrix=True,
+                save_as_pickle_file=True,
+                # TODO: Remove f_selection argument as it is stored as local variable anyways
+                feature_selection=f_factory.use_reduced_features,
+                use_boxcox=False
+        )
 
     setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
@@ -116,7 +117,8 @@ def main(args):
             else:
                 model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y)
 
-                _, _, _, _, _, _, _, _, report = model_factory.get_performance(model.clf, args.performance_without_tuning,
+                _, _, _, _, _, _, _, _, report = model_factory.get_performance(model.clf,
+                                                                               args.performance_without_tuning,
                                                                                X, y, verbose=True,
                                                                                do_write_to_file=False)
             X = X_old
@@ -141,7 +143,7 @@ def main(args):
 
     if args.generate_plots_about_logfiles:
         print("\n################# Generate plots about logfiles #################\n")
-        plot_logfiles()
+        plot_logfiles(args)
 
     end = time.time()
     print("Time elapsed: " + str(end - start))
@@ -151,7 +153,7 @@ def plot_features(X, y):
     fp.generate_plots_about_features(X, y)
 
 
-def plot_logfiles():
+def plot_logfiles(args):
     if not args.do_not_normalize_heartrate:
         print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
     lp.generate_plots_about_logfiles()
@@ -160,5 +162,5 @@ def plot_logfiles():
 if __name__ == "__main__":
     # Add user-friendly command-line interface to enter windows and RandomizedSearchCV parameters etc.
 
-    args = argparse_setup.get_argparse()
-    main(args)
+    _args = argparse_setup.get_argparse()
+    main(_args)

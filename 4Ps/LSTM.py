@@ -3,29 +3,28 @@ This module is responsible to for setting up, compiling, training and evaluating
 
 """
 
+import random
 import itertools
 from functools import partial
 
+import keras
 import numpy as np
-from matplotlib.ticker import FormatStrFormatter
+import matplotlib.pyplot as plt
+from keras import optimizers, regularizers
 from numpy import array
 from sklearn import metrics
-from sklearn.metrics import (confusion_matrix, f1_score, precision_score,
-                             recall_score, roc_auc_score)
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from keras.layers import LSTM, K, Dense, Dropout, Masking, TimeDistributed
+from keras.models import Sequential, load_model
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from sklearn.metrics import (
+    f1_score, recall_score, roc_auc_score, precision_score, confusion_matrix
+)
+from matplotlib.ticker import FormatStrFormatter
+from keras.preprocessing import sequence
 
-import keras
-import matplotlib.pyplot as plt
 import model_factory
 import plots_helpers
 import setup_dataframes as sd
-from keras import optimizers, regularizers
-from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import (LSTM,
-                          Dense, Dropout, K, Masking,
-                          TimeDistributed)
-from keras.models import Sequential, load_model
-from keras.preprocessing import sequence
 
 _maxlen = 0
 # _seed = 1  # Seed 1 or 6 give around 0.61 on both test and validation set
@@ -61,21 +60,21 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
     :return mean auroc, std auroc
     """
 
-    X_list, y_list = get_splitted_up_feature_matrix_and_labels(X, y)
+    X_list, y_list = _get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
     X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-        split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=2)
+        _split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=2)
 
-    X_lstm, y_lstm = get_reshaped_matrices(X_train_list, y_train_list)
-    X_val, y_val = get_reshaped_matrices(X_val, y_val)
+    X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
+    X_val, y_val = _get_reshaped_matrices(X_val, y_val)
 
-    model = generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
+    model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    trained_model = train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs, verbose)
+    trained_model = _train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs, verbose)
     print('Performance training set: ')
-    calculate_performance(X_lstm, y_lstm, trained_model)
+    _calculate_performance(X_lstm, y_lstm, trained_model)
     print('Performance test set: ')
-    mean_auroc, std_auroc = calculate_performance(X_test_list, y_test_list
+    mean_auroc, std_auroc = _calculate_performance(X_test_list, y_test_list
                                                   , trained_model)
     return mean_auroc, std_auroc
 
@@ -92,7 +91,7 @@ Features: 9 or 16 (depending on feature_reduction or not)
 """
 
 
-def get_reshaped_matrices(new_X, new_y):
+def _get_reshaped_matrices(new_X, new_y):
     """ Returns the reshaped feature matrix needed for applying LSTM. Also does zero-padding
 
     :param new_X: Non-reshaped/original feature matrix (list)
@@ -119,7 +118,7 @@ def get_reshaped_matrices(new_X, new_y):
 """
 
 
-def generate_lstm_classifier(shape):
+def _generate_lstm_classifier(shape):
     """
     :return: trained classifier
     """
@@ -150,7 +149,7 @@ def generate_lstm_classifier(shape):
     return model
 
 
-def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=1):
+def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=1):
     # print('\nShape X: ' + str(X_train.shape))
     # print('Shape y: ' + str(array(y_train).shape) + '\n')
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
@@ -177,7 +176,7 @@ def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=
 
     # Plot
 
-    plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
+    _plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
                              history_callback.train_losses, history_callback.val_losses,
                              history_callback.f1s_train, history_callback.f1s_val,
                              history_callback.recalls_train, history_callback.recalls_val,
@@ -194,7 +193,7 @@ def train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=
 """
 
 
-def calculate_performance(X_test_list, y_test_list, lstm_model):
+def _calculate_performance(X_test_list, y_test_list, lstm_model):
     """
     Iterates over all featurematrices (one per logfile), pads it to max_len (since lstm got trained on that length),
     then predicts labels, and discards the padded ones
@@ -245,7 +244,7 @@ Helper methods
 """
 
 
-def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train,
+def _plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train,
                              recalls_val, precisions_train, precisions_val, n_epochs
                              ):
     """
@@ -335,7 +334,7 @@ def plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s
     '''
 
 
-def get_splitted_up_feature_matrix_and_labels(X, y):
+def _get_splitted_up_feature_matrix_and_labels(X, y):
     """
     Feature matrix X is the concatenation of all feature matrices per logfile. We need to split it up such that we
     have one feature matrix per logfile
@@ -357,7 +356,7 @@ def get_splitted_up_feature_matrix_and_labels(X, y):
     return feature_matrices, label_lists
 
 
-def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size_val_set=3):
+def _split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size_val_set=3):
     """
     Splits up the list of Feature matrices and labels into Training, test and validation sets, where size of
     test_set = leave_out, val_set=2, training_set=rest.
@@ -371,8 +370,6 @@ def split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, size
     :return: X_train, X_test, y_train, y_test, each as a list
     """
 
-
-    import random
     # random.seed(_seed)  # TODO: At the end, I can use random splits
     c = list(zip(X_splitted, y_splitted))
     random.shuffle(c)
@@ -410,18 +407,18 @@ class Histories(keras.callbacks.Callback):
         self.drawing_enabled = drawing_enabled
 
         if drawing_enabled:
-            plot_losses_and_roc_aucs([], [], [], [], [], [], [], [], [], [], n_epochs)
+            _plot_losses_and_roc_aucs([], [], [], [], [], [], [], [], [], [], n_epochs)
 
-    def on_train_begin(self, logs={}):
+    def on_train_begin(self, logs=[]):
         return
 
-    def on_train_end(self, logs={}):
+    def on_train_end(self, logs=[]):
         return
 
-    def on_epoch_begin(self, epoch, logs={}):
+    def on_epoch_begin(self, epoch, logs=[]):
         return
 
-    def on_epoch_end(self, epoch, logs={}):
+    def on_epoch_end(self, epoch, logs=[]):
         self.train_losses.append(logs.get('loss'))
         self.val_losses.append(logs.get('val_loss'))
 
@@ -456,7 +453,7 @@ class Histories(keras.callbacks.Callback):
         # self.precisions_val.append(round(precision_val, 3))
 
         if self.drawing_enabled and self.count % self.interval == 0:  # Redraw plot every 10 iterations
-            plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,
+            _plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,
                                      self.train_losses, self.val_losses,
                                      self.f1s_train, self.f1s_val,
                                      self.recalls_train, self.recalls_val,
@@ -472,42 +469,3 @@ class Histories(keras.callbacks.Callback):
 
     def on_batch_end(self, batch, logs={}):
         return
-
-class WeightedCategoricalCrossEntropy(object):
-    def __init__(self, weights):
-        nb_cl = len(weights)
-        self.weights = np.ones((nb_cl, nb_cl))
-        for class_idx, class_weight in weights.items():
-            self.weights[0][class_idx] = class_weight
-            self.weights[class_idx][0] = class_weight
-        self.__name__ = 'w_categorical_crossentropy'
-
-    def __call__(self, y_true, y_pred):
-        return self.w_categorical_crossentropy(y_true, y_pred)
-
-    def w_categorical_crossentropy(self, y_true, y_pred):
-        nb_cl = len(self.weights)
-        final_mask = K.zeros_like(y_pred[..., 0])
-        y_pred_max = K.max(y_pred, axis=-1)
-        y_pred_max = K.expand_dims(y_pred_max, axis=-1)
-        y_pred_max_mat = K.equal(y_pred, y_pred_max)
-        for c_p, c_t in itertools.product(range(nb_cl), range(nb_cl)):
-            w = K.cast(self.weights[c_t, c_p], K.floatx())
-            y_p = K.cast(y_pred_max_mat[..., c_p], K.floatx())
-            y_t = K.cast(y_true[..., c_t], K.floatx())
-            final_mask += w * y_p * y_t
-        return K.categorical_crossentropy(y_pred, y_true) * final_mask
-
-
-def weighted_categorical_crossentropy(weights):
-    weights = K.variable(weights)
-
-    def loss(y_true, y_pred):
-        # scale predictions so that the class probas of each sample sum to 1
-        y_pred /= K.sum(y_pred, axis=-1, keepdims=True)
-        # clip to prevent NaN's and Inf's
-        y_pred = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
-        # calc
-        loss = y_true * K.log(y_pred) * weights
-        loss = -K.sum(loss, -1)
-        return loss

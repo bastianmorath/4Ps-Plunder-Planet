@@ -7,8 +7,8 @@ This module contains helper methods for setting up and generating plots
 import os
 
 import numpy as np
-
 import matplotlib.pyplot as plt
+
 import setup_dataframes as sd
 
 green_color = '#AEBD38'

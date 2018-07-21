@@ -5,8 +5,8 @@ project is running
 
 import os
 import re
-from datetime import timedelta
 from pathlib import Path
+from datetime import timedelta
 
 import pandas as pd
 
@@ -16,7 +16,7 @@ names_logfiles = []
 dataframes = []
 
 
-def sanity_check():
+def _sanity_check():
     """The original FK0410 have a 'm' or 'w' after its logfilename. remove it to have consistency among naming of the
     files and don't run in trouble later.
 
@@ -115,7 +115,7 @@ def refactor_crashes():
 
     print('Refactoring crashes...')
 
-    sanity_check()
+    _sanity_check()
 
     names_logfiles = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
                              if re.search(r'.log', f)])

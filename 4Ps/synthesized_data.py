@@ -7,18 +7,18 @@
 
 import numpy as np
 import pandas as pd
-
 import matplotlib.pyplot as plt
-import plots_helpers
-import setup_dataframes as sd
 from scipy.stats import truncnorm
 
-make_plots = False
+import plots_helpers
+import setup_dataframes as sd
 
-num_dataframes = 3  # How many dataframes should be created?
-length_dataframe = 1000  # How many rows should one dataframe have?
-mean_hr = 123.9  # Mean of normal distribution of heartrate
-std_hr = 16.8  # std of normal distribution of heartrate
+_make_plots = False
+
+_num_dataframes = 3  # How many dataframes should be created?
+_length_dataframe = 1000  # How many rows should one dataframe have?
+_mean_hr = 123.9  # Mean of normal distribution of heartrate
+_std_hr = 16.8  # std of normal distribution of heartrate
 
 synthesized_data_enabled = False
 
@@ -29,7 +29,7 @@ def init_with_testdata_events_const_hr_const():
 
     """
 
-    for i in range(0, num_dataframes):
+    for i in range(0, _num_dataframes):
         length_dataframe = 400 + i*40
         times = range(0, length_dataframe)
         logtypes = ['CONTINUOUS', 'EVENT_OBSTACLE', 'CONTINUOUS', 'EVENT_CRASH'] * int(length_dataframe/4)
@@ -40,12 +40,12 @@ def init_with_testdata_events_const_hr_const():
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
                                        'timedelta': timedeltas, 'userID': [i]*length_dataframe,
                                        'logID': [0]*length_dataframe})
-        if make_plots:
-            plot_hr(dataframe, i)
+        if _make_plots:
+            _plot_hr(dataframe, i)
 
         sd.df_list.append(dataframe)
 
-    sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
+    sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
 
 def init_with_testdata_events_random_hr_const():
@@ -54,20 +54,20 @@ def init_with_testdata_events_random_hr_const():
 
     """
 
-    for i in range(0, num_dataframes):
+    for i in range(0, _num_dataframes):
         times = []
         logtypes = []
         heartrates = []
         timedeltas = []
         points = []
 
-        distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
-        noise = distribution.rvs(length_dataframe)
+        distribution = _get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
+        noise = distribution.rvs(_length_dataframe)
 
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
         current_event = ''
         next_event = 'CONTINUOUS'
-        for j in range(0, length_dataframe):
+        for j in range(0, _length_dataframe):
 
             if next_event == 'EVENT_CRASH':
                 hr = np.random.normal(7, 1)
@@ -86,14 +86,14 @@ def init_with_testdata_events_random_hr_const():
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
-                                       'timedelta': timedeltas, 'userID': [i]*length_dataframe,
-                                       'logID': [0]*length_dataframe})
-        if make_plots:
-            plot_hr(dataframe, i)
+                                       'timedelta': timedeltas, 'userID': [i]*_length_dataframe,
+                                       'logID': [0]*_length_dataframe})
+        if _make_plots:
+            _plot_hr(dataframe, i)
 
         sd.df_list.append(dataframe)
 
-    sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
+    sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
 
 def init_with_testdata_events_random_hr_continuous():
@@ -102,21 +102,21 @@ def init_with_testdata_events_random_hr_continuous():
         logtypes: Randomly choosen; if EVENT_CRASH, then add EVENT_OBSTACLE in the next one!
 
     """
-    for i in range(0, num_dataframes):
+    for i in range(0, _num_dataframes):
         times = []
         logtypes = []
         heartrates = []
         timedeltas = []
         points = []
 
-        distribution = get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
-        noise = distribution.rvs(length_dataframe)
+        distribution = _get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
+        noise = distribution.rvs(_length_dataframe)
 
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
         current_event = ''
         next_event = 'CONTINUOUS'
-        hr = mean_hr
-        for j in range(0, length_dataframe):
+        hr = _mean_hr
+        for j in range(0, _length_dataframe):
 
             if next_event == 'EVENT_CRASH':
                 hr = hr + 20
@@ -135,17 +135,17 @@ def init_with_testdata_events_random_hr_continuous():
             timedeltas.append(pd.to_timedelta(times[j], unit='S'))
 
         dataframe = pd.DataFrame(data={'Time': times, 'Points': points, 'Logtype': logtypes, 'Heartrate': heartrates,
-                                       'timedelta': timedeltas, 'userID': [i]*length_dataframe,
-                                       'logID': [0]*length_dataframe})
-        if make_plots:
-            plot_hr(dataframe, i)
+                                       'timedelta': timedeltas, 'userID': [i]*_length_dataframe,
+                                       'logID': [0]*_length_dataframe})
+        if _make_plots:
+            _plot_hr(dataframe, i)
 
         sd.df_list.append(dataframe)
 
-    sd.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
+    sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
 
-def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
+def _get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     """Returns a value from a normal distribution, truncated to a boundary
 
     :return: Random value from normal distribution specified by arguments
@@ -155,7 +155,7 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
 
-def plot_hr(dataframe, i):
+def _plot_hr(dataframe, i):
     """Plots the heartrate of the dataframe
 
     :param dataframe: Dataframe from which the heartrate should be plotted

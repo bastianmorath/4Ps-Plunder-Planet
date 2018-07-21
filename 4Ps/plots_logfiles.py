@@ -7,16 +7,12 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-
-import features_factory as f_factory
 import matplotlib.pyplot as plt
-import plots_helpers as hp
-import setup_dataframes as sd
 from matplotlib.ticker import MaxNLocator
 
-green_color = '#AEBD38'
-blue_color = '#68829E'
-red_color = '#A62A2A'
+import plots_helpers as hp
+import features_factory as f_factory
+import setup_dataframes as sd
 
 """
 Plots concerned with logfiles
@@ -24,24 +20,26 @@ Plots concerned with logfiles
 """
 
 # TODO: Use helper barplot for all plots..
+
+
 def generate_plots_about_logfiles():
-    plot_heartrate_change()
-    plot_heartrate_and_events()
-    crashes_per_obstacle_arrangement()
-    # plot_crashes_vs_size_of_obstacle()
-    plot_hr_vs_difficulty_scatter_plot()
-    print_obstacle_information()
-    plot_difficulty_vs_size_obstacle_scatter_plot()
-    plot_hr_or_points_corr_with_difficulty('Heartrate')
-    plot_hr_or_points_corr_with_difficulty('Points')
+    _plot_heartrate_change()
+    _plot_heartrate_and_events()
+    _crashes_per_obstacle_arrangement()
+    _plot_crashes_vs_size_of_obstacle()
+    _plot_hr_vs_difficulty_scatter_plot()
+    _print_obstacle_information()
+    _plot_difficulty_vs_size_obstacle_scatter_plot()
+    _plot_hr_or_points_corr_with_difficulty('Heartrate')
+    _plot_hr_or_points_corr_with_difficulty('Points')
 
-    plot_mean_and_std_hr_boxplot()
-    plot_hr_of_dataframes()
-    plot_average_hr_over_all_logfiles()
-    plot_heartrate_histogram()
+    _plot_mean_and_std_hr_boxplot()
+    _plot_hr_of_dataframes()
+    _plot_average_hr_over_all_logfiles()
+    _plot_heartrate_histogram()
 
 
-def plot_heartrate_and_events():
+def _plot_heartrate_and_events():
     print("Plotting heartrate and events...")
     resolution = 3
 
@@ -52,10 +50,10 @@ def plot_heartrate_and_events():
             df_num_resampled = df
             # Plot Heartrate
             _, ax1 = plt.subplots()
-            ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color, linewidth=1.0)
+            ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], hp.blue_color, linewidth=1.0)
             ax1.set_xlabel('Playing time (s)')
-            ax1.set_ylabel('Heartrate', color=blue_color)
-            ax1.tick_params('y', colors=blue_color)
+            ax1.set_ylabel('Heartrate', color=hp.blue_color)
+            ax1.tick_params('y', colors=hp.blue_color)
 
             # Plot crashes
             times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
@@ -91,7 +89,7 @@ def plot_heartrate_and_events():
             hp.save_plot(plt, 'Logfiles/Heartrate_Events/', filename)
 
 
-def plot_hr_of_dataframes():
+def _plot_hr_of_dataframes():
     """Generates one heartrate plot for each dataframes (Used to compare normalized hr to original hr)
         Only works for real data at the moment, because of name_logfile not existing if synthesized_data...
 
@@ -105,16 +103,16 @@ def plot_hr_of_dataframes():
             df_num_resampled = hp.resample_dataframe(df, resolution)
             # Plot Heartrate
             _, ax1 = plt.subplots()
-            ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], blue_color)
+            ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], hp.blue_color)
             ax1.set_xlabel('Playing time (s)')
-            ax1.set_ylabel('Heartrate', color=blue_color)
-            ax1.tick_params('y', colors=blue_color)
+            ax1.set_ylabel('Heartrate', color=hp.blue_color)
+            ax1.tick_params('y', colors=hp.blue_color)
 
             filename = 'hr_' + sd.names_logfiles[idx] + '.pdf'
             hp.save_plot(plt, 'Logfiles/Heartrate/', filename)
 
 
-def plot_heartrate_histogram():
+def _plot_heartrate_histogram():
     """ Plots a histogram of  heartrate data accumulated over all logfiles
 
     """
@@ -132,7 +130,7 @@ def plot_heartrate_histogram():
     hp.save_plot(plt, 'Logfiles/', 'heartrate_distribution_all_logfiles.pdf')
 
 
-def plot_average_hr_over_all_logfiles():
+def _plot_average_hr_over_all_logfiles():
     """
     Plots average heartrate over all logfiles
     """
@@ -158,7 +156,7 @@ def plot_average_hr_over_all_logfiles():
     hp.save_plot(plt, 'Logfiles/', 'average_heartrate.pdf')
 
 
-def plot_mean_and_std_hr_boxplot():
+def _plot_mean_and_std_hr_boxplot():
     """
     Plots mean and std bpm per user in a box-chart
 
@@ -174,7 +172,7 @@ def plot_mean_and_std_hr_boxplot():
     hp.save_plot(plt, 'Logfiles/', 'mean_heartrate_boxplot.pdf')
 
 
-def plot_heartrate_change():
+def _plot_heartrate_change():
     """ Plot Heartrate change
     """
 
@@ -199,7 +197,7 @@ def plot_heartrate_change():
         name = str(sd.names_logfiles[idx])
         plt.figure()
         plt.title('Heartrate change for plot ' + name)
-        plt.hist(l, color=blue_color)
+        plt.hist(l, color=hp.blue_color)
         hp.save_plot(plt, 'Logfiles/Abs Heartrate Changes/', 'heartrate_change_percentage_' + name + '.pdf')
 
     fig, ax = plt.subplots()
@@ -207,7 +205,7 @@ def plot_heartrate_change():
     plt.title('Maximal heartrate change')
     plt.ylabel('Max heartrate change [%]')
     plt.xlabel('Logfile')
-    plt.bar([x for x in X], bpm_changes_max, color=blue_color, width=0.25)
+    plt.bar([x for x in X], bpm_changes_max, color=hp.blue_color, width=0.25)
 
     ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
     ax.set_axisbelow(True)
@@ -216,7 +214,7 @@ def plot_heartrate_change():
     hp.save_plot(plt, 'Logfiles/', 'heartrate_change_abs.pdf')
 
 
-def transform_df_to_numbers(df):
+def _transform_df_to_numbers(df):
     """
     Subsitutes difficulties with numbers to work with them in a better way, from 1 to 3
 
@@ -232,26 +230,26 @@ def transform_df_to_numbers(df):
     return df
 
 
-def plot_hr_or_points_corr_with_difficulty(to_compare):
+def _plot_hr_or_points_corr_with_difficulty(to_compare):
     resolution = 10  # resample every x seconds -> the bigger, the smoother
     for idx, df in enumerate(sd.df_list):
-        df = transform_df_to_numbers(df)
+        df = _transform_df_to_numbers(df)
         if not (df['Heartrate'] == -1).all():
             X=[]
             X.append(idx)
             df_num_resampled = hp.resample_dataframe(df, resolution)
             # Plot Heartrate
             fig, ax1 = plt.subplots()
-            ax1.plot(df_num_resampled['Time'], df_num_resampled[to_compare], blue_color)
+            ax1.plot(df_num_resampled['Time'], df_num_resampled[to_compare], hp.blue_color)
             ax1.set_xlabel('Playing time (s)')
-            ax1.set_ylabel(to_compare, color=blue_color)
-            ax1.tick_params('y', colors=blue_color)
+            ax1.set_ylabel(to_compare, color=hp.blue_color)
+            ax1.tick_params('y', colors=hp.blue_color)
 
             # Plot Difficulty
             ax2 = ax1.twinx()
-            ax2.plot(df_num_resampled['Time'], df_num_resampled['physDifficulty'], green_color)
-            ax2.set_ylabel('physDifficulty', color=green_color)
-            ax2.tick_params('y', colors=green_color)
+            ax2.plot(df_num_resampled['Time'], df_num_resampled['physDifficulty'], hp.green_color)
+            ax2.set_ylabel('physDifficulty', color=hp.green_color)
+            ax2.tick_params('y', colors=hp.green_color)
             ax2.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
             plt.title('Difficulty and ' + to_compare + ' for user ' + sd.names_logfiles[idx])
             hp.save_plot(plt, 'Logfiles/', to_compare + ' Difficulty Corr/' + to_compare + '_difficulty_' +
@@ -266,9 +264,9 @@ def plot_hr_or_points_corr_with_difficulty(to_compare):
 '''
 
 
-def get_number_of_obstacles_per_difficulty():
+def _get_number_of_obstacles_per_difficulty():
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
-    conc_num = transform_df_to_numbers(conc_dataframes) # Transform Difficulties into integers
+    conc_num = _transform_df_to_numbers(conc_dataframes) # Transform Difficulties into integers
     # count num.obstacle parts per obstacle
     new = conc_num['obstacle'].apply(lambda x: 0 if x == 'none' else x.count(",") + 1)
     conc_num = conc_num.assign(numObstacles=new)
@@ -286,9 +284,9 @@ def get_number_of_obstacles_per_difficulty():
     return numObst
 
 
-def plot_difficulty_vs_size_obstacle_scatter_plot():
+def _plot_difficulty_vs_size_obstacle_scatter_plot():
     plt.figure()
-    values = get_number_of_obstacles_per_difficulty()
+    values = _get_number_of_obstacles_per_difficulty()
 
     for i in [0, 1, 2]:
         li = values[5 * i:5 * i + 5]
@@ -308,7 +306,7 @@ def plot_difficulty_vs_size_obstacle_scatter_plot():
     hp.save_plot(plt, 'Logfiles/', 'corr_difficulty_vs_num_obstacles.pdf')
 
 
-def print_obstacle_information():
+def _print_obstacle_information():
     # Idea: Get % of crashes per difficulty level
     # remove first max(hw, cw, gradient_w) seconds (to be consistent with --print_key_numbers_logfiles)
     max_window = max(f_factory.hw, f_factory.cw, f_factory.gradient_w)
@@ -331,9 +329,9 @@ def print_obstacle_information():
           ', i.e. ' + str(round(grouped2[5] / grouped2[6], 2) * 100) + '%.')
 
 
-def plot_hr_vs_difficulty_scatter_plot():
+def _plot_hr_vs_difficulty_scatter_plot():
     df = pd.concat(sd.df_list, ignore_index=True)
-    df_num = transform_df_to_numbers(df)
+    df_num = _transform_df_to_numbers(df)
     df_num.set_index('timedelta', inplace=True)
     resolution = 10
     # resample and take mean over difficulty. This means that a point can now have a difficulty "between"
@@ -350,9 +348,9 @@ def plot_hr_vs_difficulty_scatter_plot():
     hp.save_plot(plt, 'Logfiles/', 'corr_difficulty_vs_heartrate.pdf')
 
 
-def plot_crashes_vs_size_of_obstacle():
+def _plot_crashes_vs_size_of_obstacle():
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
-    conc_dataframes = transform_df_to_numbers(conc_dataframes)
+    conc_dataframes = _transform_df_to_numbers(conc_dataframes)
     new = conc_dataframes['obstacle'].apply(
         lambda x: 0 if x == 'none' else x.count(",") + 1)  # count number of obstacle parts per obstacle
     conc_num = conc_dataframes.assign(numObstacles=new)
@@ -380,11 +378,11 @@ def plot_crashes_vs_size_of_obstacle():
     hp.save_plot(plt, 'Logfiles/', 'crashes_percentage_per_size_of_obstacles.pdf')
 
 
-def crashes_per_obstacle_arrangement():
+def _crashes_per_obstacle_arrangement():
     import collections
 
     df = pd.concat(sd.df_list, ignore_index=True)
-    conc_dataframes = transform_df_to_numbers(df)
+    conc_dataframes = _transform_df_to_numbers(df)
 
     # For each obstacle-arrangement, make a dictionary-entry with a list [#occurences, #crashes]
     obst_dict = {}

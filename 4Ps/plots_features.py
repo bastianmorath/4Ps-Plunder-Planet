@@ -2,25 +2,21 @@
 This module is responsible for generating plots that are involved with features
 
 """
-from math import ceil
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
+import seaborn as sb
+import graphviz
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from sklearn import tree
 from sklearn.preprocessing import MinMaxScaler
 
 import classifiers
-import features_factory as f_factory
-import graphviz
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
 import plots_helpers as hp
+import features_factory as f_factory
 import setup_dataframes as sd
 
-green_color = '#AEBD38'
-blue_color = '#68829E'
-red_color = '#A62A2A'
 
 """
 Plots concerned with features
@@ -37,13 +33,13 @@ def generate_plots_about_features(X, y):
     :return:
     """
     # fp.plot_scores_with_different_feature_selections()
-    plot_crashes_vs_timedelta(X)
-    plot_corr_knn_distr(X, y)
-    plot_timedeltas_and_crash_per_logfile(do_normalize=True)
-    plot_feature_distributions(X)
-    plot_mean_value_of_feature_at_crash(X, y)
+    _plot_crashes_vs_timedelta(X)
+    _plot_corr_knn_distr(X, y)
+    _plot_timedeltas_and_crash_per_logfile(do_normalize=True)
+    _plot_feature_distributions(X)
+    _plot_mean_value_of_feature_at_crash(X, y)
     for i in range(0, len(f_factory.feature_names)):
-        plot_feature(X, i)
+        _plot_feature(X, i)
 
 
 def plot_graph_of_decision_classifier(model, X, y):
@@ -91,16 +87,16 @@ def plot_correlation_matrix(X):
     """
 
     corr = X.corr()
-    sns.set(style="white")
+    sb.set(style="white")
     # Generate a mask for the upper triangle
     mask = np.zeros_like(corr, dtype=np.bool)
     mask[np.triu_indices_from(mask)] = True
     # Set up the matplotlib figure
     plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
     # Generate a custom diverging colormap
-    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    cmap = sb.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
+    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
 
     # plt.tight_layout()
@@ -111,7 +107,7 @@ def plot_correlation_matrix(X):
         hp.save_plot(plt, 'Features/', 'correlation_matrix_all_features.pdf')
 
 
-def plot_feature_distributions(X):
+def _plot_feature_distributions(X):
     """Plots the distribution of the features in separate plots
 
     :param X: Feature matrix
@@ -134,7 +130,7 @@ def plot_feature_distributions(X):
         hp.save_plot(plt, 'Features/Feature_distributions/', filename)
 
 
-def plot_mean_value_of_feature_at_crash(X, y):
+def _plot_mean_value_of_feature_at_crash(X, y):
     """For each feature, print the average of it when there was a crash vs. there was no crash
 
     :param X: Feature matrix
@@ -169,7 +165,7 @@ def plot_mean_value_of_feature_at_crash(X, y):
         hp.save_plot(plt, 'Features/Crash Correlation/', filename)
 
 
-def plot_feature(X, i):
+def _plot_feature(X, i):
     """Plots the feature at position i of each logfile over time
 
     :param X: Feature matrix
@@ -194,11 +190,11 @@ def plot_feature(X, i):
 
         plt.scatter(crash_times, crash_values, c='r', marker='.', label='crash')
         plt.legend()
-        ax1.plot(times, samples, c=blue_color)
+        ax1.plot(times, samples, c=hp.blue_color)
         ax1.set_xlabel('Playing time (s)')
-        ax1.set_ylabel(feature_name, color=blue_color)
+        ax1.set_ylabel(feature_name, color=hp.blue_color)
         plt.title('Feature ' + feature_name + ' for user ' + str(idx))
-        ax1.tick_params('y', colors=blue_color)
+        ax1.tick_params('y', colors=hp.blue_color)
         plt.ylim([max(np.mean(X[:, i]) - 2*np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
         ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
         ax1.set_axisbelow(True)
@@ -210,7 +206,7 @@ def plot_feature(X, i):
         hp.save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
 
 
-def plot_crashes_vs_timedelta(X):
+def _plot_crashes_vs_timedelta(X):
     print("Plotting percentage crashes vs timedelta...")
 
     timedelta_values_at_crashes = []
@@ -289,12 +285,12 @@ def plot_crashes_vs_timedelta(X):
     plt.xticks(np.arange(len(value_list)) + bar_width/2, rotation='vertical')
     ax.set_xticklabels(x_tick_labels)
     # ax.set_ylim(0, ceil(max(value_list) * 10) / 10.0)
-    plt.bar(np.arange(len(value_list)), value_list, color=blue_color, width=bar_width, label='Crashes (%)')
+    plt.bar(np.arange(len(value_list)), value_list, color=hp.blue_color, width=bar_width, label='Crashes (%)')
 
     ax2 = ax.twinx()
-    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=red_color, width=bar_width, label='Occurences')
-    ax2.set_ylabel('Occurences', color=red_color)
-    ax2.tick_params('y', colors=red_color)
+    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=hp.red_color, width=bar_width, label='Occurences')
+    ax2.set_ylabel('Occurences', color=hp.red_color)
+    ax2.tick_params('y', colors=hp.red_color)
 
     # Add legend with two axis
     lines, labels = ax.get_legend_handles_labels()
@@ -308,7 +304,7 @@ def plot_crashes_vs_timedelta(X):
     hp.save_plot(plt, 'Features/', 'percentage_crashes_vs_timedelta.pdf')
 
 
-def plot_corr_knn_distr(X, y):
+def _plot_corr_knn_distr(X, y):
     """
     Creates 3 plots using seaborn
     1. Correlations between different features and class labels
@@ -357,19 +353,19 @@ def plot_corr_knn_distr(X, y):
 
         plt.subplot()
 
-        g = sns.jointplot(X[:, 0], X[:, 1], kind='reg')
+        g = sb.jointplot(X[:, 0], X[:, 1], kind='reg')
 
         g.ax_joint.cla()
         plt.sca(g.ax_joint)
 
-        colors = [red_color if i == 1 else green_color for i in y]
+        colors = [hp.red_color if i == 1 else hp.green_color for i in y]
         plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
         plt.xticks([0, 1], ['False', 'True'])
         plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
         plt.ylabel('Time to last obstacle')
         plt.xlabel('Crash at last obstacle')
-        green_patch = mpatches.Patch(color=green_color, label='no crash')
-        red_patch = mpatches.Patch(color=red_color, label='crash')
+        green_patch = mpatches.Patch(color=hp.green_color, label='no crash')
+        red_patch = mpatches.Patch(color=hp.red_color, label='crash')
 
         plt.legend(handles=[green_patch, red_patch])
 
@@ -404,7 +400,7 @@ def plot_corr_knn_distr(X, y):
     '''
 
 
-def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
+def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
     """Plots for each logfile the mean and std of timedelta_to_last_obst at each obstacle  and if a crash or not happened
 
     :return:
@@ -470,7 +466,7 @@ def plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         hp.save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)
 
 
-def plot_scores_with_different_feature_selections():
+def _plot_scores_with_different_feature_selections():
     """ After trying different feature selcetions, I plot the scores for each classifier in a barchart.
         Note: The numbers were colelcted by analyzsing the performances!
 
