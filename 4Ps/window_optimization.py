@@ -9,12 +9,12 @@
 from __future__ import division  # s.t. division uses float result
 from __future__ import print_function
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
+import features_factory as f_factory
 import model_factory
 import plots_helpers
-import features_factory as f_factory
 
 
 def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):

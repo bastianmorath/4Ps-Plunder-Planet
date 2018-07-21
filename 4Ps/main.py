@@ -10,6 +10,7 @@ from __future__ import print_function
 import time
 
 import matplotlib
+
 matplotlib.use('Agg')
 
 import LSTM
@@ -28,7 +29,6 @@ import hyperparameter_optimization
 
 # TODO: Structure modules with comments s.a. helpers, main, PRivate etc.
 # TODO: clean up comments
-
 
 def main(args):
 

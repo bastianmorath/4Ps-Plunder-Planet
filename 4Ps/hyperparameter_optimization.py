@@ -9,16 +9,17 @@ from __future__ import print_function
 
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
+
 from sklearn.model_selection import RandomizedSearchCV
 
 import classifiers
+import features_factory as f_factory
 import model_factory
 import plots_helpers
-import features_factory as f_factory
 import synthesized_data
 
 

@@ -2,13 +2,14 @@
 This module is responsible to generate features from the data/logfiles
 
 """
-import math
-import os
 import itertools
+import os
 from pathlib import Path
 
+import math
 import numpy as np
 import pandas as pd
+
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
 

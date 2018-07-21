@@ -6,23 +6,24 @@ from __future__ import division  # s.t. division uses float result
 import os
 import random
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (
     auc, roc_curve, confusion_matrix, precision_recall_curve
 )
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.model_selection import (
     cross_validate, train_test_split, cross_val_predict
 )
-from sklearn.feature_selection import SelectFromModel
 
 import classifiers
-import plots_helpers
 import features_factory as f_factory
-import setup_dataframes as sd
 import hyperparameter_optimization
+import plots_helpers
+import setup_dataframes as sd
+
 
 # High level functions
 

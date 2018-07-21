@@ -3,18 +3,19 @@ This module is responsible for generating plots that are involved with features
 
 """
 
+import graphviz
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
-import graphviz
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+
 from sklearn import tree
 from sklearn.preprocessing import MinMaxScaler
 
 import classifiers
-import plots_helpers as hp
 import features_factory as f_factory
+import plots_helpers as hp
 import setup_dataframes as sd
 
 
@@ -155,8 +156,8 @@ def _plot_mean_value_of_feature_at_crash(X, y):
 
         plt.subplots()
 
-        plt.bar(1,  mean_when_no_crash, width=0.5, yerr=std_when_crash)
-        plt.bar(2,  mean_when_crash, width=0.5, yerr=std_when_no_crash)
+        plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_crash)
+        plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_no_crash)
         plt.ylim(0)
         plt.xticks([1, 2], ['No crash', 'Crash'])
 
@@ -173,7 +174,7 @@ def _plot_feature(X, i):
     :param i: Feature index to plot (look at features_factoy for order)
 
     """
-        
+
     print('Plotting feature ' + f_factory.feature_names[i] + ' of each logfile over time...')
 
     # df_num_resampled = resample_dataframe(samples, resolution)
@@ -182,7 +183,7 @@ def _plot_feature(X, i):
         obst_df = sd.obstacle_df_list[idx]
         times = obst_df['Time']
         start = sum([len(l) for l in sd.obstacle_df_list[:idx]])
-        samples = list(X[start:start+len(times), i])
+        samples = list(X[start:start + len(times), i])
         _, ax1 = plt.subplots()
 
         # Plot crashes
@@ -196,7 +197,7 @@ def _plot_feature(X, i):
         ax1.set_ylabel(feature_name, color=hp.blue_color)
         plt.title('Feature ' + feature_name + ' for user ' + str(idx))
         ax1.tick_params('y', colors=hp.blue_color)
-        plt.ylim([max(np.mean(X[:, i]) - 2*np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
+        plt.ylim([max(np.mean(X[:, i]) - 2 * np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
         ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
         ax1.set_axisbelow(True)
         # [i.set_linewidth(0.3) for i in ax1.spines.values()]
@@ -293,7 +294,7 @@ def _plot_crashes_vs_timedelta(X):
     plt.title('Percentage of crashes depending on timedelta')
     plt.ylabel('crashes (%)')
     plt.xlabel('timedelta to previous obstacle (s, normalized)')
-    plt.xticks(np.arange(len(value_list)) + bar_width/2, rotation='vertical')
+    plt.xticks(np.arange(len(value_list)) + bar_width / 2, rotation='vertical')
     ax.set_xticklabels(x_tick_labels)
     # ax.set_ylim(0, ceil(max(value_list) * 10) / 10.0)
     plt.bar(np.arange(len(value_list)), value_list, color=hp.blue_color, width=bar_width, label='Crashes (%)')
@@ -355,7 +356,7 @@ def _plot_corr_knn_distr(X, y):
     y_old = y
 
     # 2. Plot features and labels in a scatter plot and the histogram on top
-    for i in range(0, len(sd.df_list)+1):
+    for i in range(0, len(sd.df_list) + 1):
         if i == len(sd.df_list):  # Do the plot with the entire feature matrix
             X = X_old
             y = y_old
@@ -371,7 +372,7 @@ def _plot_corr_knn_distr(X, y):
         plt.sca(g.ax_joint)
 
         colors = [hp.red_color if i == 1 else hp.green_color for i in y]
-        plt.scatter(X[:, 0],  X[:, 1], c=colors, alpha=0.3, s=150)
+        plt.scatter(X[:, 0], X[:, 1], c=colors, alpha=0.3, s=150)
         plt.xticks([0, 1], ['False', 'True'])
         plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
         plt.ylabel('Time to last obstacle')
@@ -423,7 +424,7 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         computed_timedeltas = []
         for i in range(0, len(df.index)):
             current_obstacle_row = df.iloc[i]
-            previous_obstacle_row = df.iloc[i-1] if i > 0 else current_obstacle_row
+            previous_obstacle_row = df.iloc[i - 1] if i > 0 else current_obstacle_row
             timedelta = current_obstacle_row['Time'] - previous_obstacle_row['Time']
 
             # Clamp outliers (e.g. because of tutorials etc.). If timedelta >3, it's most likely e.g 33 seconds, so I
@@ -501,7 +502,7 @@ def _plot_scores_with_different_feature_selections():
     line_width = 0.3
 
     index = np.arange(len(scores_timedelta_only))
-    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
+    ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
     ax.set_axisbelow(True)
     [i.set_linewidth(line_width) for i in ax.spines.values()]
 
@@ -515,12 +516,12 @@ def _plot_scores_with_different_feature_selections():
             label='timedelta_to_last_obst',
             )
 
-    plt.bar(index + 2*bar_width, scores_all_features, bar_width,
+    plt.bar(index + 2 * bar_width, scores_all_features, bar_width,
             color=hp.green_color,
             label='all features',
             )
 
-    plt.bar(index + 3*bar_width, scores_old_features, bar_width,
+    plt.bar(index + 3 * bar_width, scores_old_features, bar_width,
             color=hp.yellow_color,
             label='all features, but without timedelta_to_last_obst',
             )

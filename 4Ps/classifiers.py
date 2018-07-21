@@ -6,14 +6,14 @@ contain hyperparameters to do grid search over and the classifier obeject itself
 
 from scipy.stats import randint as sp_randint
 from scipy.stats import uniform
-from sklearn.svm import SVC, LinearSVC
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.ensemble import (
     AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 )
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
 
 import features_factory as f_factory
 
