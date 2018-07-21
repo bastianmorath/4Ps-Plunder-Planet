@@ -41,12 +41,12 @@ def generate_plots_about_logfiles():
 
 def _plot_heartrate_and_events():
     print("Plotting heartrate and events...")
-    resolution = 3
+    # resolution = 3
 
     for idx, df in enumerate(sd.df_list):
         if not (df['Heartrate'] == -1).all():
 
-            df_num_resampled = hp.resample_dataframe(df, resolution)
+            # df_num_resampled = hp.resample_dataframe(df, resolution)
             df_num_resampled = df
             # Plot Heartrate
             _, ax1 = plt.subplots()
@@ -59,7 +59,7 @@ def _plot_heartrate_and_events():
             times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
             heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
                                  for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
-            s = plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='crash')
+            plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='crash')
 
             # Plot Brokenships
             times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'BROKENSHIP']
@@ -75,14 +75,8 @@ def _plot_heartrate_and_events():
             for xc in times_repairing:
                 plt.vlines(x=xc, ymin=hr_min, ymax=hr_max + 0.2, color='g', linewidth=1, label='Shield tutorial')
 
-            # Plot worms appearing
-            times_worms = [row['Time'] for _, row in df.iterrows()
-                           if (row['obstacle'] == 'FARBOTTOMLEFT') or (row['obstacle'] == 'FARBOTTOMRIGHT')]
-            heartrate_worms = [df[df['Time'] == time].iloc[0]['Heartrate'] for time in times_worms]
-            # plt.scatter(times_worms, heartrate_worms, c='g', marker='o', s=15)
-
             handles, labels = plt.gca().get_legend_handles_labels()
-            by_label = OrderedDict(zip(labels, handles)) # Otherwise we'd have one label for each vline
+            by_label = OrderedDict(zip(labels, handles))  # Otherwise we'd have one label for each vline
             plt.legend(by_label.values(), by_label.keys())
 
             filename = 'hr_and_events_' + sd.names_logfiles[idx] + '.pdf'
@@ -123,7 +117,7 @@ def _plot_heartrate_histogram():
     df = df[df['Heartrate'] != -1]['Heartrate']
     plt.hist(df)
     plt.title('Histogram of HR: $\mu=%.3f$, $\sigma=%.3f$'
-              % (np.mean(df), np.std(df)))
+              % (float(np.mean(df)), float(np.std(df))))
     ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
     ax.set_axisbelow(True)
     [i.set_linewidth(0.3) for i in ax.spines.values()]
@@ -235,8 +229,6 @@ def _plot_hr_or_points_corr_with_difficulty(to_compare):
     for idx, df in enumerate(sd.df_list):
         df = _transform_df_to_numbers(df)
         if not (df['Heartrate'] == -1).all():
-            X=[]
-            X.append(idx)
             df_num_resampled = hp.resample_dataframe(df, resolution)
             # Plot Heartrate
             fig, ax1 = plt.subplots()
@@ -253,10 +245,10 @@ def _plot_hr_or_points_corr_with_difficulty(to_compare):
             ax2.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
             plt.title('Difficulty and ' + to_compare + ' for user ' + sd.names_logfiles[idx])
             hp.save_plot(plt, 'Logfiles/', to_compare + ' Difficulty Corr/' + to_compare + '_difficulty_' +
-                      str(sd.names_logfiles[idx]) + '.pdf')
+                         str(sd.names_logfiles[idx]) + '.pdf')
 
 
-'''Returns a list which says how many times the obstacle has size {0,1,2,3,4}  for each difficulty level {1,2,3} in the form
+'''Returns a list which says how many times the obstacle has size {0,1,2,3,4} for each difficulty level in the form
     [0, 0, 0, 0, 0, 0, 143, 0, 581, 25, 0, 2659, 0, 299, 5589]
     # occurences where obstacle had size 0 in Diff=LOW, ... , 
     # occurences where obstacle had size 4 in Diff=LOW,
@@ -266,7 +258,7 @@ def _plot_hr_or_points_corr_with_difficulty(to_compare):
 
 def _get_number_of_obstacles_per_difficulty():
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
-    conc_num = _transform_df_to_numbers(conc_dataframes) # Transform Difficulties into integers
+    conc_num = _transform_df_to_numbers(conc_dataframes)  # Transform Difficulties into integers
     # count num.obstacle parts per obstacle
     new = conc_num['obstacle'].apply(lambda x: 0 if x == 'none' else x.count(",") + 1)
     conc_num = conc_num.assign(numObstacles=new)
@@ -278,7 +270,7 @@ def _get_number_of_obstacles_per_difficulty():
     for a in range(0, len(cnt.index)):
         d = cnt['physDifficulty'][a]
         o = cnt['numObstacles'][a]
-        if not o == 0: # Filter out when there is no obstacle at all
+        if not o == 0:  # Filter out when there is no obstacle at all
             numObst[(d-1)*5+o] = cnt['count'][count]
         count += 1
     return numObst
@@ -316,16 +308,16 @@ def _print_obstacle_information():
 
     grouped2 = df.groupby(['physDifficulty', 'Logtype']).size()
 
-    print('\nOn physDifficulty=HIGH, there were ' + str(grouped2[2]+grouped2[1]) + \
-          ' obstacles, out of which the user crashed ' + str(grouped2[1]) + \
+    print('\nOn physDifficulty=HIGH, there were ' + str(grouped2[2]+grouped2[1]) +
+          ' obstacles, out of which the user crashed ' + str(grouped2[1]) +
           ', i.e. ' + str(round(grouped2[1] / grouped2[2], 2) * 100) + '%.')
 
-    print('On physDifficulty=MEDIUM, there were ' + str(grouped2[10] + grouped2[9]) + \
-          ' obstacles, out of which the user crashed ' + str(grouped2[9]) + \
+    print('On physDifficulty=MEDIUM, there were ' + str(grouped2[10] + grouped2[9]) +
+          ' obstacles, out of which the user crashed ' + str(grouped2[9]) +
           ', i.e. ' + str(round(grouped2[9] / grouped2[10], 2) * 100) + '%.')
 
-    print('On physDifficulty=LOW, there were ' + str(grouped2[6]+grouped2[5]) + \
-          ' obstacles, out of which the user crashed ' + str(grouped2[5]) + \
+    print('On physDifficulty=LOW, there were ' + str(grouped2[6]+grouped2[5]) +
+          ' obstacles, out of which the user crashed ' + str(grouped2[5]) +
           ', i.e. ' + str(round(grouped2[5] / grouped2[6], 2) * 100) + '%.')
 
 
@@ -366,7 +358,7 @@ def _plot_crashes_vs_size_of_obstacle():
             sizeOfObstacle = row['numObstacles']
             num_crashes_per_size[sizeOfObstacle] += 1
 
-    percentage_of_crashes = [0 if (x == 0 or y == 0) else x / y *100.0 for x, y in
+    percentage_of_crashes = [0 if (x == 0 or y == 0) else x / y * 100.0 for x, y in
                              zip(num_crashes_per_size, num_obstacles_per_size)]
 
     x = [0, 1, 2, 3, 4]
@@ -394,7 +386,7 @@ def _crashes_per_obstacle_arrangement():
                 obst_dict[obstacle] = [obst_dict[obstacle][0] + 1, obst_dict[obstacle][1] + 1]
             else:
                 obst_dict[obstacle] = [1, 1]
-        if row['Logtype'] == 'EVENT_OBSTACLE': # TODO: Check if this is correct
+        if row['Logtype'] == 'EVENT_OBSTACLE':  # TODO: Check if this is correct
             obstacle = row['obstacle']
             if obstacle in obst_dict:
                 obst_dict[obstacle] = [obst_dict[obstacle][0] + 1, obst_dict[obstacle][1]]

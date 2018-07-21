@@ -45,7 +45,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
     
     Note: No machine learning specific things are done yet!
 
-    :param use_fewer_data: Whether we should only use a little part of the data or not (helps for faster debugging)
+    :param fewer_data: Whether we should only use a little part of the data or not (helps for faster debugging)
     :param normalize_heartrate: Whether we should normalize heartrate or not
     """
 
@@ -55,22 +55,24 @@ def setup(fewer_data=False, normalize_heartrate=True):
         # The very first time, we need to refactor the original logfiles to speed up everything afterwards
         refactoring.refactor_crashes()
 
+    '''
     all_names = [
         f
         for f in sorted(os.listdir(abs_path_logfiles))
-        if re.search(r".{0,}_hr.{0,}.log", f)
+        if re.search(r".*_hr.*.log", f)
     ]
 
     kinect_names_hr = [
         f
         for f in sorted(os.listdir(abs_path_logfiles))
-        if re.search(r".{0,}Kinect_hr.{0,}.log", f)
+        if re.search(r".*Kinect_hr.*.log", f)
     ]
-    
+    '''
+
     fbmc_names_hr_points = [
         f
         for f in sorted(os.listdir(abs_path_logfiles))
-        if re.search(r".{0,}FBMC_hr_(1|2).{0,}.log", f)  # TODO: Stefan is not considered..
+        if re.search(r".*FBMC_hr_([12]).*.log", f)  # TODO: Stefan is not considered..
     ]
 
     sorted_names = sorted(fbmc_names_hr_points)
@@ -141,9 +143,9 @@ def print_keynumbers_logfiles():
         df_lengths.append(d["Time"].max())
     print(
         "\taverage length: "
-        + str(round(np.mean(df_lengths), 2))
+        + str(round(float(np.mean(df_lengths)), 2))
         + ", std: "
-        + str(round(np.std(df_lengths), 2))
+        + str(round(float(np.std(df_lengths)), 2))
         + ", max: "
         + str(round(np.max(df_lengths), 2))
         + ", min: "
@@ -210,7 +212,7 @@ def _normalize_heartrate_of_logfiles():
             tutorial_entries = dataframe[tutorial_mask]
             tutorial_endtime = tutorial_entries['Time'].max()
 
-            baseline = dataframe[dataframe["Time"] < tutorial_endtime]["Heartrate"].min() # Use MINIMUM of tutorial 
+            baseline = dataframe[dataframe["Time"] < tutorial_endtime]["Heartrate"].min()  # Use MINIMUM of tutorial
             if baseline == -1:
                 print('ERROR: No Heartrate data!!!')
                 baseline = 120

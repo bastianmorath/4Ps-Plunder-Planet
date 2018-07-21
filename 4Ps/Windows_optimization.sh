@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 # This script tries out different window sizes and sends a job to the Euler-cluster which
 # does RandomizedSearchCV for all classifiers
@@ -9,7 +10,7 @@ do
     do
         for cw in 2 10 30 60
         do
-            bsub -W 240:00 python "$PWD"/window_optimization.py $hw $cw $gradient_w
+            bsub -W 240:00 python "$PWD"/window_optimization.py ${hw} ${cw} ${gradient_w}
         done
     done
 done

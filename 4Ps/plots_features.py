@@ -26,12 +26,12 @@ Plots concerned with features
 
 def generate_plots_about_features(X, y):
     """
+    Generatie plots that are involved with features
 
-    :param X:
-    :param y:
-    :param scaler:  Scaler used to scale feature matrix. Can be used transform them back
-    :return:
+    :param X: Feature matrix
+    :param y: labels
     """
+
     # fp.plot_scores_with_different_feature_selections()
     _plot_crashes_vs_timedelta(X)
     _plot_corr_knn_distr(X, y)
@@ -97,7 +97,7 @@ def plot_correlation_matrix(X):
     cmap = sb.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
     sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
-                square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
+               square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
 
     # plt.tight_layout()
     if f_factory.use_reduced_features:
@@ -120,7 +120,9 @@ def _plot_feature_distributions(X):
         x = X[:, idx]
         plt.figure()
         if feature == 'timedelta_to_last_obst':
-            plt.hist(x, bins=np.arange(np.mean(x) - 2 * np.std(x), np.mean(x) + 2* np.std(x), 0.005))
+            mean: float = np.mean(x)
+            std_dev: float = np.std(x)
+            plt.hist(x, bins=np.arange(mean - 2 * std_dev, mean + 2 * std_dev, 0.005))
         else:
             plt.hist(x)
 
@@ -151,8 +153,7 @@ def _plot_mean_value_of_feature_at_crash(X, y):
         std_when_crash = np.std([l[i] for l in rows_with_crash])
         std_when_no_crash = np.std([l[i] for l in rows_without_crash])
 
-
-        _, _ = plt.subplots()
+        plt.subplots()
 
         plt.bar(1,  mean_when_no_crash, width=0.5, yerr=std_when_crash)
         plt.bar(2,  mean_when_crash, width=0.5, yerr=std_when_no_crash)
@@ -237,38 +238,48 @@ def _plot_crashes_vs_timedelta(X):
         conc = timedelta_values_at_crashes + timedelta_values_at_non_crashes
         try:
             if i == 0:
-                return (len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]) / len([x for x in conc if 0.0 <= x <= 0.1]),
+                return (len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]) /
+                        len([x for x in conc if 0.0 <= x <= 0.1]),
                         len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]))
             if i == 1:
-                return (len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]) / len([x for x in conc if 0.1 <= x <= 0.2]),
+                return (len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]) /
+                        len([x for x in conc if 0.1 <= x <= 0.2]),
                         len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]))
             if i == 2:
-                return (len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]) / len([x for x in conc if 0.2 <= x <= 0.3]),
+                return (len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]) /
+                        len([x for x in conc if 0.2 <= x <= 0.3]),
                         len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]))
             if i == 3:
-                return (len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]) / len([x for x in conc if 0.3 <= x <= 0.4]),
+                return (len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]) /
+                        len([x for x in conc if 0.3 <= x <= 0.4]),
                         len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]))
             if i == 4:
-                return (len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) / len([x for x in conc if 0.4 <= x < 0.5]),
+                return (len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) /
+                        len([x for x in conc if 0.4 <= x < 0.5]),
                         len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]))
             if i == 5:
-                return (len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) / len([x for x in conc if 0.5 <= x < 0.6]),
+                return (len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) /
+                        len([x for x in conc if 0.5 <= x < 0.6]),
                         len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]))
             if i == 6:
-                return (len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) / len([x for x in conc if 0.6 <= x < 0.7]),
+                return (len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) /
+                        len([x for x in conc if 0.6 <= x < 0.7]),
                         len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]))
             if i == 7:
-                return (len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) / len([x for x in conc if 0.7 <= x < 0.8]),
+                return (len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) /
+                        len([x for x in conc if 0.7 <= x < 0.8]),
                         len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]))
             if i == 8:
-                return (len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]) / len([x for x in conc if 0.8 <= x <= 0.9]),
+                return (len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]) /
+                        len([x for x in conc if 0.8 <= x <= 0.9]),
                         len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]))
             if i == 9:
-                return (len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]) / len([x for x in conc if 0.9 <= x <= 1.0]),
+                return (len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]) /
+                        len([x for x in conc if 0.9 <= x <= 1.0]),
                         len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]))
 
         except ZeroDivisionError:
-            return (0, 0)
+            return 0, 0
 
     x_tick_labels = ['[0.0, 0.1]', '[0.1, 0.2]', '[0.2, 0.3]', '[0.3, 0.4]', '[0.4, 0.5]', '[0.5, 0.6]', '[0.6, 0.7]',
                      '[0.7, 0.8]', '[0.8, 0.9]', '[0.9, 1.0]']
@@ -288,7 +299,8 @@ def _plot_crashes_vs_timedelta(X):
     plt.bar(np.arange(len(value_list)), value_list, color=hp.blue_color, width=bar_width, label='Crashes (%)')
 
     ax2 = ax.twinx()
-    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=hp.red_color, width=bar_width, label='Occurences')
+    plt.bar(np.arange(len(value_list)) + bar_width, occurences_list, color=hp.red_color, width=bar_width,
+            label='Occurences')
     ax2.set_ylabel('Occurences', color=hp.red_color)
     ax2.tick_params('y', colors=hp.red_color)
 
@@ -466,6 +478,7 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         hp.save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)
 
 
+# NOTE: Not used anymore!!
 def _plot_scores_with_different_feature_selections():
     """ After trying different feature selcetions, I plot the scores for each classifier in a barchart.
         Note: The numbers were colelcted by analyzsing the performances!
@@ -476,10 +489,10 @@ def _plot_scores_with_different_feature_selections():
         4. old features (=all features without timedelta_to_last_obst)
 
     """
-    # TODO: Only use all or reduced features
+    # TODO: Update scores...
 
     scores_timedelta_only = [0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
-    scores_timedelta_and_last_obst_crash = [ 0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
+    scores_timedelta_and_last_obst_crash = [0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
     scores_all_features = [0.68, 0.68, 0.61, 0.64, 0.96, 0.95, 0.965, 0.65]
     scores_old_features = [0.62, 0.63, 0.57, 0.622, 0.53, 0.6, 0.64, 0.74]
 
@@ -492,26 +505,25 @@ def _plot_scores_with_different_feature_selections():
     ax.set_axisbelow(True)
     [i.set_linewidth(line_width) for i in ax.spines.values()]
 
+    plt.bar(index, scores_timedelta_and_last_obst_crash, bar_width,
+            color=hp.red_color,
+            label='timedelta_to_last_obst + last_obstacle_crash',
+            )
 
-    r1 = plt.bar(index, scores_timedelta_and_last_obst_crash, bar_width,
-                 color=hp.red_color,
-                 label='timedelta_to_last_obst + last_obstacle_crash',
-                 )
+    plt.bar(index + bar_width, scores_timedelta_only, bar_width,
+            color=hp.blue_color,
+            label='timedelta_to_last_obst',
+            )
 
-    r2 = plt.bar(index + bar_width, scores_timedelta_only, bar_width,
-                 color=hp.blue_color,
-                 label='timedelta_to_last_obst',
-                 )
+    plt.bar(index + 2*bar_width, scores_all_features, bar_width,
+            color=hp.green_color,
+            label='all features',
+            )
 
-    r3 = plt.bar(index + 2*bar_width, scores_all_features, bar_width,
-                 color=hp.green_color,
-                 label='all features',
-                 )
-
-    r4 = plt.bar(index + 3*bar_width, scores_old_features, bar_width,
-                 color=hp.yellow_color,
-                 label='all features, but without timedelta_to_last_obst',
-                 )
+    plt.bar(index + 3*bar_width, scores_old_features, bar_width,
+            color=hp.yellow_color,
+            label='all features, but without timedelta_to_last_obst',
+            )
 
     plt.ylabel('roc_auc')
     plt.title('roc_auc when selecting different features')

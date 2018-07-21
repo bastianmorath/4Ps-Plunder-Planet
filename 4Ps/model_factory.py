@@ -34,7 +34,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
 
     :param X: feature matrix
     :param y: labels
-    :param tune_hyperparameters: Whether or not hyperparameter should be tuned (RandomizedSearchCV) -> To simplify printing scores
+    :param tune_hyperparameters: Whether or not hyperparameter should be tuned
     :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_curves: Create roc_curves and precision_recall curve
@@ -109,7 +109,8 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     return roc_scores, roc_scores_std, s
 
 
-def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True, do_write_to_file=False, create_curves=True):
+def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True, do_write_to_file=False,
+                    create_curves=True):
     """Computes performance of the model by doing cross validation with 10 folds, using
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
         as a string (plus tuned hyperparameters optionally)
@@ -187,6 +188,7 @@ def write_to_file(string, folder, filename, mode, verbose=True):
         :param folder: Folder to be saved to
         :param filename: The name (.pdf) under which the plot should be saved\
         :param mode: w+, a+, etc..
+        :param verbose: Print path of saved file
 
     """
     path = sd.working_directory_path + '/Evaluation/' + folder + '/'
@@ -223,13 +225,20 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
     """
     Creates a formatted string from the performance scores, confusion matrix and optionally the tuned hyperparameters
 
-    :param clf_name: name of the classifier
-    :param conf_mat: confusion matrice
-    :param tuned_params_dict: Dictionary containing the tuned parameters and its values
+    :param clf_name:            name of the classifier
+    :param roc_auc_mean:        roc_auc mean
+    :param roc_auc_std:         roc_auc standard deviation
+    :param recall_mean:         recall mean
+    :param recall_std:          recall standard deviation
+    :param specificity_mean:    specificity  mean
+    :param precision_mean:      precision mean
+    :param precision_std:       precision standard deviation
+    :param conf_mat:            confusion matrice
+    :param tuned_params_dict:   Dictionary containing the tuned parameters and its values
 
-    :return: String
-
+    :return: Formatted string from scores
     """
+
     if tuned_params_dict is None:
         s = '\n\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\troc_auc: %.3f (+-%.2f), ' \
@@ -247,8 +256,8 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
             'specificity: %.3f, ' \
             'precision: %.3f (+-%.2f) \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n' \
-            % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, tuned_params_dict, roc_auc_mean, roc_auc_std, recall_mean,
-               recall_std, specificity_mean, precision_mean, precision_std, conf_mat[0], conf_mat[1])
+            % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, tuned_params_dict, roc_auc_mean, roc_auc_std,
+               recall_mean, recall_std, specificity_mean, precision_mean, precision_std, conf_mat[0], conf_mat[1])
 
     return s
 
@@ -374,11 +383,12 @@ def _plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, file
 
 def plot_precision_recall_curve(classifier, X, y, filename):
     """
+    Plots and saves a precision recall curve
 
-    :param classifier:
-    :param y_true:
-    :param y_pred:
-    :return:
+    :param classifier:  Classifier to generate precision-recall curve from
+    :param X:           Feature matrix
+    :param y:           labels
+    :param filename:    Name of the file the plot should be stored to
     """
 
     # allows to add probability output to classifiers which implement decision_function()
@@ -500,8 +510,8 @@ def _test_clf_with_timedelta_only():
 
     print('Mean roc_auc score with cross_validate: ' + str(np.mean(score_dict['test_score'])))
 
-
-    ''' Timedeltas correctly computed
+    ''' 
+    # Timedeltas correctly computed
     timedeltas = f_factory.get_timedelta_last_obst_feature()['timedelta_to_last_obst']
     # print(sklearn.metrics.accuracy_score(timedeltas, x_train))
     for a, b in zip(timedeltas, x_train):

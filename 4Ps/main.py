@@ -10,6 +10,7 @@ from __future__ import print_function
 import time
 
 import matplotlib
+matplotlib.use('Agg')
 
 import LSTM
 import classifiers
@@ -24,11 +25,9 @@ import window_optimization
 import leave_one_group_out_cv
 import hyperparameter_optimization
 
-matplotlib.use('Agg')
 
 # TODO: Structure modules with comments s.a. helpers, main, PRivate etc.
-# TODO: clean up unused imports and code/commented code
-# TODO: fix all pep8 warnings
+# TODO: clean up comments
 
 
 def main(args):

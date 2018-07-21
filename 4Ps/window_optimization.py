@@ -81,8 +81,7 @@ def test_all_windows():
                 print(np.mean(auc_mean_scores))
                 print(np.min(auc_mean_scores))
                 print(auc_mean_scores[0])
-                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]# np.mean(auc_mean_scores)
-                # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]  # np.mean(auc_mean_scores)
             elif const_window == 'cw':
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=const_w,
@@ -96,8 +95,7 @@ def test_all_windows():
                 print(np.mean(auc_mean_scores))
                 print(np.min(auc_mean_scores))
                 print(auc_mean_scores[0])
-                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0] # np.mean(auc_mean_scores)
-                # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]  # np.mean(auc_mean_scores)
             else:
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=w2,
@@ -115,7 +113,6 @@ def test_all_windows():
                 # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
 
     mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly
-
 
     # Plot elements
     plt.subplot()

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# This script sends euler-jobs to compile, train and evaluate a LSTM network with different number of epochs
 
 bsub  python "$PWD"/main.py -m 80
 bsub  python "$PWD"/main.py -m 90

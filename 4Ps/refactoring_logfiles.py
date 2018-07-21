@@ -12,8 +12,8 @@ import pandas as pd
 
 import setup_dataframes as sd
 
-names_logfiles = []
-dataframes = []
+_names_logfiles = []
+_dataframes = []
 
 
 def _sanity_check():
@@ -27,9 +27,9 @@ def _sanity_check():
     """
     path_logfiles_original = sd.project_path + '/Logs/text_logs_original/'
 
-    names_logfiles = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
-                             if re.search(r'.log', f)])
-    for idx, name in enumerate(names_logfiles):
+    nl = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
+                if re.search(r'.log', f)])
+    for idx, name in enumerate(nl):
         path = path_logfiles_original + name
         if 'FK0410' in name:
             new_name = name.replace('w', '')
@@ -73,14 +73,14 @@ def add_log_and_user_column():
     """Add log_number and user_id
         Saves changes directly to globals.df_list
     """
-    global dataframes, names_logfiles
+    global _dataframes, _names_logfiles
 
-    last_name_abbr = names_logfiles[0][:2]
-    user_abbreviations = [f[:2] for f in names_logfiles]
+    last_name_abbr = _names_logfiles[0][:2]
+    user_abbreviations = [f[:2] for f in _names_logfiles]
     user_id = 0
 
-    for idx, dataframe in enumerate(dataframes):
-        name = names_logfiles[idx]
+    for idx, dataframe in enumerate(_dataframes):
+        name = _names_logfiles[idx]
         if not name[:2] == last_name_abbr:
             user_id += 1
         if not ('_' in name):  # No logfile number or sth.
@@ -92,7 +92,7 @@ def add_log_and_user_column():
             log_id = name[-7]
         df = dataframe.assign(userID=user_id)
         df = df.assign(logID=log_id)
-        dataframes[idx] = df
+        _dataframes[idx] = df
         last_name_abbr = name[:2]
 
 
@@ -109,7 +109,7 @@ def refactor_crashes():
 
     """
 
-    global names_logfiles, dataframes
+    global _names_logfiles, _dataframes
 
     # If there was a crash, then there would be an 'EVENT_CRASH' in the preceding around 1 seconds of the event
 
@@ -117,17 +117,17 @@ def refactor_crashes():
 
     _sanity_check()
 
-    names_logfiles = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
+    _names_logfiles = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
                              if re.search(r'.log', f)])
 
-    paths_logfiles = [sd.project_path + '/Logs/text_logs_original/' + name for name in names_logfiles]
+    paths_logfiles = [sd.project_path + '/Logs/text_logs_original/' + name for name in _names_logfiles]
 
     # This read_csv is used when using the original logfiles
     column_names = ['Time', 'Logtype', 'Gamemode', 'Points', 'Heartrate', 'physDifficulty',
                     'psyStress', 'psyDifficulty', 'obstacle']
 
-    dataframes = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False,
-                                  names=column_names) for log in paths_logfiles)
+    _dataframes = list(pd.read_csv(log, sep=';', skiprows=5, index_col=False,
+                                   names=column_names) for log in paths_logfiles)
 
     if not Path(sd.abs_path_logfiles).exists():
         os.mkdir(sd.abs_path_logfiles)
@@ -142,8 +142,8 @@ def refactor_crashes():
                 return index + cnt, df.loc[index + cnt]
             cnt += 1
 
-    for df_idx, dataframe in enumerate(dataframes):
-        old_name = names_logfiles[df_idx]
+    for df_idx, dataframe in enumerate(_dataframes):
+        old_name = _names_logfiles[df_idx]
         new_df = pd.DataFrame()
         count = 0
         obst_indices = []
@@ -169,7 +169,7 @@ def refactor_crashes():
         new_df = new_df.reindex(column_names, axis=1)
 
         # Create new name
-        new_name = old_name[:2]
+        new_name: str = old_name[:2]
 
         if 'Kinect' in old_name:
             new_name += '_Kinect'

@@ -76,6 +76,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     :param lbl: Name of the values label
     :param filename: filename to be stored
     :param std_err: if given, then plot std error of each bar
+    :param verbose: Print where the plot was saveed to
     :param plot_random_guess_line: If we plot roc_auc scores, we can plot a horizontal line at y=05 for random guess
 
     :return: The plot

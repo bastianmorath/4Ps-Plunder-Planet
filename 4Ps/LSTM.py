@@ -5,20 +5,17 @@ This module is responsible to for setting up, compiling, training and evaluating
 
 import random
 import itertools
-from functools import partial
 
 import keras
 import numpy as np
 import matplotlib.pyplot as plt
-from keras import optimizers, regularizers
+from keras import optimizers
 from numpy import array
 from sklearn import metrics
-from keras.layers import LSTM, K, Dense, Dropout, Masking, TimeDistributed
-from keras.models import Sequential, load_model
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers import LSTM, Dense, Dropout, Masking, TimeDistributed
+from keras.models import Sequential
 from sklearn.metrics import (
-    f1_score, recall_score, roc_auc_score, precision_score, confusion_matrix
-)
+    roc_auc_score, confusion_matrix, f1_score)
 from matplotlib.ticker import FormatStrFormatter
 from keras.preprocessing import sequence
 
@@ -26,28 +23,26 @@ import model_factory
 import plots_helpers
 import setup_dataframes as sd
 
-_maxlen = 0
-# _seed = 1  # Seed 1 or 6 give around 0.61 on both test and validation set
-# TODO: Save model in pickle file for later use
-# TODO: https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
+_maxlen = 0  # Length of the feature matrix of the logfile with the most obstacles
+_seed = 1  # Seed used to split into testtrain/test/val data
 
 
 def get_finalscore(X, y, n_epochs, verbose=0):
-    roc_aucs_mean = []
-    f1s_mean = []
-    for i in range(0, 25):
+    roc_aucs_mean: [float] = []
+    f1s_mean: [float] = []
+    for i in range(0, 2):
         roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose)
         roc_aucs_mean.append(roc_mean)
         f1s_mean.append(f1_mean)
 
-    print([round(r, 2) for r in roc_aucs_mean])
+    print([round(float(r), 2) for r in roc_aucs_mean])
 
     print('Max roc: ' + str(round(np.max(roc_aucs_mean), 3)))
-    print('Mean roc: ' + str(round(np.mean(roc_aucs_mean), 3)) +
-          ', (+-' + str(round(np.std(roc_aucs_mean), 3)) + ')')
+    print('Mean roc: ' + str(round(float(np.mean(roc_aucs_mean)), 3)) +
+          ', (+-' + str(round(float(np.std(roc_aucs_mean)), 3)) + ')')
     print('Max f1: ' + str(round(np.max(f1s_mean), 3)))
-    print('Mean f1: ' + str(round(np.mean(f1s_mean), 3)) +
-          ', (+-' + str(round(np.std(f1s_mean), 3)) + ')')
+    print('Mean f1: ' + str(round(float(np.mean(f1s_mean)), 3)) +
+          ', (+-' + str(round(float(np.std(f1s_mean)), 3)) + ')')
 
 
 def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
@@ -56,7 +51,8 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
 
     :param X: List of non-reshaped/original feature matrices (one per logfile)
     :param y: labels
-
+    :param n_epochs: Number of epochs the model should be trained
+    :param verbose: verbose mode of keras_model.fit
     :return mean auroc, std auroc
     """
 
@@ -74,8 +70,7 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
     print('Performance training set: ')
     _calculate_performance(X_lstm, y_lstm, trained_model)
     print('Performance test set: ')
-    mean_auroc, std_auroc = _calculate_performance(X_test_list, y_test_list
-                                                  , trained_model)
+    mean_auroc, std_auroc = _calculate_performance(X_test_list, y_test_list, trained_model)
     return mean_auroc, std_auroc
 
 
@@ -150,8 +145,7 @@ def _generate_lstm_classifier(shape):
 
 
 def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=1):
-    # print('\nShape X: ' + str(X_train.shape))
-    # print('Shape y: ' + str(array(y_train).shape) + '\n')
+
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
     one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
 
@@ -160,8 +154,6 @@ def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose
     to_2d = y_train.reshape(y_train.shape[0], y_train.shape[1])
 
     _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
-
-    early_stopping_callback = EarlyStopping(monitor='val_loss', patience=30, min_delta=0.0004, verbose=1, mode='min')
 
     history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
 
@@ -177,13 +169,10 @@ def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose
     # Plot
 
     _plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
-                             history_callback.train_losses, history_callback.val_losses,
-                             history_callback.f1s_train, history_callback.f1s_val,
-                             history_callback.recalls_train, history_callback.recalls_val,
-                             history_callback.precisions_train, history_callback.precisions_val,
-                             n_epochs
-                             )
-
+                              history_callback.train_losses, history_callback.val_losses,
+                              history_callback.f1s_train, history_callback.f1s_val,
+                              n_epochs
+                              )
 
     return trained_model
 
@@ -239,30 +228,25 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
 
     return np.mean(_roc_auc_scores), np.mean(_f1_scores)
 
+
 """
 Helper methods
 """
 
 
-def _plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, recalls_train,
-                             recalls_val, precisions_train, precisions_val, n_epochs
-                             ):
+def _plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1s_train, f1s_val, n_epochs):
     """
     Plots the losses, roc_auc/recall/precision/f1 scores that were obtained during the training phase
     (with the help of the callback).
 
 
-    :param aucs_train: list of roc_auc scores on training data
-    :param aucs_val: list of roc_auc scores on validation data
-    :param train_losses: list of losses on training data
-    :param val_losses: list of losses on validation data
-    :param f1s_train:
-    :param f1s_val:
-    :param recalls_train:
-    :param recalls_val:
-    :param precisions_train:
-    :param precisions_val:
-    :param n_epochs:
+    :param aucs_train:      list of roc_auc scores on training data
+    :param aucs_val:        list of roc_auc scores on validation data
+    :param train_losses:    list of losses on training data
+    :param val_losses:      list of losses on validation data
+    :param f1s_train:       list of f1s scores on training data
+    :param f1s_val:         list of f1s scores on validation data
+    :param n_epochs:        Number of epochs the model should be trained
     """
 
     # AUCS
@@ -298,7 +282,7 @@ def _plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1
     ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
 
     plots_helpers.save_plot(plt, 'LSTM/', 'losses_' + str(n_epochs) + '.pdf')
-    '''
+
     # F1
     _, ax = plt.subplots()
     if n_epochs is not None:
@@ -314,24 +298,6 @@ def _plot_losses_and_roc_aucs(aucs_train, aucs_val, train_losses, val_losses, f1
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
     plots_helpers.save_plot(plt, 'LSTM/', 'f1s_' + str(n_epochs) + '.pdf')
-
-    # RECALL/PRECISION
-    plt.subplots()
-    plt.ylabel('precision/recall')
-    plt.xlabel('Epochs')
-    plt.title('Training and validation precision/recall scores after each epoch')
-    index = np.arange(len(train_losses))
-
-    plt.plot(index, recalls_train, label='recall training', color='#89CFF0')
-    plt.plot(index, recalls_val, label='recall validation', color='#57A0D3')
-    plt.plot(index, precisions_train, label='precision training', color='#00A86B')
-    plt.plot(index, precisions_val, label='precision validation', color='#0B6623')
-
-    plt.legend()
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    ax.xaxis.set_major_formatter(FormatStrFormatter('%.0f'))
-    plots_helpers.save_plot(plt, 'LSTM/', 'precision_recall_' + str(n_epochs) + '.pdf')
-    '''
 
 
 def _get_splitted_up_feature_matrix_and_labels(X, y):
@@ -390,16 +356,15 @@ def _split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, siz
 class Histories(keras.callbacks.Callback):
 
     def __init__(self, training_data, n_epochs, interval=10, drawing_enabled=True):
+        super().__init__()
         self.aucs_train = []
         self.aucs_val = []
         self.f1s_train = []
         self.f1s_val = []
-        self.recalls_train = []
-        self.recalls_val = []
-        self.precisions_train = []
-        self.precisions_val = []
+
         self.train_losses = []
         self.val_losses = []
+
         self.training_data = training_data
         self.count = 0
         self.interval = interval
@@ -407,18 +372,18 @@ class Histories(keras.callbacks.Callback):
         self.drawing_enabled = drawing_enabled
 
         if drawing_enabled:
-            _plot_losses_and_roc_aucs([], [], [], [], [], [], [], [], [], [], n_epochs)
+            _plot_losses_and_roc_aucs([], [], [], [], [], [], n_epochs)
 
-    def on_train_begin(self, logs=[]):
+    def on_train_begin(self, logs=None):
         return
 
-    def on_train_end(self, logs=[]):
+    def on_train_end(self, logs=None):
         return
 
-    def on_epoch_begin(self, epoch, logs=[]):
+    def on_epoch_begin(self, epoch, logs=None):
         return
 
-    def on_epoch_end(self, epoch, logs=[]):
+    def on_epoch_end(self, epoch, logs=None):
         self.train_losses.append(logs.get('loss'))
         self.val_losses.append(logs.get('val_loss'))
 
@@ -428,44 +393,32 @@ class Histories(keras.callbacks.Callback):
         y_true_train_conc = np.argmax(y_true_train, axis=1)
 
         roc_auc_train = roc_auc_score(y_true_train_conc, y_pred_train_conc)
-        # f1_train = f1_score(y_true_train_conc, y_pred_train_conc)
-        # recall_train = recall_score(y_true_train_conc, y_pred_train_conc)
-        # precision_train = precision_score(y_true_train_conc, y_pred_train_conc)
-        # print('Roc_auc on training set: ' + str(round(roc_auc_train, 3)))
+        f1_train = f1_score(y_true_train_conc, y_pred_train_conc)
 
         val_x = self.validation_data[0]
         val_y_conc = list(itertools.chain.from_iterable(self.validation_data[1]))
         y_pred_conc = list(itertools.chain.from_iterable(self.model.predict_classes(val_x)))
         y_true_conc = np.argmax(val_y_conc, axis=1)
         roc_auc_val = roc_auc_score(y_true_conc, y_pred_conc)
-        # f1_val = f1_score(y_true_conc, y_pred_conc)
-        # recall_val = recall_score(y_true_conc, y_pred_conc)
-        # precision_val = precision_score(y_true_conc, y_pred_conc)
-        # print('Roc_auc on validation set: ' + str(round(roc_auc_test, 3)))
+        f1_val = f1_score(y_true_conc, y_pred_conc)
 
         self.aucs_train.append(round(roc_auc_train, 3))
         self.aucs_val.append(round(roc_auc_val, 3))
-        # self.f1s_train.append(round(f1_train, 3))
-        # self.f1s_val.append(round(f1_val, 3))
-        # self.recalls_train.append(round(recall_train, 3))
-        # self.recalls_val.append(round(recall_val, 3))
-        # self.precisions_train.append(round(precision_train, 3))
-        # self.precisions_val.append(round(precision_val, 3))
+        self.f1s_train.append(round(f1_train, 3))
+        self.f1s_val.append(round(f1_val, 3))
 
         if self.drawing_enabled and self.count % self.interval == 0:  # Redraw plot every 10 iterations
             _plot_losses_and_roc_aucs(self.aucs_train, self.aucs_val,
-                                     self.train_losses, self.val_losses,
-                                     self.f1s_train, self.f1s_val,
-                                     self.recalls_train, self.recalls_val,
-                                     self.precisions_train, self.precisions_val,
-                                     n_epochs=self.n_epochs
-                                     )
+                                      self.train_losses, self.val_losses,
+                                      self.f1s_train, self.f1s_val,
+                                      n_epochs=self.n_epochs
+                                      )
         self.count += 1
 
         return
 
-    def on_batch_begin(self, batch, logs={}):
+    def on_batch_begin(self, batch, logs=None):
         return
 
-    def on_batch_end(self, batch, logs={}):
+    def on_batch_end(self, batch, logs=None):
         return

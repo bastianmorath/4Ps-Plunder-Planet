@@ -61,7 +61,7 @@ def init_with_testdata_events_random_hr_const():
         timedeltas = []
         points = []
 
-        distribution = _get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
+        distribution = _get_truncated_normal(mean=0, scale=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(_length_dataframe)
 
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
@@ -109,7 +109,7 @@ def init_with_testdata_events_random_hr_continuous():
         timedeltas = []
         points = []
 
-        distribution = _get_truncated_normal(mean=0, sd=0.2, low=0.02, upp=0.2)
+        distribution = _get_truncated_normal(mean=0, scale=0.2, low=0.02, upp=0.2)
         noise = distribution.rvs(_length_dataframe)
 
         types = ['CONTINUOUS', 'EVENT_OBSTACLE', 'EVENT_CRASH', 'EVENT_PICKUP']
@@ -145,14 +145,14 @@ def init_with_testdata_events_random_hr_continuous():
     sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
 
-def _get_truncated_normal(mean=0, sd=1, low=0, upp=10):
+def _get_truncated_normal(mean=0, scale=1.0, low=0.0, upp=10.0):
     """Returns a value from a normal distribution, truncated to a boundary
 
     :return: Random value from normal distribution specified by arguments
 
     """
 
-    return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+    return truncnorm((low - mean) / scale, (upp - mean) / scale, loc=mean, scale=scale)
 
 
 def _plot_hr(dataframe, i):
