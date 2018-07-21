@@ -2,6 +2,7 @@
 This module is responsible to generate features from the data/logfiles
 
 """
+
 import itertools
 import os
 from pathlib import Path
@@ -17,15 +18,12 @@ import plots_features
 import setup_dataframes as sd
 import synthesized_data
 
-"""INITIALIZATION"""
-
 feature_names = []  # Set below
 use_reduced_features = True
 
 _verbose = True
 
 # TODO: Explicitly write down which features use which window
-
 
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 cw = 5  # Over how many preceeding seconds should %crashes be calculated?
@@ -38,53 +36,12 @@ _path_reduced_features_boxcox = sd.working_directory_path + '/Pickle/reduced_fea
 _path_all_features_boxcox = sd.working_directory_path + '/Pickle/all_features_boxcox/'
 
 
-def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection):
-    """ If the user wants to use an already saved feature matrix ('all' or 'reduced'), then check if those
-    pickle files really exist. If not, new files have to be created
-
-
-    :param use_cached_feature_matrix: Use already cached matrix; 'all' (use all features), 'selected'
-                                (do feature selection first), None (don't use cache)
-    :param use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
-    :param feature_selection: Whether to do feature selection or not
-
-    :return: Whether reading from cache is okey and  path where to read from/write to new pickel file (if necessary)
-
-    """
-    err_string = 'ERROR: Pickle file of Feature matrix not yet created. Creating new one...'
-    path = ''
-    file_name = 'feature_matrix_%s_%s_%s.pickle' % (hw, cw, gradient_w)
-    if not feature_selection:
-        if use_boxcox:
-            path = _path_all_features_boxcox
-        else:
-            path = _path_all_features
-
-    elif feature_selection:
-        if use_boxcox:
-            path = _path_reduced_features_boxcox
-        else:
-            path = _path_reduced_features
-
-    file_path = path + file_name
-
-    if not use_cached_feature_matrix or sd.use_fewer_data or synthesized_data.synthesized_data_enabled:
-        return False, file_path
-    else:
-        if not Path(file_path).exists():
-            print(err_string)
-            if not Path(path).exists():  # Check if at least the folder exists
-                os.makedirs(path)
-            return False, file_path
-        else:
-            return True, file_path
-
-
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
                                  use_boxcox=False, feature_selection=True,
                                  h_window=hw, c_window=cw, gradient_window=gradient_w):
 
-    """ Computes the feature matrix and the corresponding labels and creates a correlation_matrix
+    """
+    Computes the feature matrix and the corresponding labels and creates a correlation_matrix
 
     :param verbose:                      Whether to print messages
     :param use_cached_feature_matrix:    Use already cached matrix; 'all' (use all features), 'selected'
@@ -100,7 +57,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     :param gradient_window:              Size of gradient window
 
     :return: Feature matrix, labels
+
     """
+
     for df in sd.df_list:
         assert (max(h_window, c_window, gradient_window) < max(df['Time'])),\
             'Window sizes must be smaller than maximal logfile length'
@@ -188,8 +147,6 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     # Create feature matrix from df
     X = matrix.values
     scaler1 = MinMaxScaler(feature_range=(0, 1))
-    # scaler2 = StandardScaler()   # StandardScaler for LSTM makes convergence very slow
-    # X = scaler2.fit_transform(X)
     X = scaler1.fit_transform(X)  # Rescale between 0 and 1
 
     plots_features.plot_correlation_matrix(matrix)
@@ -202,7 +159,8 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
 def _get_obstacle_arrangement_feature():
     """
-    Returns the arrangement of the current obstacle, encoded with LabelEncoder
+    Returns the arrangement of the current obstacle
+
     """
 
     if _verbose:
@@ -215,39 +173,19 @@ def _get_obstacle_arrangement_feature():
         obst_arrangements.append(arrangement)
 
     conc = list(itertools.chain.from_iterable(obst_arrangements))
-    '''le = preprocessing.LabelEncoder()
-    le.fit(conc)
-    c_encoded = le.transform(conc).reshape(-1, 1)
-    le = preprocessing.OneHotEncoder()
-    le.fit(c_encoded)
-    c_one_hot = le.transform(c_encoded).toarray()
-    print(c_one_hot)
-'''
+
     return conc
 
 
-def _get_obstacle_arrangement_column(idx):
-    """Returns a dataframe column that indicates at each timestamp the arrangement of the obstacle, encoded with
-    LabelEncoder
-
-    :return: obstacle_arrangement feature column
-
-    """
-
-    def compute_obst_arrangement(row):
-        if row['Time'] > max(cw, hw, gradient_w):
-            return row['obstacle']
-
-    return sd.obstacle_df_list[idx].apply(compute_obst_arrangement, axis=1)
-
-
 def _get_timedelta_to_last_obst_feature(do_normalize=False):
-    """ Returns the timedelta to the previous obstacle
+    """
+    Returns the timedelta to the previous obstacle
 
     :param do_normalize: Normalize the timedelta with previous timedelta (bc. it varies slightly within and across
                          logfiles)
 
     """
+
     timedeltas_df_list = []  # list that contains a dataframe with feature for each logfile
     computed_timedeltas = []
     if _verbose:
@@ -278,8 +216,6 @@ def _get_timedelta_to_last_obst_feature(do_normalize=False):
             else:
                 normalized = 1
 
-            # print(normalized, np.mean(computed_timedeltas[-last_n_obst:]), timedelta)
-
             computed_timedeltas.append(timedelta)
 
             return normalized if do_normalize else timedelta
@@ -292,7 +228,8 @@ def _get_timedelta_to_last_obst_feature(do_normalize=False):
 
 
 def _get_standard_feature(feature, data_name):
-    """This is a wrapper to compute common features such as min, max, mean for either Points or Heartrate
+    """
+    This is a wrapper to compute common features such as min, max, mean for either Points or Heartrate
 
     :param feature: min, max, mean, std
     :param data_name: Either Heartrate or Points
@@ -300,6 +237,7 @@ def _get_standard_feature(feature, data_name):
     :return: Dataframe column containing the feature
 
     """
+
     if _verbose:
         print('Creating ' + feature + '_' + data_name + ' feature...')
 
@@ -312,8 +250,6 @@ def _get_standard_feature(feature, data_name):
 
 
 def _get_percentage_crashes_feature():
-    # TODO: Normalize crashes depending on size/assembly of the obstacle
-
     if _verbose:
         print('Creating %crashes feature...')
 
@@ -334,7 +270,6 @@ def _get_last_obstacle_crash_feature():
 
     for list_idx, df in enumerate(sd.df_list):
         df_obstacles = _get_last_obstacle_crash_column(list_idx)
-        # df = df[df['Time'] > max(cw, hw, gradient_w)]  # remove first window-seconds bc. not accurate data
         crashes_list.append(df_obstacles)
 
     return pd.DataFrame(list(itertools.chain.from_iterable(crashes_list)), columns=['last_obstacle_crash'])
@@ -367,11 +302,15 @@ def _get_number_of_gradient_changes(data_name):
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['hr_gradient_changes'])
 
 
-"""The following methods calculate the features as a new dataframe column"""
+"""
+The following methods calculate the features of one single dataframe and return it as a new dataframe column
+
+"""
 
 
 def _df_from_to(_from, _to, df):
-    """Returns the part of the dataframe where time is between _from and _to
+    """
+    Returns the part of the dataframe where time is between _from and _to
 
     :param _from: Start of dataframe ['Time']
     :param _to: End of dataframe ['Time']
@@ -380,12 +319,14 @@ def _df_from_to(_from, _to, df):
     :return: new Dataframe where row['Time'] between _from and _to
 
     """
+
     mask = (_from <= df['Time']) & (df['Time'] < _to)
     return df[mask]
 
 
 def _get_column(idx, applier, data_name):
-    """This is a wrapper which returns a dataframe column that indicates at each timestamp the
+    """
+    This is a wrapper which returns a dataframe column that indicates at each timestamp the
     heartrate or points over the last 'window' seconds, after applying 'applyer' (e.g. mean, max, min)
 
     :param idx: Index of dataframe in gl.df_list
@@ -432,8 +373,9 @@ def _get_column(idx, applier, data_name):
 
 
 def _get_percentage_crashes_column(idx):
-    """Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the
-        last crash-window-seconds the user crashed into
+    """
+    Returns a dataframe column that indicates at each timestamp how many percentage of the last obstacles in the
+    last crash-window-seconds the user crashed into
 
     :param idx: Index into gl.df_list (indicates the dataframe)
 
@@ -467,11 +409,12 @@ def _get_percentage_crashes_column(idx):
 
 
 def _get_last_obstacle_crash_column(idx):
-    """Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
+    """
+    Returns a dataframe column that indicates at each timestamp whether the user crashed into the last obstacle or not
 
-      :param idx: Index into gl.df_list (indicates the dataframe)
+    :param idx: Index into gl.df_list (indicates the dataframe)
 
-      :return: last_obstacle_crash feature column
+    :return: last_obstacle_crash feature column
 
     """
 
@@ -490,14 +433,15 @@ def _get_last_obstacle_crash_column(idx):
 
 
 def _get_hr_slope_column(idx):
-    """Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression
-        line over the heartrate in the last hw seconds
+    """
+    Returns a dataframe column that indicates at each timestamp the slope of the fitting lin/ regression
+    line over the heartrate in the last hw seconds
 
-          :param idx: Index into gl.df_list (indicates the dataframe)
+    :param idx: Index into gl.df_list (indicates the dataframe)
 
-          :return: hr_slope feature column
+    :return: hr_slope feature column
 
-          """
+    """
 
     df = sd.df_list[idx]
 
@@ -513,13 +457,14 @@ def _get_hr_slope_column(idx):
 
 
 def _get_gradient_changes_column(idx, data_name):
-    """Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate)
-        have changed from increasing to decreasing and the other way around
+    """
+    Returns a dataframe column that indicates at each timestamp the number of times 'data_name' (points or Heartrate)
+    have changed from increasing to decreasing and the other way around
 
-        :param idx: Index into gl.df_list (indicates the dataframe)
-        :param data_name: Points or Heartrate
+    :param idx: Index into gl.df_list (indicates the dataframe)
+    :param data_name: Points or Heartrate
 
-        :return: gradient_changes feature column for either points or heartrate
+    :return: gradient_changes feature column for either points or heartrate
 
     """
 
@@ -539,3 +484,69 @@ def _get_gradient_changes_column(idx, data_name):
             return num_sign_changes if not math.isnan(num_sign_changes) else compute_gradient_changes(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
+
+
+def _get_obstacle_arrangement_column(idx):
+    """
+    Returns a dataframe column that indicates at each timestamp the arrangement of the obstacle, encoded with
+    LabelEncoder
+
+    :return: obstacle_arrangement feature column
+
+    """
+
+    def compute_obst_arrangement(row):
+        if row['Time'] > max(cw, hw, gradient_w):
+            return row['obstacle']
+
+    return sd.obstacle_df_list[idx].apply(compute_obst_arrangement, axis=1)
+
+
+"""
+Helper functions
+
+"""
+
+
+def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection):
+    """
+    If the user wants to use an already saved feature matrix ('all' or 'reduced'), then check if those
+    pickle files really exist. If not, new files have to be created
+
+
+    :param use_cached_feature_matrix: Use already cached matrix; 'all' (use all features), 'selected'
+                                (do feature selection first), None (don't use cache)
+    :param use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
+    :param feature_selection: Whether to do feature selection or not
+
+    :return: Whether reading from cache is okey and  path where to read from/write to new pickel file (if necessary)
+
+    """
+
+    err_string = 'ERROR: Pickle file of Feature matrix not yet created. Creating new one...'
+    path = ''
+    file_name = 'feature_matrix_%s_%s_%s.pickle' % (hw, cw, gradient_w)
+    if not feature_selection:
+        if use_boxcox:
+            path = _path_all_features_boxcox
+        else:
+            path = _path_all_features
+
+    elif feature_selection:
+        if use_boxcox:
+            path = _path_reduced_features_boxcox
+        else:
+            path = _path_reduced_features
+
+    file_path = path + file_name
+
+    if not use_cached_feature_matrix or sd.use_fewer_data or synthesized_data.synthesized_data_enabled:
+        return False, file_path
+    else:
+        if not Path(file_path).exists():
+            print(err_string)
+            if not Path(path).exists():  # Check if at least the folder exists
+                os.makedirs(path)
+            return False, file_path
+        else:
+            return True, file_path

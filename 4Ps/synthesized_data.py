@@ -25,10 +25,13 @@ synthesized_data_enabled = False
 
 
 def init_with_testdata_events_const_hr_const():
-    """Inits with very simple synthesized data to check model performance
-        Alternates between heartrate 20 and 30 and crash/not crash
+    """
+    Inits with very simple synthesized data to check model performance
+    Alternates between heartrate 20 and 30 and crash/not crash
 
     """
+
+    globals()["synthesized_data_enabled"] = True
 
     for i in range(0, _num_dataframes):
         length_dataframe = 400 + i*40
@@ -50,10 +53,13 @@ def init_with_testdata_events_const_hr_const():
 
 
 def init_with_testdata_events_random_hr_const():
-    """Inits with very simple synthesized data to check model performance
-        Random events, but heartrate is either 1 or 10 depending on crash (with noise)
+    """
+    Inits with very simple synthesized data to check model performance
+    Random events, but heartrate is either 1 or 10 depending on crash (with noise)
 
     """
+
+    globals()["synthesized_data_enabled"] = True
 
     for i in range(0, _num_dataframes):
         times = []
@@ -98,11 +104,15 @@ def init_with_testdata_events_random_hr_const():
 
 
 def init_with_testdata_events_random_hr_continuous():
-    """Inits the dataframes not from the logfiles, but with synthesized data
-        Times: from 0 to length_dataframe, one every second with noise
-        logtypes: Randomly choosen; if EVENT_CRASH, then add EVENT_OBSTACLE in the next one!
+    """
+    Inits the dataframes not from the logfiles, but with synthesized data
+    Times: from 0 to length_dataframe, one every second with noise
+    logtypes: Randomly choosen; if EVENT_CRASH, then add EVENT_OBSTACLE in the next one!
 
     """
+
+    globals()["synthesized_data_enabled"] = True
+
     for i in range(0, _num_dataframes):
         times = []
         logtypes = []
@@ -147,7 +157,8 @@ def init_with_testdata_events_random_hr_continuous():
 
 
 def _get_truncated_normal(mean=0, scale=1.0, low=0.0, upp=10.0):
-    """Returns a value from a normal distribution, truncated to a boundary
+    """
+    Returns a value from a normal distribution, truncated to a boundary
 
     :return: Random value from normal distribution specified by arguments
 
@@ -157,16 +168,17 @@ def _get_truncated_normal(mean=0, scale=1.0, low=0.0, upp=10.0):
 
 
 def _plot_hr(dataframe, i):
-    """Plots the heartrate of the dataframe
+    """
+    Plots the heartrate of the dataframe
 
     :param dataframe: Dataframe from which the heartrate should be plotted
     :param i: id to differentiate plots
 
     """
+
     fig, ax1 = plt.subplots()
     fig.suptitle('heartrate')
 
-    # Plot mean_hr
     ax1.plot(dataframe['Time'], dataframe['Heartrate'])
     ax1.set_xlabel('Playing time (s)')
     ax1.set_ylabel('Heartrate')

@@ -19,23 +19,18 @@ import plots_helpers as hp
 import setup_dataframes as sd
 
 
-"""
-Plots concerned with features
-
-"""
-
-
 def generate_plots_about_features(X, y):
     """
-    Generatie plots that are involved with features
+    Generate plots that are concerned with features
 
     :param X: Feature matrix
     :param y: labels
+
     """
 
-    # fp.plot_scores_with_different_feature_selections()
+    _plot_scores_with_different_feature_selections()
     _plot_crashes_vs_timedelta(X)
-    _plot_corr_knn_distr(X, y)
+    _plot_timedelta_vs_obstacle_scatter(X, y)
     _plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     _plot_feature_distributions(X)
     _plot_mean_value_of_feature_at_crash(X, y)
@@ -44,7 +39,8 @@ def generate_plots_about_features(X, y):
 
 
 def plot_graph_of_decision_classifier(model, X, y):
-    """Stores the Decision Classifier Tree in a graph and plots a barchart of the feature_importances
+    """
+    Stores the Decision Classifier Tree in a graph and plots a barchart of the feature_importances
 
     :param model: Fitted decision Classifier instance
     :param X: Feature matrix
@@ -80,11 +76,13 @@ def plot_graph_of_decision_classifier(model, X, y):
 
 
 def plot_correlation_matrix(X):
-    """Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
+    """
+    Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
 
-        Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
+    Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
 
     :param X: feature matrix
+
     """
 
     corr = X.corr()
@@ -100,7 +98,6 @@ def plot_correlation_matrix(X):
     sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
                square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
 
-    # plt.tight_layout()
     if f_factory.use_reduced_features:
         hp.save_plot(plt, 'Features/', 'correlation_matrix_reduced_features.pdf')
 
@@ -109,9 +106,11 @@ def plot_correlation_matrix(X):
 
 
 def _plot_feature_distributions(X):
-    """Plots the distribution of the features in separate plots
+    """
+    Plots the distribution of the features in separate plots
 
     :param X: Feature matrix
+
     """
 
     print("Plotting histogram of each feature...")
@@ -134,7 +133,8 @@ def _plot_feature_distributions(X):
 
 
 def _plot_mean_value_of_feature_at_crash(X, y):
-    """For each feature, print the average of it when there was a crash vs. there was no crash
+    """
+    For each feature, print the average of it when there was a crash vs. there was no crash
 
     :param X: Feature matrix
     :param y: labels
@@ -143,10 +143,9 @@ def _plot_mean_value_of_feature_at_crash(X, y):
 
     print("Plotting mean value of each feature when crash vs no crash happened...")
 
-    # TODO: Maybe Make sure that data is not normalized/boxcrox when plotting
-
     rows_with_crash = [val for (idx, val) in enumerate(X) if y[idx] == 1]
     rows_without_crash = [val for (idx, val) in enumerate(X) if y[idx] == 0]
+
     # Iterate over all features and plot corresponding plot
     for i in range(0, len(X[0])):
         mean_when_crash = np.mean([l[i] for l in rows_with_crash])
@@ -168,7 +167,8 @@ def _plot_mean_value_of_feature_at_crash(X, y):
 
 
 def _plot_feature(X, i):
-    """Plots the feature at position i of each logfile over time
+    """
+    Plots the feature at position i of each logfile over time
 
     :param X: Feature matrix
     :param i: Feature index to plot (look at features_factoy for order)
@@ -200,8 +200,7 @@ def _plot_feature(X, i):
         plt.ylim([max(np.mean(X[:, i]) - 2 * np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
         ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
         ax1.set_axisbelow(True)
-        # [i.set_linewidth(0.3) for i in ax1.spines.values()]
-        # removing top and right borders
+
         ax1.spines['top'].set_linewidth(0.3)
         ax1.spines['right'].set_linewidth(0.3)
         filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
@@ -209,6 +208,13 @@ def _plot_feature(X, i):
 
 
 def _plot_crashes_vs_timedelta(X):
+    """
+    Plots the percentage of crashes happening depending on the timedelta-feature in a barchart
+
+    :param X:  Feature matrix
+
+    """
+
     print("Plotting percentage crashes vs timedelta...")
 
     timedelta_values_at_crashes = []
@@ -224,60 +230,17 @@ def _plot_crashes_vs_timedelta(X):
             timedelta_values_at_non_crashes.append(X[idx, timedelta_feature_index])
 
     def get_percentage_crashes_for_bin(i):
-        # TODO: Write nicer...
         """
-        Returns percentage of crashes when timedelta is in a certain bin, where bin i:
-        0: timedelta < 0.4
-        1: 0.4 <= timdelta < 0.5
-        2: 0.5 <= timdelta < 0.6
-        3: 0.7 <= timdelta < 0.8
-        4: 0.8 <= timdelta < 0.9
+        Returns percentage of crashes when timedelta is in a certain bin, where bin i: [i/10 , i/10 + 0.1]
 
         :param i: Bin
         :return: tuple with (opercentage, #occurences)
         """
         conc = timedelta_values_at_crashes + timedelta_values_at_non_crashes
         try:
-            if i == 0:
-                return (len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]) /
-                        len([x for x in conc if 0.0 <= x <= 0.1]),
-                        len([x for x in timedelta_values_at_crashes if 0.0 <= x <= 0.1]))
-            if i == 1:
-                return (len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]) /
-                        len([x for x in conc if 0.1 <= x <= 0.2]),
-                        len([x for x in timedelta_values_at_crashes if 0.1 <= x <= 0.2]))
-            if i == 2:
-                return (len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]) /
-                        len([x for x in conc if 0.2 <= x <= 0.3]),
-                        len([x for x in timedelta_values_at_crashes if 0.2 <= x <= 0.3]))
-            if i == 3:
-                return (len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]) /
-                        len([x for x in conc if 0.3 <= x <= 0.4]),
-                        len([x for x in timedelta_values_at_crashes if 0.3 <= x <= 0.4]))
-            if i == 4:
-                return (len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]) /
-                        len([x for x in conc if 0.4 <= x < 0.5]),
-                        len([x for x in timedelta_values_at_crashes if 0.4 <= x < 0.5]))
-            if i == 5:
-                return (len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]) /
-                        len([x for x in conc if 0.5 <= x < 0.6]),
-                        len([x for x in timedelta_values_at_crashes if 0.5 <= x < 0.6]))
-            if i == 6:
-                return (len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]) /
-                        len([x for x in conc if 0.6 <= x < 0.7]),
-                        len([x for x in timedelta_values_at_crashes if 0.6 <= x < 0.7]))
-            if i == 7:
-                return (len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]) /
-                        len([x for x in conc if 0.7 <= x < 0.8]),
-                        len([x for x in timedelta_values_at_crashes if 0.7 <= x < 0.8]))
-            if i == 8:
-                return (len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]) /
-                        len([x for x in conc if 0.8 <= x <= 0.9]),
-                        len([x for x in timedelta_values_at_crashes if 0.8 <= x <= 0.9]))
-            if i == 9:
-                return (len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]) /
-                        len([x for x in conc if 0.9 <= x <= 1.0]),
-                        len([x for x in timedelta_values_at_crashes if 0.9 <= x <= 1.0]))
+            return (len([x for x in timedelta_values_at_crashes if i/10 <= x <= i/10 + 0.1]) /
+                    len([x for x in conc if i/10 <= x <= i/10 + 0.1]),
+                    len([x for x in timedelta_values_at_crashes if i/10 <= x <= i/10 + 0.1]))
 
         except ZeroDivisionError:
             return 0, 0
@@ -317,30 +280,14 @@ def _plot_crashes_vs_timedelta(X):
     hp.save_plot(plt, 'Features/', 'percentage_crashes_vs_timedelta.pdf')
 
 
-def _plot_corr_knn_distr(X, y):
+def _plot_timedelta_vs_obstacle_scatter(X, y):
     """
-    Creates 3 plots using seaborn
-    1. Correlations between different features and class labels
-    2. Features and labels in a scatter plot and the histogram on top
-    3. NearestNeighborClassifier decision boundaries
+    Plots timedelta-feature and labels in a scatter plot and the histogram on top
 
     :param X: Feature matrix
     :param y: labels
 
     """
-
-    print('Plotting correlations and knn boundaries')
-
-    f1 = 'last_obstacle_crash'
-    f2 = 'timedelta_to_last_obst'
-
-    # 1. Plot correlations between different features and class labels
-    dat2 = pd.DataFrame({'class': y})
-    dat1 = pd.DataFrame({f1: X[:, 0], f2: X[:, 1]})
-
-    matrix_df = dat1.join(dat2)
-    sb.pairplot(matrix_df, hue='class')
-    hp.save_plot(plt, 'Features/', 'correlation.pdf')
 
     # Split up feature matrix into one matrix for each logfile
     feature_matrices = []
@@ -355,7 +302,6 @@ def _plot_corr_knn_distr(X, y):
     X_old = X
     y_old = y
 
-    # 2. Plot features and labels in a scatter plot and the histogram on top
     for i in range(0, len(sd.df_list) + 1):
         if i == len(sd.df_list):  # Do the plot with the entire feature matrix
             X = X_old
@@ -386,38 +332,16 @@ def _plot_corr_knn_distr(X, y):
             hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr_all.pdf')
         else:
             hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr' + str(i) + '.pdf')
-    '''
-    # Plot NearestNeighborClassifier decision boundaries
-    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
-    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
-    h = .02
-    clf = neighbors.KNeighborsClassifier()
-    clf.fit(X, y)
-
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-
-    Z = Z.reshape(xx.shape)
-    plt.figure()
-    plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
-
-    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
-    plt.xlim(xx.min(), xx.max())
-    plt.ylim(yy.min(), yy.max())
-    plt.title("2-Class classification (k = %i)"
-              % clf.n_neighbors)
-    hp.save_plot(plt, 'Features/', 'KNN_boundaries.pdf')
-    '''
 
 
 def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
-    """Plots for each logfile the mean and std of timedelta_to_last_obst at each obstacle  and if a crash or not happened
-
-    :return:
     """
+    Plots for each logfile the mean and std of timedelta_to_last_obst at each obstacle  and if a crash or not happened
+
+    :param do_normalize: Whether to normalize timedelta_feature over time
+
+    """
+
     for idx, df in enumerate(sd.obstacle_df_list):
         timedelta_crash = []
         timedelta_no_crash = []
@@ -454,17 +378,12 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         # Rescale values
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaler.fit(np.array(timedelta_crash + timedelta_no_crash).reshape(-1, 1))
-        # timedelta_crash = scaler.transform(np.array(timedelta_crash).reshape(-1, 1))  # Rescale between 0 and 1
-        # timedelta_no_crash = scaler.transform(np.array(timedelta_no_crash).reshape(-1, 1))  # Rescale between 0 and 1
 
         # Evaluation
         mean_when_crash = np.mean(timedelta_crash)
         mean_when_no_crash = np.mean(timedelta_no_crash)
         std_when_crash = np.std(timedelta_crash)
         std_when_no_crash = np.std(timedelta_no_crash)
-        # print(str(round(mean_when_no_crash, 2)) + ' vs. ' + str(round(mean_when_crash, 2)) + '(std:' +
-        #      str(round(std_when_no_crash, 2)) + ' vs. ' + str(round(std_when_crash, 2)),
-        #      idx, sd.names_logfiles[idx])
 
         _, _ = plt.subplots()
         plt.ylim(0, 1.2)
@@ -472,7 +391,6 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_no_crash)
         plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_crash, label='Crash')
         plt.xticks([1, 2], ['No crash', 'Crash'])
-        # print(idx, sd.names_logfiles[idx])
         plt.title('Average timedelta value for logfile ' + str(idx) + ' when crash or not crash')
 
         filename = str(idx) + '_crash.pdf'
@@ -481,15 +399,17 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
 
 # NOTE: Not used anymore!!
 def _plot_scores_with_different_feature_selections():
-    """ After trying different feature selcetions, I plot the scores for each classifier in a barchart.
-        Note: The numbers were colelcted by analyzsing the performances!
+    """
+    After trying different feature selcetions, I plot the scores for each classifier in a barchart.
+    Note: The numbers were colelcted by analyzsing the performances!
 
-        1. timedelta_to_last_obst only
-        2. timedelta_to_last_obst + last_obstacle_crash
-        3. all features
-        4. old features (=all features without timedelta_to_last_obst)
+    1. timedelta_to_last_obst only
+    2. timedelta_to_last_obst + last_obstacle_crash
+    3. all features
+    4. old features (=all features without timedelta_to_last_obst)
 
     """
+
     # TODO: Update scores...
 
     scores_timedelta_only = [0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]

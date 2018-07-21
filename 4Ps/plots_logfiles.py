@@ -8,6 +8,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import collections
 
 from matplotlib.ticker import MaxNLocator
 
@@ -31,8 +32,8 @@ def generate_plots_about_logfiles():
     _plot_hr_vs_difficulty_scatter_plot()
     _print_obstacle_information()
     _plot_difficulty_vs_size_obstacle_scatter_plot()
-    _plot_hr_or_points_corr_with_difficulty('Heartrate')
-    _plot_hr_or_points_corr_with_difficulty('Points')
+    _plot_hr_or_points_and_difficulty('Heartrate')
+    _plot_hr_or_points_and_difficulty('Points')
 
     _plot_mean_and_std_hr_boxplot()
     _plot_hr_of_dataframes()
@@ -41,6 +42,11 @@ def generate_plots_about_logfiles():
 
 
 def _plot_heartrate_and_events():
+    """
+    Plots the heartrate of each logfile, together with the crashes, Shieldtutorials and Brokenship events
+
+    """
+
     print("Plotting heartrate and events...")
     # resolution = 3
 
@@ -85,10 +91,10 @@ def _plot_heartrate_and_events():
 
 
 def _plot_hr_of_dataframes():
-    """Generates one heartrate plot for each dataframes (Used to compare normalized hr to original hr)
+    """
+    Generates one heartrate plot for each dataframes (Used to compare normalized hr to original hr)
         Only works for real data at the moment, because of name_logfile not existing if synthesized_data...
 
-    :return:
     """
 
     print("Plotting heartrate of dataframes over time...")
@@ -108,9 +114,11 @@ def _plot_hr_of_dataframes():
 
 
 def _plot_heartrate_histogram():
-    """ Plots a histogram of  heartrate data accumulated over all logfiles
+    """
+    Plots a histogram of  heartrate data accumulated over all logfiles
 
     """
+
     print("Plotting histogram of heartrate of accumulated logfiles...")
 
     _, ax = plt.subplots()
@@ -128,7 +136,9 @@ def _plot_heartrate_histogram():
 def _plot_average_hr_over_all_logfiles():
     """
     Plots average heartrate over all logfiles
+
     """
+
     plt.subplots()
     plt.ylabel('Heartrate (bpm)')
     plt.xlabel('Playing time (s)')
@@ -168,7 +178,9 @@ def _plot_mean_and_std_hr_boxplot():
 
 
 def _plot_heartrate_change():
-    """ Plot Heartrate change
+    """
+    Plot Heartrate change
+
     """
 
     bpm_changes_max = []  # Stores max. absolute change in HR per logfile
@@ -213,8 +225,9 @@ def _transform_df_to_numbers(df):
     """
     Subsitutes difficulties with numbers to work with them in a better way, from 1 to 3
 
-    :param df:
-    :return:
+    :param df: Dataframe to transform to numbers to
+    :return transformed datafarme
+
     """
 
     mapping = {'LOW': 1, 'MEDIUM': 2, 'HIGH': 3, 'undef': -1}
@@ -225,7 +238,14 @@ def _transform_df_to_numbers(df):
     return df
 
 
-def _plot_hr_or_points_corr_with_difficulty(to_compare):
+def _plot_hr_or_points_and_difficulty(to_compare):
+    """
+    Plots heartrate or points together with the difficulty in a line plot
+
+    :param to_compare: 'Heartrate' or 'Points'
+
+    """
+
     resolution = 10  # resample every x seconds -> the bigger, the smoother
     for idx, df in enumerate(sd.df_list):
         df = _transform_df_to_numbers(df)
@@ -278,6 +298,11 @@ def _get_number_of_obstacles_per_difficulty():
 
 
 def _plot_difficulty_vs_size_obstacle_scatter_plot():
+    """
+    PLots the difficulty of the level and the size of the obstacle at a given difficulty in a scatter plot
+
+    """
+
     plt.figure()
     values = _get_number_of_obstacles_per_difficulty()
 
@@ -300,8 +325,12 @@ def _plot_difficulty_vs_size_obstacle_scatter_plot():
 
 
 def _print_obstacle_information():
-    # Idea: Get % of crashes per difficulty level
-    # remove first max(hw, cw, gradient_w) seconds (to be consistent with --print_key_numbers_logfiles)
+    """
+    Prints for each difficulty level the number of obstacles and how many the user crashed into
+
+    """
+
+    # TODO: As a plot
     max_window = max(f_factory.hw, f_factory.cw, f_factory.gradient_w)
 
     df_list = [df[df['Time'] > max_window] for df in sd.df_list]
@@ -323,10 +352,16 @@ def _print_obstacle_information():
 
 
 def _plot_hr_vs_difficulty_scatter_plot():
+    """
+    PLots the heartrate vs the difficulty in a scatter plot
+
+    """
+
     df = pd.concat(sd.df_list, ignore_index=True)
     df_num = _transform_df_to_numbers(df)
     df_num.set_index('timedelta', inplace=True)
     resolution = 10
+
     # resample and take mean over difficulty. This means that a point can now have a difficulty "between"
     # Low/Medium/High, depending on how many seconds out of the resolution seconds it was on which level.
     avg_hr_df_resampled = df_num.resample(str(resolution)+'S').mean()
@@ -342,6 +377,11 @@ def _plot_hr_vs_difficulty_scatter_plot():
 
 
 def _plot_crashes_vs_size_of_obstacle():
+    """
+    Plots the percentage of crashes depending on the size of the obstacle
+
+    """
+
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
     conc_dataframes = _transform_df_to_numbers(conc_dataframes)
     new = conc_dataframes['obstacle'].apply(
@@ -372,13 +412,17 @@ def _plot_crashes_vs_size_of_obstacle():
 
 
 def _crashes_per_obstacle_arrangement():
-    import collections
+    """
+    Plots the percentage of crashes vs the obstacle arrangement
+
+    """
 
     df = pd.concat(sd.df_list, ignore_index=True)
     conc_dataframes = _transform_df_to_numbers(df)
 
     # For each obstacle-arrangement, make a dictionary-entry with a list [#occurences, #crashes]
     obst_dict = {}
+
     # For each crash, find corresponding row where we can find the obstacle he crashed into.
     for index, row in conc_dataframes.iterrows():
         if row['Logtype'] == 'EVENT_CRASH':
@@ -387,7 +431,7 @@ def _crashes_per_obstacle_arrangement():
                 obst_dict[obstacle] = [obst_dict[obstacle][0] + 1, obst_dict[obstacle][1] + 1]
             else:
                 obst_dict[obstacle] = [1, 1]
-        if row['Logtype'] == 'EVENT_OBSTACLE':  # TODO: Check if this is correct
+        if row['Logtype'] == 'EVENT_OBSTACLE':
             obstacle = row['obstacle']
             if obstacle in obst_dict:
                 obst_dict[obstacle] = [obst_dict[obstacle][0] + 1, obst_dict[obstacle][1]]

@@ -2,7 +2,6 @@
 """This is the main file to find the best window-sizes. For this, we do RandomizedSearchCV for the SVM
     classifier and find the roc_auc for different windowsizes.
 
-    ...
 
 """
 
@@ -18,6 +17,17 @@ import plots_helpers
 
 
 def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):
+    """
+    Prints and writes to a file scores of all classifiers with the given window sizes
+
+    :param hw: Heartrate window size
+    :param cw: Crash window size
+    :param gradient_w: gradient window size
+    :param verbose: Whether scores should be printed out
+    :param write_to_file: Whehter scores should be written to a file
+
+    """
+
     print('Testing window size ' + str(hw) + ', ' + str(cw) + ', ' + str(gradient_w) + '...')
 
     X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
@@ -38,7 +48,8 @@ def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_fil
 
 # Note: Not used in the main program
 def test_all_windows():
-    """ Keeps one window fixed and changes the other two. At the end, it plots the mean value over all
+    """
+    Keeps one window fixed and changes the other two. At the end, it plots the mean value over all
     classifier roc_auc scores with plt.imshow.
 
     """
@@ -64,7 +75,6 @@ def test_all_windows():
         filename = 'windows_const_gradient_w.pdf'
 
     mean_scores = np.zeros((len(list_1), len(list_2)))
-    # scores_std = np.zeros((len(list_1), len(list_2)))
 
     for idx_w1, w1 in enumerate(list_1):
         for idx_w2, w2 in enumerate(list_2):
@@ -108,9 +118,7 @@ def test_all_windows():
                 print(np.max(auc_mean_scores))
                 print(np.mean(auc_mean_scores))
                 print(np.min(auc_mean_scores))
-                print(auc_mean_scores[0])
-                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]  # np.mean(auc_mean_scores)
-                # scores_std[idx_w1][idx_w2] = np.mean(auc_std_scores)
+                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]
 
     mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly
 

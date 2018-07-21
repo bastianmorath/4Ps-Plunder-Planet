@@ -1,4 +1,5 @@
-"""This module is responsible for testin the classifier performances when doing normal K-fold CrossValidation
+"""
+This module is responsible for testin the classifier performances when doing normal K-fold CrossValidation
 vs. LeaveOneGroupOut-Crossvalidation, i.e. training on all but one logfile, and then test on the last one.
 
 """
@@ -20,12 +21,13 @@ import setup_dataframes as sd
 
 
 def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=False):
-    """Plots a barchart with the mean roc_auc score for each classfier in two scenarios:
-        1. Do normal crossvalidation to get roc_auc (There can thus be part of a users
-            logfile in the training set AND in the testset. This could influence the performance on the testset as
-            the model has already seen part of the users data/behavior in the training set)
-        2. For the training_data, use all but one user, and then predict score on the last user that was NOT
-            used in the training phase!
+    """
+    Plots a barchart with the mean roc_auc score for each classfier in two scenarios:
+    1. Do normal crossvalidation to get roc_auc (There can thus be part of a users
+        logfile in the training set AND in the testset. This could influence the performance on the testset as
+        the model has already seen part of the users data/behavior in the training set)
+    2. For the training_data, use all but one user, and then predict score on the last user that was NOT
+        used in the training phase!
 
 
     :param X: Feature matrix
@@ -77,8 +79,8 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
 
 
 def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True):
-    # TODO: Maybe sort along names (Now it's order of LeaveOneGroupOut)
-    """Takes one entire user (i.e. two logfiles most of the time) out of training phase and does prediction
+    """
+    Takes one entire user (i.e. two logfiles most of the time) out of training phase and does prediction
     on left out user. Result can be used as an indication which users are hard to predict
 
     :param model: the model that should be applied
@@ -88,6 +90,7 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
     :param plot_auc_score_per_user: Generates one plot per user with scores for all classifiers
 
     :return: MACRO auc_mean and auc_std
+
     """
 
     y = np.asarray(y)  # Used for .split() function
@@ -164,6 +167,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
     :param auc_stds_scenario_2: list of roc_auc_std scores when doing leave_one_user_out cv
 
     """
+
     fix, ax = plt.subplots()
     bar_width = 0.3
     line_width = 0.3
@@ -218,14 +222,14 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
 
 
 def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
-    """ Appends a detailed report to a file, i.e. for each classifier it appends
+    """
+    Appends a detailed report to a file, i.e. for each classifier it appends
     the performance for each fold (i.e. in each round of CV, there was one user left out for test-set. Write down
     auc, recall, specificity and precision with std for each such user.) Also write down overall conf_matrix
     and mean-auc
 
-    # TODO Prettify log
     :param scores: array for each cv fold: auc, recall, specificity, precision, user_id
-    :param y: y
+    :param y: true labels
     :param y_pred: y_predicted with scross_val_predict
     :param clf_name: Name of classifier
     :param names: Names of the users
@@ -255,8 +259,6 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
              % (auc, rec, spec, prec)
 
     # Write log to file
-
-    # TODO: Only append if in the same "session", otherwise delete everything and create a new one
 
     model_factory.write_to_file(s, 'Performance/LeaveOneGroupOut',
                                 'clf_performance_with_user_left_out_vs_normal_detailed.txt', 'a+', verbose=False)

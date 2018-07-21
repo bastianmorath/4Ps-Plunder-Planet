@@ -6,6 +6,12 @@ import argparse
 
 
 def get_argparse():
+    """
+    Generates an ArgumentParser to parse commands in the main.py file
+
+    :return: ArgumentParser object
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -97,13 +103,6 @@ def get_argparse():
         "--do_not_normalize_heartrate",
         action="store_true",
         help="Do not normalize heartrate (e.g. if you want plots or values with real heartrate)",
-    )
-
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Prints various information while computing",
     )
 
     parser.add_argument(

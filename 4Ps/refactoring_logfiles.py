@@ -18,7 +18,8 @@ _dataframes = []
 
 
 def _sanity_check():
-    """The original FK0410 have a 'm' or 'w' after its logfilename. remove it to have consistency among naming of the
+    """
+    The original FK0410 have a 'm' or 'w' after its logfilename. remove it to have consistency among naming of the
     files and don't run in trouble later.
 
     In original text_logs, there are two users with MK initials (but different user_id).Rename it to MR
@@ -26,6 +27,7 @@ def _sanity_check():
     In original text_logs, there is a username with non-capital kinect
 
     """
+
     path_logfiles_original = sd.project_path + '/Logs/text_logs_original/'
 
     nl = sorted([f for f in sorted(os.listdir(sd.project_path + '/Logs/text_logs_original'))
@@ -46,8 +48,9 @@ def _sanity_check():
 
 
 def cut_frames():
-    """Cuts dataframes to the same length, namely to the shortest of the dataframes in the list
-        Saves changes directly to globals.df_list
+    """
+    Cuts dataframes to the same length, namely to the shortest of the dataframes in the list
+    Saves changes directly to globals.df_list
 
     """
 
@@ -61,8 +64,10 @@ def cut_frames():
 
 
 def add_timedelta_column():
-    """For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
-        Saves changes directly to globals.df_list
+    """
+    For a lot of queries, it is useful to have the ['Time'] as a timedeltaIndex object
+    Saves changes directly to globals.df_list
+
     """
 
     for idx, dataframe in enumerate(sd.df_list):
@@ -71,9 +76,12 @@ def add_timedelta_column():
 
 
 def add_log_and_user_column():
-    """Add log_number and user_id
-        Saves changes directly to globals.df_list
     """
+    Add log_number and user_id
+    Saves changes directly to globals.df_list
+
+    """
+
     global _dataframes, _names_logfiles
 
     last_name_abbr = _names_logfiles[0][:2]
@@ -98,8 +106,8 @@ def add_log_and_user_column():
 
 
 def refactor_crashes():
-    # TODO: Do naming beforehand (Anna). Tell her how to do it.
-    """In the original logfiles, there is always an EVENT_CRASH and an EVENT_OBSTACLE in case of a crash, which makes it
+    """
+    In the original logfiles, there is always an EVENT_CRASH and an EVENT_OBSTACLE in case of a crash, which makes it
     hard to analyze and use the data.
     Thus, in case of a crash, I remove the EVENT_OBSTACLE and move its obstacle information to the EVENT_CRASH log
     Additionally, I add a column with the userID and whether it's the first or second logfile of the user
@@ -184,8 +192,6 @@ def refactor_crashes():
         if (new_df['Points'] == 0).all():
             new_name += '_np'
         new_name += '_' + new_df['logID'][0]
-
-        # print('Refactored ' + new_name)
 
         import sys
         sys.stdout.write("\r{0}>".format("=" * df_idx))

@@ -24,7 +24,8 @@ Helper methods
 
 
 def resample_dataframe(df, resolution):
-    """Resamples a dataframe with a sampling frquency of 'resolution'
+    """
+    Resamples a dataframe with a sampling frquency of 'resolution'
     -> Smoothes the plots
 
     :param df: Dataframe to be resampled. Must contain numbers only
@@ -33,6 +34,7 @@ def resample_dataframe(df, resolution):
     :return: Resampled dataframe
 
     """
+
     df = df.set_index('timedelta', drop=True)  # set timedelta as new index
     resampled = df.resample(str(resolution)+'S').mean()
     resampled.reset_index(inplace=True)
@@ -44,11 +46,13 @@ def resample_dataframe(df, resolution):
 
 
 def save_plot(plot, folder, filename):
-    """Saves plots and take cares that they are in either of three folders
+    """
+    Saves plots and take cares that they are in either of three folders
 
     :param plot:  The plot to be saved
     :param folder: Folder to be saved to
     :param filename: The name (.pdf) under which the plot should be saved
+
     """
 
     path = sd.working_directory_path + '/Plots/' + folder + filename
@@ -68,7 +72,8 @@ def save_plot(plot, folder, filename):
 
 def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, std_err=None, verbose=True,
                   plot_random_guess_line=False):
-    """Helper function to plot a barchart with the given arguments
+    """
+    Helper function to plot a barchart with the given arguments
 
     :param title: Title of the plot
     :param xlabel: name of the x_axis
@@ -82,6 +87,7 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
     :param plot_random_guess_line: If we plot roc_auc scores, we can plot a horizontal line at y=05 for random guess
 
     :return: The plot
+
     """
 
     fix, ax = plt.subplots()

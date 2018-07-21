@@ -1,6 +1,6 @@
 """
 Entry point of this project.
-Type 'python main.py -h' for how to use this module
+Type 'python main.py -h' to see how to use this module
 
 """
 
@@ -40,14 +40,12 @@ def main(args):
         'Can\'t do leave_one_group_out with synthesized data'
 
     if args.use_synthesized_data:
-
         print('Creating synthesized data...')
-        synthesized_data.synthesized_data_enabled = True
-        # synthesized_data.init_with_testdata_events_random_hr_const()
+
         synthesized_data.init_with_testdata_events_const_hr_const()
-        # synthesized_data.init_with_testdata_events_random_hr_continuous()
+
         X, y = f_factory.get_feature_matrix_and_label(
-            verbose=args.verbose, use_cached_feature_matrix=False, save_as_pickle_file=False,
+            verbose=True, use_cached_feature_matrix=False, save_as_pickle_file=False,
             feature_selection=f_factory.use_reduced_features
         )
 
@@ -66,7 +64,7 @@ def main(args):
                 use_boxcox=False
         )
 
-    setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
+    # setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
 
     # TODO: Add those as argparse arguments
     # model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)
@@ -84,7 +82,7 @@ def main(args):
             args.test_windows[0],
             args.test_windows[1],
             args.test_windows[2],
-            verbose=args.verbose,
+            verbose=True,
             write_to_file=True,
         )
 
@@ -122,10 +120,10 @@ def main(args):
                                                                                do_write_to_file=False)
             X = X_old
             y = y_old
+
             print(report)
 
     if args.leave_one_group_out:
-        # TODO: Add old plot (where logfile_left_out is used) into report
         print("\n################# Leave one out #################\n")
         leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
             X, y, True
@@ -154,7 +152,7 @@ def plot_features(X, y):
 
 def plot_logfiles(args):
     if not args.do_not_normalize_heartrate:
-        print('Attention: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
+        print('Note: Heartrates are normalized. Maybe call module with --do_not_normalize_heartrate')
     lp.generate_plots_about_logfiles()
 
 

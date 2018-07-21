@@ -2,6 +2,7 @@
 This module takes a classifier name and n_iter and does RandomizedSearchCV to find the best hyperparameters of the
 
 classifier with this name.
+
 """
 
 from __future__ import division  # s.t. division uses float result
@@ -24,7 +25,8 @@ import synthesized_data
 
 
 def _report(results, n_top=3):
-    """Prints a  report with the scores from the n_top hyperparameter configurations with the best score
+    """
+    Prints a  report with the scores from the n_top hyperparameter configurations with the best score
 
     :param results: cv_results of GridSearch/RandomizedSearchCV
     :param n_top: Best n_top hyperparameter configurations should be displayed
@@ -45,8 +47,9 @@ def _report(results, n_top=3):
 
 
 def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
-    """This method optimizes hyperparameters with cross-validation using RandomizedSearchCV, optionally creates a ROC curve
-        and returns this optimized classifier and the tuned parameters
+    """
+    This method optimizes hyperparameters with cross-validation using RandomizedSearchCV, optionally creates a ROC curve
+    and returns this optimized classifier and the tuned parameters
 
     :param X: Feature matrix
     :param y: labels
@@ -86,11 +89,13 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
 
 
 def _plot_heat_map_of_grid_search(cv_results, Classifier):
-    """Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
-        Problem: We can only show 2 hyperparameters
+    """
+    Plots a heatmap over the hyperparameters, showing the corresponding roc_auc score
+    Problem: We can only show 2 hyperparameters
+
     :param cv_results: cv_results of RandomizedSearchCV
     :param Classifier: the classfier
-    :return:
+
     """
 
     params = ([list(set(v.compressed())) for k, v in cv_results.items() if k.startswith('param_')])
