@@ -176,10 +176,12 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 
     return roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std, conf_mat, s
 
-# TODO: For each "write_to"file", say under what name it gets saved
 
+"""
+Helper Functions
 
-# Helper functions
+"""
+
 
 def write_to_file(string, folder, filename, mode, verbose=True):
     """Writes a string to a file while checking that the path already exists and creating it if not
@@ -300,7 +302,8 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
 
 
 def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
-    """Plots roc_curves for all classifier
+    """
+    Plots roc_curves for all classifier in one single plots
 
     :param X: Feature matrix
     :param y: labels
@@ -308,8 +311,6 @@ def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
     :param hyperparameter_tuning:
 
     """
-
-    print("\n################# Plotting ROC curves of classifiers #################\n")
 
     # allows to add probability output to classifiers which implement decision_function()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
@@ -356,7 +357,7 @@ def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
-    plots_helpers.save_plot(plt, 'Performance/Roc Curves/', 'roc_curves.pdf')
+    plots_helpers.save_plot(plt, 'Performance/', 'roc_curves.pdf')
 
 
 def _plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filename):

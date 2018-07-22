@@ -105,7 +105,8 @@ def plot_barchart(title, xlabel, ylabel, x_tick_labels, values, lbl, filename, s
             yerr=std_err,
             error_kw={'elinewidth': line_width,
                       'capsize': 1.4,
-                      'markeredgewidth': line_width},
+                      'markeredgewidth': line_width,
+                      'zorder': 5},
             zorder=2
             )
 

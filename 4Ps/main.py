@@ -26,9 +26,6 @@ import window_optimization
 import leave_one_group_out_cv
 import hyperparameter_optimization
 
-# TODO: remove .log from name_logfiles
-# TODO: Structure modules with comments s.a. helpers, main, PRivate etc.
-
 
 def main(args):
     """
@@ -68,12 +65,10 @@ def main(args):
                 use_boxcox=False
         )
 
-    # setup_dataframes.obstacle_df_list = setup_dataframes.get_obstacle_times_with_success()
+    if args.plot_roc_curves:
+        print("\n################# Plotting ROC curves of classifiers #################\n")
 
-    # TODO: Add those as argparse arguments
-    # model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)
-    # window_optimization.test_all_windows()
-    # model_factory.test_clf_with_timedelta_only()
+        model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)  # Change to True if necessary
 
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
@@ -133,7 +128,7 @@ def main(args):
             X, y, True
         )
 
-    if args.get_trained_lstm:
+    if args.evaluate_lstm:
         print("\n################# Get trained LSTM #################\n")
         LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.get_trained_lstm[0])
         # LSTM.get_finalscore(X, y, n_epochs=args.get_trained_lstm[0])

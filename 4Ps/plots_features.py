@@ -29,6 +29,7 @@ def generate_plots_about_features(X, y):
     :param y: labels
 
     """
+    
     _plot_crashes_vs_timedelta(X)
     _plot_timedelta_vs_obstacle_scatter(X, y)
     _plot_feature_distributions(X)
@@ -38,7 +39,7 @@ def generate_plots_about_features(X, y):
 
     # Has to be at the end, since if we use reduced_features everyhere except here, the names_logfiles would be updated
     # to the non-reduced feature amtrix, which messes things up later
-    _plot_correlation_matrix(reduced_features=False)
+    _plot_feature_correlation_matrix(reduced_features=True)
 
 
 def plot_graph_of_decision_classifier(model, X, y):
@@ -85,7 +86,7 @@ def plot_graph_of_decision_classifier(model, X, y):
               sd.working_directory_path + '/Plots/Features/decision_tree_graph.pdf')
 
 
-def _plot_correlation_matrix(reduced_features=True):
+def _plot_feature_correlation_matrix(reduced_features=True):
     """
     Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
 
@@ -197,7 +198,7 @@ def _plot_feature(X, i):
     :param i: Feature index to plot (look at features_factoy for order)
 
     Folder:     Features/Feature Plots/
-    Plot name:  lineplot_{feature name}_user_{user_idx}.pdf
+    Plot name:  lineplot_{feature name}_{logfile_name}.pdf
 
     """
 
@@ -221,15 +222,16 @@ def _plot_feature(X, i):
         ax1.plot(times, samples, c=hp.blue_color)
         ax1.set_xlabel('Playing time (s)')
         ax1.set_ylabel(feature_name, color=hp.blue_color)
-        plt.title('Feature ' + feature_name + ' for user ' + str(idx))
+        plt.title('Feature ' + feature_name + ' for logfile ' + sd.names_logfiles[idx])
         ax1.tick_params('y', colors=hp.blue_color)
-        plt.ylim([max(np.mean(X[:, i]) - 2 * np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
+        # plt.ylim([max(np.mean(X[:, i]) - 3 * np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
+        plt.ylim([0, 1])
         ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
         ax1.set_axisbelow(True)
 
         ax1.spines['top'].set_linewidth(0.3)
         ax1.spines['right'].set_linewidth(0.3)
-        filename = 'lineplot_' + feature_name + '_user_' + str(idx) + '.pdf'
+        filename = 'lineplot_' + feature_name + '_' + sd.names_logfiles[idx] + '.pdf'
         hp.save_plot(plt, 'Features/Feature Plots/' + feature_name + '/', filename)
 
 
@@ -319,7 +321,7 @@ def _plot_timedelta_vs_obstacle_scatter(X, y):
     :param y: labels
 
     Folder:     Features/Timedelta vs crash/
-    Plot name:  scatter_timedelta_crash_mean_over_all_users.pdf or scatter_timedelta_crash_user_{user_idx}.pdf
+    Plot name:  scatter_timedelta_crash_mean_over_all_users.pdf or scatter_timedelta_crash_{logfile_name}.pdf
 
     """
 
@@ -337,14 +339,16 @@ def _plot_timedelta_vs_obstacle_scatter(X, y):
     y_old = y
 
     for i in range(0, len(sd.df_list) + 1):
+        plt.subplot()
         if i == len(sd.df_list):  # Do the plot with the entire feature matrix
             X = X_old
             y = y_old
+            plt.title('Timedelta vs crash plot aggregated over all logfiles')
+
         else:
             X = feature_matrices[i]
             y = label_lists[i]
-
-        plt.subplot()
+            plt.title('Timedelta vs crash plot for logfile ' + sd.names_logfiles[i])
 
         g = sb.jointplot(X[:, 0], X[:, 1], kind='reg')
 
@@ -365,7 +369,8 @@ def _plot_timedelta_vs_obstacle_scatter(X, y):
         if i == len(sd.df_list):
             hp.save_plot(plt, 'Features/Timedelta vs crash/', 'scatter_timedelta_crash_mean_over_all_users.pdf')
         else:
-            hp.save_plot(plt, 'Features/Timedelta vs crash/', 'scatter_timedelta_crash_user_' + str(i) + '.pdf')
+            hp.save_plot(plt, 'Features/Timedelta vs crash/', 'scatter_timedelta_crash_'
+                                                              + sd.names_logfiles[i] + '.pdf')
 
 
 # NOTE: Not used anymore!!
@@ -383,8 +388,6 @@ def _plot_scores_with_different_feature_selections():
     Plot name:  clf_performance_with_different_features.pdf
 
     """
-
-    # TODO: Update scores...
 
     scores_timedelta_only = [0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
     scores_timedelta_and_last_obst_crash = [0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
@@ -441,7 +444,7 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
     :param do_normalize: Whether to normalize timedelta_feature over time
 
     Folder:     Features/Timedelta vs Crash Detailed
-    Plot name:  crash_user_{user_idx}.pdf
+    Plot name:  crash_logfile_{logfile_name}.pdf
 
     """
 
@@ -496,5 +499,5 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         plt.xticks([1, 2], ['No crash', 'Crash'])
         plt.title('Average timedelta value for logfile ' + str(idx) + ' when crash or not crash')
 
-        filename = 'crash_user_' + str(idx) + '.pdf'
+        filename = 'crash_logfile_' + sd.names_logfiles[idx] + '.pdf'
         hp.save_plot(plt, 'Features/Timedelta vs Crash Detailed/', filename)

@@ -77,11 +77,12 @@ def setup(fewer_data=False, normalize_heartrate=True):
 
     sorted_names = sorted(fbmc_names_hr_points)
 
-    globals()["names_logfiles"] = sorted_names
+    globals()["names_logfiles"] = [n[:-4] for n in sorted_names]
+
     globals()["use_fewer_data"] = fewer_data
 
     if fewer_data:
-        globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
+        globals()["names_logfiles"] = ['Is_FBMC_hr_1', 'Lo_FBMC_hr_1', 'MH_FBMC_hr_1']
 
     column_names = [
         "Time",
@@ -97,7 +98,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
         "logID",
     ]
 
-    logs = [abs_path_logfiles + "/" + s for s in names_logfiles]
+    logs = [abs_path_logfiles + "/" + s + '.log' for s in names_logfiles]
 
     globals()["df_list"] = list(
         pd.read_csv(log, sep=";", index_col=False, names=column_names) for log in logs

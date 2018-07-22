@@ -109,16 +109,6 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
         # I do MACRO averaging such that I can compute std!
         roc_auc, _, recall, _, specificity, precision, _, conf_mat, _ = \
             model_factory.get_performance(model, "", X_test, y_test, verbose=False, create_curves=False)
-        """
-        y_pred = model.predict(X_test)
-
-        conf_mat = confusion_matrix(y_test, y_pred)
-
-        recall = metrics.recall_score(y_test, y_pred)
-        specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-        precision = metrics.precision_score(y_test, y_pred)
-        roc_auc = metrics.roc_auc_score(y_test, y_pred)
-        """
 
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
@@ -259,6 +249,9 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
              % (auc, rec, spec, prec)
 
     # Write log to file
-
-    model_factory.write_to_file(s, 'Performance/LeaveOneGroupOut',
-                                'clf_performance_with_user_left_out_vs_normal_detailed.txt', 'a+', verbose=False)
+    if clf_name == classifiers.names[0]:  # First classifier -> New file
+        model_factory.write_to_file(s, 'Performance/LeaveOneGroupOut',
+                                    'clf_performance_with_user_left_out_vs_normal_detailed.txt', 'w+', verbose=False)
+    else:  # Else: Append to already created file
+        model_factory.write_to_file(s, 'Performance/LeaveOneGroupOut',
+                                    'clf_performance_with_user_left_out_vs_normal_detailed.txt', 'a+', verbose=False)

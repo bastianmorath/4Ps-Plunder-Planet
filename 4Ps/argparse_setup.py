@@ -18,8 +18,9 @@ def get_argparse():
         "-p",
         "--performance_without_tuning",
         type=str,
-        help="Outputs detailed scores of the given classifier without doing hyperparameter tuning."
-             " Set clf_name='all' if you want to test all classifiers",
+        help="Outputs detailed scores of the given classifier without doing hyperparameter tuning. "
+             " Set clf_name='all' if you want to test all classifiers (file is saved in "
+             "Evaluation/Performance/clf_performance_without_hp_tuning_{window_sizes}.txt)",
         metavar='clf_name',
     )
 
@@ -28,8 +29,16 @@ def get_argparse():
         "--performance_with_tuning",
         type=str,
         help="Optimizes the given classifier with RandomizedSearchCV and outputs detailed scores."
-             " Set clf_name='all' if you want to test all classifiers",
+             " Set clf_name='all' if you want to test all classifiers (file is saved in "
+             "Evaluation/Performance/clf_performance_with_hp_tuning_{window_sizes}.txt)",
         metavar='clf_name',
+    )
+
+    parser.add_argument(
+        "-c",
+        "--plot_roc_curves",
+        action="store_true",
+        help="Plots the ROC curves of the classifiers into a single plot under Plots/Performance/roc_curves.pdf",
     )
 
     parser.add_argument(
@@ -37,8 +46,8 @@ def get_argparse():
         "--test_windows",
         type=int,
         nargs=3,
-        help="Trains and tests all classifiers with the given window sizes. Stores roc_auc score in "
-             "a file in /Evaluation/Performance/Windows. "
+        help="Trains and tests all classifiers with the given window sizes. Stores roc_auc score under "
+             "/Evaluation/Performance/Windows/"
              "Note: Provide the windows in seconds",
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
@@ -48,15 +57,15 @@ def get_argparse():
         "--leave_one_group_out",
         action="store_true",
         help="Plot performance when leaving out a logfile "
-             "vs leaving out a whole user in crossvalidation",
+             "vs leaving out a whole user in crossvalidation under Plots/Performance/LeaveOneGroupOut",
     )
 
     parser.add_argument(
         "-m",
-        "--get_trained_lstm",
+        "--evaluate_lstm",
         type=int,
         nargs=1,
-        help="Train an LSTM newtwork with n_epochs",
+        help="Compile, train and evaluate an LSTM newtwork with n_epochs epochs",
         metavar='n_epochs',
     )
 

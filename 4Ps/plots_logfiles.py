@@ -21,8 +21,6 @@ Plots concerned with logfiles
 
 """
 
-# TODO: Use helper barplot for all plots..
-
 
 def generate_plots_about_logfiles():
     _plot_heartrate_change()
