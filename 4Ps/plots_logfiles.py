@@ -45,6 +45,9 @@ def _plot_heartrate_and_events():
     """
     Plots the heartrate of each logfile, together with the crashes, Shieldtutorials and Brokenship events
 
+    Folder:     Logfiles/Heartrate_Events/
+    Plot name:  lineplot_hr_and_events_{logfile name}.pdf
+
     """
 
     print("Plotting heartrate and events...")
@@ -86,14 +89,17 @@ def _plot_heartrate_and_events():
             by_label = OrderedDict(zip(labels, handles))  # Otherwise we'd have one label for each vline
             plt.legend(by_label.values(), by_label.keys())
 
-            filename = 'hr_and_events_' + sd.names_logfiles[idx] + '.pdf'
+            filename = 'lineplot_hr_and_events_' + sd.names_logfiles[idx] + '.pdf'
             hp.save_plot(plt, 'Logfiles/Heartrate_Events/', filename)
 
 
 def _plot_hr_of_dataframes():
     """
     Generates one heartrate plot for each dataframes (Used to compare normalized hr to original hr)
-        Only works for real data at the moment, because of name_logfile not existing if synthesized_data...
+    Only works for real data at the moment, because of name_logfile not existing if synthesized_data...
+
+    Folder:     Logfiles/Heartrate_Events/
+    Plot name:  lineplot_hr_{logfile name}.pdf
 
     """
 
@@ -109,13 +115,16 @@ def _plot_hr_of_dataframes():
             ax1.set_ylabel('Heartrate', color=hp.blue_color)
             ax1.tick_params('y', colors=hp.blue_color)
 
-            filename = 'hr_' + sd.names_logfiles[idx] + '.pdf'
+            filename = 'lineplot_hr_' + sd.names_logfiles[idx] + '.pdf'
             hp.save_plot(plt, 'Logfiles/Heartrate/', filename)
 
 
 def _plot_heartrate_histogram():
     """
     Plots a histogram of  heartrate data accumulated over all logfiles
+
+    Folder:     Logfiles/
+    Plot name:  histogram_hr_all_logfiles.pdf
 
     """
 
@@ -130,12 +139,15 @@ def _plot_heartrate_histogram():
     ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
     ax.set_axisbelow(True)
     [i.set_linewidth(0.3) for i in ax.spines.values()]
-    hp.save_plot(plt, 'Logfiles/', 'heartrate_distribution_all_logfiles.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'histogram_hr_all_logfiles.pdf')
 
 
 def _plot_average_hr_over_all_logfiles():
     """
     Plots average heartrate over all logfiles
+
+    Folder:     Logfiles/
+    Plot name:  lineplot_average_heartrate.pdf
 
     """
 
@@ -158,12 +170,15 @@ def _plot_average_hr_over_all_logfiles():
     avg_hr_df_resampled = hp.resample_dataframe(avg_hr_df, 10)
 
     plt.plot(avg_hr_df_resampled['Time'], avg_hr_df_resampled['Heartrate'])
-    hp.save_plot(plt, 'Logfiles/', 'average_heartrate.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'lineplot_average_heartrate.pdf')
 
 
 def _plot_mean_and_std_hr_boxplot():
     """
     Plots mean and std bpm per user in a box-chart
+
+    Folder:     Logfiles/
+    Plot name:  boxplot_mean_hr_per_user.pdf
 
     """
 
@@ -174,12 +189,15 @@ def _plot_mean_and_std_hr_boxplot():
     conc_dataframes[['Heartrate', 'userID']].boxplot(by='userID', grid=False, sym='r+')
     plt.ylabel('Heartrate (bpm)')
     plt.title('')
-    hp.save_plot(plt, 'Logfiles/', 'mean_heartrate_boxplot.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'boxplot_mean_hr_per_user.pdf')
 
 
 def _plot_heartrate_change():
     """
     Plot Heartrate change
+
+    Folder:     Logfiles/ and Logfiles/Abs Heartrate Changes/
+    Plot name:  barplot_hr_change_abs.pdf and histogram_hr_change_percentage_{logfile name}.pdf
 
     """
 
@@ -190,7 +208,6 @@ def _plot_heartrate_change():
     for idx, df in enumerate(sd.df_list):
         if not (df['Heartrate'] == -1).all():
             X.append(idx)
-            # new = df.set_index('timedelta', inplace=False)
             resampled = hp.resample_dataframe(df, 1)
             percentage_change = np.diff(resampled['Heartrate']) / resampled['Heartrate'][:-1] * 100.
             x = percentage_change[np.logical_not(np.isnan(percentage_change))]
@@ -205,7 +222,7 @@ def _plot_heartrate_change():
         plt.figure()
         plt.title('Heartrate change for plot ' + name)
         plt.hist(l, color=hp.blue_color)
-        hp.save_plot(plt, 'Logfiles/Abs Heartrate Changes/', 'heartrate_change_percentage_' + name + '.pdf')
+        hp.save_plot(plt, 'Logfiles/Abs Heartrate Changes/', 'histogram_hr_change_percentage_' + name + '.pdf')
 
     fig, ax = plt.subplots()
 
@@ -218,24 +235,7 @@ def _plot_heartrate_change():
     ax.set_axisbelow(True)
     [i.set_linewidth(0.3) for i in ax.spines.values()]
 
-    hp.save_plot(plt, 'Logfiles/', 'heartrate_change_abs.pdf')
-
-
-def _transform_df_to_numbers(df):
-    """
-    Subsitutes difficulties with numbers to work with them in a better way, from 1 to 3
-
-    :param df: Dataframe to transform to numbers to
-    :return transformed datafarme
-
-    """
-
-    mapping = {'LOW': 1, 'MEDIUM': 2, 'HIGH': 3, 'undef': -1}
-    df = df.replace({'physDifficulty': mapping, 'psyStress': mapping, 'psyDifficulty': mapping})
-
-    for col in ['physDifficulty', 'psyStress', 'psyDifficulty']:
-        df[col] = df[col].astype('int64')
-    return df
+    hp.save_plot(plt, 'Logfiles/', 'barplot_hr_change_abs.pdf')
 
 
 def _plot_hr_or_points_and_difficulty(to_compare):
@@ -243,6 +243,9 @@ def _plot_hr_or_points_and_difficulty(to_compare):
     Plots heartrate or points together with the difficulty in a line plot
 
     :param to_compare: 'Heartrate' or 'Points'
+
+    Folder:     Logfiles/Heartrate Difficulty Corr/ or Logfiles/Points Difficulty Corr/
+    Plot name:  lineplot_heartrate_difficulty_{logfile name}.pdf and lineplot_points_difficulty_{logfile name}.pdf
 
     """
 
@@ -265,7 +268,7 @@ def _plot_hr_or_points_and_difficulty(to_compare):
             ax2.tick_params('y', colors=hp.green_color)
             ax2.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
             plt.title('Difficulty and ' + to_compare + ' for user ' + sd.names_logfiles[idx])
-            hp.save_plot(plt, 'Logfiles/', to_compare + ' Difficulty Corr/' + to_compare + '_difficulty_' +
+            hp.save_plot(plt, 'Logfiles/', to_compare + ' Difficulty Corr/lineplot_' + to_compare + '_difficulty_' +
                          str(sd.names_logfiles[idx]) + '.pdf')
 
 
@@ -278,6 +281,12 @@ def _plot_hr_or_points_and_difficulty(to_compare):
 
 
 def _get_number_of_obstacles_per_difficulty():
+    """
+    For each difficulty levels returns the number of obstacles for each size
+    :return: sizes
+
+    """
+
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
     conc_num = _transform_df_to_numbers(conc_dataframes)  # Transform Difficulties into integers
     # count num.obstacle parts per obstacle
@@ -299,7 +308,10 @@ def _get_number_of_obstacles_per_difficulty():
 
 def _plot_difficulty_vs_size_obstacle_scatter_plot():
     """
-    PLots the difficulty of the level and the size of the obstacle at a given difficulty in a scatter plot
+    Plots the difficulty of the level and the size of the obstacle at a given difficulty in a scatter plot
+
+    Folder:     Logfiles/
+    Plot name:  scatter_difficulty_vs_num_obstacles.pdf
 
     """
 
@@ -321,7 +333,7 @@ def _plot_difficulty_vs_size_obstacle_scatter_plot():
 
     plt.scatter(x, y, s=values)
 
-    hp.save_plot(plt, 'Logfiles/', 'corr_difficulty_vs_num_obstacles.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'scatter_difficulty_vs_num_obstacles.pdf')
 
 
 def _print_obstacle_information():
@@ -330,7 +342,6 @@ def _print_obstacle_information():
 
     """
 
-    # TODO: As a plot
     max_window = max(f_factory.hw, f_factory.cw, f_factory.gradient_w)
 
     df_list = [df[df['Time'] > max_window] for df in sd.df_list]
@@ -353,7 +364,10 @@ def _print_obstacle_information():
 
 def _plot_hr_vs_difficulty_scatter_plot():
     """
-    PLots the heartrate vs the difficulty in a scatter plot
+    Plots the heartrate vs the difficulty in a scatter plot
+
+    Folder:     Logfiles/
+    Plot name:  scatter_difficulty_vs_heartrate.pdf
 
     """
 
@@ -373,12 +387,15 @@ def _plot_hr_vs_difficulty_scatter_plot():
     y = avg_hr_df_resampled['Heartrate']
     plt.scatter(x, y, s=30)
 
-    hp.save_plot(plt, 'Logfiles/', 'corr_difficulty_vs_heartrate.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'scatter_difficulty_vs_heartrate.pdf')
 
 
 def _plot_crashes_vs_size_of_obstacle():
     """
     Plots the percentage of crashes depending on the size of the obstacle
+
+    Folder:     Logfiles/
+    Plot name:  barplot_%crashes_per_size_of_obstacles.pdf
 
     """
 
@@ -408,12 +425,15 @@ def _plot_crashes_vs_size_of_obstacle():
     plt.xlabel('Size of obstacle')
     plt.bar(x, percentage_of_crashes)
 
-    hp.save_plot(plt, 'Logfiles/', 'crashes_percentage_per_size_of_obstacles.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'barplot_%crashes_per_size_of_obstacles.pdf')
 
 
 def _crashes_per_obstacle_arrangement():
     """
     Plots the percentage of crashes vs the obstacle arrangement
+
+    Folder:     Logfiles/
+    Plot name:  barplot_%crashes_per_obstacle_arrangement.pdf
 
     """
 
@@ -461,4 +481,27 @@ def _crashes_per_obstacle_arrangement():
     plt.xlabel('Obstacle arrangement')
     plt.bar(df.index, df['Crashes in %'])
 
-    hp.save_plot(plt, 'Logfiles/', 'crashes_per_obstacle_arrangement.pdf')
+    hp.save_plot(plt, 'Logfiles/', 'barplot_%crashes_per_obstacle_arrangement.pdf')
+
+
+""" 
+Helper functions
+
+"""
+
+
+def _transform_df_to_numbers(df):
+    """
+    Subsitutes difficulties with numbers to work with them in a better way, from 1 to 3
+
+    :param df: Dataframe to transform to numbers to
+    :return transformed datafarme
+
+    """
+
+    mapping = {'LOW': 1, 'MEDIUM': 2, 'HIGH': 3, 'undef': -1}
+    df = df.replace({'physDifficulty': mapping, 'psyStress': mapping, 'psyDifficulty': mapping})
+
+    for col in ['physDifficulty', 'psyStress', 'psyDifficulty']:
+        df[col] = df[col].astype('int64')
+    return df

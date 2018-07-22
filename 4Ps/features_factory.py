@@ -23,7 +23,6 @@ use_reduced_features = True
 
 _verbose = True
 
-# TODO: Explicitly write down which features use which window
 
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 cw = 5  # Over how many preceeding seconds should %crashes be calculated?
@@ -37,7 +36,7 @@ _path_all_features_boxcox = sd.working_directory_path + '/Pickle/all_features_bo
 
 
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
-                                 use_boxcox=False, feature_selection=True,
+                                 use_boxcox=False, reduced_features=True,
                                  h_window=hw, c_window=cw, gradient_window=gradient_w):
 
     """
@@ -51,7 +50,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
                                             store feature matrix with e.g. default windows)
     :param use_boxcox:                   Whether boxcox transformation should be done (e.g. when Naive Bayes
                                             classifier is used)
-    :param feature_selection:            Whether to do feature selection or not
+    :param reduced_features:             Whether to do feature selection or not
     :param h_window:                     Size of heartrate window
     :param c_window:                     Size of crash window
     :param gradient_window:              Size of gradient window
@@ -69,13 +68,13 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['gradient_w'] = gradient_window
 
     globals()['use_cached_feature_matrix'] = use_cached_feature_matrix
-    globals()['use_reduced_features'] = feature_selection
+    globals()['use_reduced_features'] = reduced_features
     globals()['_verbose'] = verbose
 
     matrix = pd.DataFrame()
 
     should_read_from_pickle_file, path = _should_read_from_cache(use_cached_feature_matrix, use_boxcox,
-                                                                 feature_selection)
+                                                                 reduced_features)
 
     sd.obstacle_df_list = sd.get_obstacle_times_with_success()
 
@@ -89,40 +88,31 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         if _verbose:
             print('Creating feature matrix...')
 
-        matrix['last_obstacle_crash'] = _get_last_obstacle_crash_feature()
+        matrix['last_obstacle_crash'] = _get_last_obstacle_crash_feature()  # cw
         matrix['timedelta_to_last_obst'] = _get_timedelta_to_last_obst_feature(do_normalize=False)
-        matrix['mean_hr'] = _get_standard_feature('mean', 'Heartrate')
-        matrix['std_hr'] = _get_standard_feature('std', 'Heartrate')
-        matrix['lin_regression_hr_slope'] = _get_lin_regression_hr_slope_feature()
-        matrix['hr_gradient_changes'] = _get_number_of_gradient_changes('Heartrate')
-        matrix['points_gradient_changes'] = _get_number_of_gradient_changes('Points')
-        matrix['mean_points'] = _get_standard_feature('mean', 'Points')
-        matrix['std_points'] = _get_standard_feature('std', 'Points')
-        matrix['%crashes'] = _get_percentage_crashes_feature()
+        matrix['mean_hr'] = _get_standard_feature('mean', 'Heartrate')  # hw
+        matrix['std_hr'] = _get_standard_feature('std', 'Heartrate')  # hw
+        matrix['lin_regression_hr_slope'] = _get_lin_regression_hr_slope_feature()  # gradient_w
+        matrix['hr_gradient_changes'] = _get_number_of_gradient_changes('Heartrate')  # gradient_w
+        matrix['points_gradient_changes'] = _get_number_of_gradient_changes('Points')  # gradient_w
+        matrix['mean_points'] = _get_standard_feature('mean', 'Points')  # hw
+        matrix['std_points'] = _get_standard_feature('std', 'Points')  # hw
+        matrix['%crashes'] = _get_percentage_crashes_feature()  # cw
 
         if not use_reduced_features:
 
-            matrix['max_minus_min_hr'] = _get_standard_feature('max_minus_min', 'Heartrate')
-            matrix['max_hr'] = _get_standard_feature('max', 'Heartrate')
-            matrix['min_hr'] = _get_standard_feature('min', 'Heartrate')
-            matrix['max_over_min_hr'] = _get_standard_feature('max_over_min', 'Heartrate')
-            matrix['max_points'] = _get_standard_feature('max', 'Points')
-            matrix['min_points'] = _get_standard_feature('min', 'Points')
-            matrix['max_minus_min_points'] = _get_standard_feature('max_minus_min', 'Points')
-            matrix['obstacle_arrangement'] = _get_obstacle_arrangement_feature()
-            # One hot encoding
-            matrix = pd.get_dummies(matrix, columns=['obstacle_arrangement'], prefix=['arr_'])
-
-        # Shorten and clean up the column names (especially the obstacle_arrangements)
-        matrix.columns = matrix.columns.str.strip().str.replace(',', '_').str.replace('MIDDLE', 'M') \
-            .str.replace('BOTTOMLEFT', 'BL').str.replace('BOTTOMRIGHT', 'BR').str.replace('TOPRIGHT', 'TR') \
-            .str.replace('TOPLEFT', 'TL').str.replace('FARBOTTOMRIGHT', 'FR').str.replace('FARBOTTOMLEFT',
-                                                                                          'FL').str.lower()
+            matrix['max_minus_min_hr'] = _get_standard_feature('max_minus_min', 'Heartrate')  # hw
+            matrix['max_hr'] = _get_standard_feature('max', 'Heartrate')  # hw
+            matrix['min_hr'] = _get_standard_feature('min', 'Heartrate')  # hw
+            matrix['max_over_min_hr'] = _get_standard_feature('max_over_min', 'Heartrate')  # hw
+            matrix['max_points'] = _get_standard_feature('max', 'Points')  # hw
+            matrix['min_points'] = _get_standard_feature('min', 'Points')  # hw
+            matrix['max_minus_min_points'] = _get_standard_feature('max_minus_min', 'Points')  # hw
 
         # Boxcox transformation
         if use_boxcox:
             # Values must be positive. If not, shift it
-            non_boxcox = ['last_obstacle_crash', 'obstacle_arrangement']
+            non_boxcox = ['last_obstacle_crash']
             for feature in feature_names:
                 if feature not in non_boxcox:  # Doesn't makes sense to do boxcox here
                     if matrix[feature].min() <= 0:
@@ -149,32 +139,10 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     scaler1 = MinMaxScaler(feature_range=(0, 1))
     X = scaler1.fit_transform(X)  # Rescale between 0 and 1
 
-    plots_features.plot_correlation_matrix(matrix)
-
     if verbose:
         print('Feature matrix and labels created!')
 
     return X, y
-
-
-def _get_obstacle_arrangement_feature():
-    """
-    Returns the arrangement of the current obstacle
-
-    """
-
-    if _verbose:
-        print('Creating obstacle_arrangement feature...')
-
-    obst_arrangements = []
-
-    for list_idx, df in enumerate(sd.df_list):
-        arrangement = _get_obstacle_arrangement_column(list_idx)
-        obst_arrangements.append(arrangement)
-
-    conc = list(itertools.chain.from_iterable(obst_arrangements))
-
-    return conc
 
 
 def _get_timedelta_to_last_obst_feature(do_normalize=False):
@@ -445,11 +413,12 @@ def _get_hr_slope_column(idx):
 
     df = sd.df_list[idx]
 
+    # noinspection PyTupleAssignmentBalance
     def compute_slope(row):
         if row['Time'] > max(cw, hw, gradient_w):
             last_x_seconds_df = _df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
 
-            slope = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
+            slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
 
             return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
@@ -486,29 +455,13 @@ def _get_gradient_changes_column(idx, data_name):
     return sd.obstacle_df_list[idx].apply(compute_gradient_changes, axis=1)
 
 
-def _get_obstacle_arrangement_column(idx):
-    """
-    Returns a dataframe column that indicates at each timestamp the arrangement of the obstacle, encoded with
-    LabelEncoder
-
-    :return: obstacle_arrangement feature column
-
-    """
-
-    def compute_obst_arrangement(row):
-        if row['Time'] > max(cw, hw, gradient_w):
-            return row['obstacle']
-
-    return sd.obstacle_df_list[idx].apply(compute_obst_arrangement, axis=1)
-
-
 """
 Helper functions
 
 """
 
 
-def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selection):
+def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, reduced_features):
     """
     If the user wants to use an already saved feature matrix ('all' or 'reduced'), then check if those
     pickle files really exist. If not, new files have to be created
@@ -517,7 +470,7 @@ def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selec
     :param use_cached_feature_matrix: Use already cached matrix; 'all' (use all features), 'selected'
                                 (do feature selection first), None (don't use cache)
     :param use_boxcox: Whether boxcox transofrmation should be done (e.g. when Naive Bayes classifier is used)
-    :param feature_selection: Whether to do feature selection or not
+    :param reduced_features: Whether to do feature selection or not
 
     :return: Whether reading from cache is okey and  path where to read from/write to new pickel file (if necessary)
 
@@ -526,13 +479,13 @@ def _should_read_from_cache(use_cached_feature_matrix, use_boxcox, feature_selec
     err_string = 'ERROR: Pickle file of Feature matrix not yet created. Creating new one...'
     path = ''
     file_name = 'feature_matrix_%s_%s_%s.pickle' % (hw, cw, gradient_w)
-    if not feature_selection:
+    if not reduced_features:
         if use_boxcox:
             path = _path_all_features_boxcox
         else:
             path = _path_all_features
 
-    elif feature_selection:
+    elif reduced_features:
         if use_boxcox:
             path = _path_reduced_features_boxcox
         else:

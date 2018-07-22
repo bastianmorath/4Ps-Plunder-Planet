@@ -2,64 +2,64 @@
 ******** Scores for SVM (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'C': 1.0, 'gamma': 'auto'},
-	roc_auc: 0.644 (+-0.05), recall: 0.499 (+-0.05), specificity: 0.756, precision: 0.315 (+-0.05) 
+	roc_auc: 0.651 (+-0.06), recall: 0.365 (+-0.06), specificity: 0.859, precision: 0.368 (+-0.07) 
 
-	Confusion matrix: 	 [3613 1167] 
-				 [526 523]
+	Confusion matrix: 	 [4106  674] 
+				 [666 383]
 
 
 ******** Scores for Linear SVM (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'C': 1.0, 'penalty': 'l2'},
-	roc_auc: 0.642 (+-0.06), recall: 0.478 (+-0.06), specificity: 0.747, precision: 0.304 (+-0.06) 
+	roc_auc: 0.638 (+-0.06), recall: 0.484 (+-0.06), specificity: 0.742, precision: 0.303 (+-0.06) 
 
-	Confusion matrix: 	 [3570 1210] 
-				 [548 501]
+	Confusion matrix: 	 [3549 1231] 
+				 [541 508]
 
 
 ******** Scores for Nearest Neighbor (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'n_neighbors': 5, 'metric': 'minkowski'},
-	roc_auc: 0.566 (+-0.04), recall: 0.115 (+-0.04), specificity: 0.930, precision: 0.316 (+-0.12) 
+	roc_auc: 0.588 (+-0.03), recall: 0.133 (+-0.03), specificity: 0.940, precision: 0.343 (+-0.07) 
 
-	Confusion matrix: 	 [4446  334] 
-				 [928 121]
+	Confusion matrix: 	 [4491  289] 
+				 [909 140]
 
 
 ******** Scores for QDA (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'reg_param': 0.0, 'tol': 0.0001},
-	roc_auc: 0.644 (+-0.05), recall: 0.278 (+-0.05), specificity: 0.883, precision: 0.368 (+-0.08) 
+	roc_auc: 0.596 (+-0.08), recall: 0.914 (+-0.08), specificity: 0.092, precision: 0.189 (+-0.03) 
 
-	Confusion matrix: 	 [4220  560] 
-				 [757 292]
+	Confusion matrix: 	 [ 440 4340] 
+				 [ 90 959]
 
 
 ******** Scores for Decision Tree (Windows:  10, 5, 10) ******** 
 
-	Hyperparameters: {'criterion': 'gini', 'splitter': 'best', 'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1},
-	roc_auc: 0.514 (+-0.02), recall: 0.260 (+-0.02), specificity: 0.771, precision: 0.202 (+-0.03) 
+	Hyperparameters: {'criterion': 'gini', 'splitter': 'best', 'max_depth': 4, 'min_samples_split': 2, 'min_samples_leaf': 1},
+	roc_auc: 0.516 (+-0.03), recall: 0.263 (+-0.03), specificity: 0.765, precision: 0.202 (+-0.04) 
 
-	Confusion matrix: 	 [3686 1094] 
-				 [778 271]
+	Confusion matrix: 	 [3657 1123] 
+				 [768 281]
 
 
 ******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'max_depth': None, 'min_samples_split': 2, 'min_samples_leaf': 1, 'criterion': 'gini'},
-	roc_auc: 0.556 (+-0.05), recall: 0.069 (+-0.05), specificity: 0.948, precision: 0.274 (+-0.13) 
+	roc_auc: 0.566 (+-0.03), recall: 0.078 (+-0.03), specificity: 0.957, precision: 0.328 (+-0.14) 
 
-	Confusion matrix: 	 [4533  247] 
-				 [964  85]
+	Confusion matrix: 	 [4575  205] 
+				 [961  88]
 
 
 ******** Scores for Ada Boost (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'n_estimators': 50, 'learning_rate': 1.0, 'algorithm': 'SAMME.R'},
-	roc_auc: 0.614 (+-0.07), recall: 0.037 (+-0.07), specificity: 0.967, precision: 0.220 (+-0.30) 
+	roc_auc: 0.618 (+-0.08), recall: 0.042 (+-0.08), specificity: 0.967, precision: 0.305 (+-0.36) 
 
 	Confusion matrix: 	 [4622  158] 
-				 [1010   39]
+				 [1005   44]
 
 
 ******** Scores for Naive Bayes (Windows:  10, 5, 10) ******** 

@@ -165,7 +165,7 @@ def refactor_crashes():
                         obst_idx, obstacle_row = get_next_obstacle_row(idx, dataframe)
                         obst_indices.append(obst_idx)
                         row['obstacle'] = obstacle_row['obstacle']
-                        row['Time'] = obstacle_row['Time']  # TODO: Might change a lot....
+                        row['Time'] = obstacle_row['Time']
                         dataframe.drop(obst_idx, inplace=True)
                 new_df = new_df.append(row)
 

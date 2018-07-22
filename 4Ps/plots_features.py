@@ -3,6 +3,8 @@ This module is responsible for generating plots that are involved with features
 
 """
 
+import os
+
 import graphviz
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -27,15 +29,16 @@ def generate_plots_about_features(X, y):
     :param y: labels
 
     """
-
-    _plot_scores_with_different_feature_selections()
     _plot_crashes_vs_timedelta(X)
     _plot_timedelta_vs_obstacle_scatter(X, y)
-    _plot_timedeltas_and_crash_per_logfile(do_normalize=True)
     _plot_feature_distributions(X)
     _plot_mean_value_of_feature_at_crash(X, y)
     for i in range(0, len(f_factory.feature_names)):
         _plot_feature(X, i)
+
+    # Has to be at the end, since if we use reduced_features everyhere except here, the names_logfiles would be updated
+    # to the non-reduced feature amtrix, which messes things up later
+    _plot_correlation_matrix(reduced_features=False)
 
 
 def plot_graph_of_decision_classifier(model, X, y):
@@ -45,6 +48,9 @@ def plot_graph_of_decision_classifier(model, X, y):
     :param model: Fitted decision Classifier instance
     :param X: Feature matrix
     :param y: labels
+
+    Folder:     Features/
+    Plot name:  decision_tree_graph.pdf
 
     """
 
@@ -74,17 +80,28 @@ def plot_graph_of_decision_classifier(model, X, y):
     )
     graphviz.render('dot', 'pdf', 'decision_tree_graph')
 
+    os.remove(sd.working_directory_path + '/decision_tree_graph')
+    os.rename(sd.working_directory_path + '/decision_tree_graph.pdf',
+              sd.working_directory_path + '/Plots/Features/decision_tree_graph.pdf')
 
-def plot_correlation_matrix(X):
+
+def _plot_correlation_matrix(reduced_features=True):
     """
     Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
 
     Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
 
-    :param X: feature matrix
+    :param reduced_features: Should we use all features or only the reduced ones?
+
+    Folder:     Features/
+    Plot name:  correlation_matrix_all_features.pdf or correlation_matrix_reduced_features.pdf
 
     """
 
+    print("Plotting correlation matrix...")
+
+    X, _ = f_factory.get_feature_matrix_and_label(False, True, True, False, reduced_features)
+    X = pd.DataFrame(X)
     corr = X.corr()
     sb.set(style="white")
     # Generate a mask for the upper triangle
@@ -95,12 +112,12 @@ def plot_correlation_matrix(X):
     # Generate a custom diverging colormap
     cmap = sb.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True,
-               square=True, linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
+    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True, xticklabels=f_factory.feature_names,
+               yticklabels=f_factory.feature_names, square=True,
+               linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
 
-    if f_factory.use_reduced_features:
+    if reduced_features:
         hp.save_plot(plt, 'Features/', 'correlation_matrix_reduced_features.pdf')
-
     else:
         hp.save_plot(plt, 'Features/', 'correlation_matrix_all_features.pdf')
 
@@ -110,6 +127,9 @@ def _plot_feature_distributions(X):
     Plots the distribution of the features in separate plots
 
     :param X: Feature matrix
+
+    Folder:     Features/Feature_distributions/
+    Plot name:  histogram_{feature name}.pdf
 
     """
 
@@ -128,7 +148,7 @@ def _plot_feature_distributions(X):
 
         plt.title(feature)
         plt.tight_layout()
-        filename = feature + '.pdf'
+        filename = 'histogram_' + feature + '.pdf'
         hp.save_plot(plt, 'Features/Feature_distributions/', filename)
 
 
@@ -138,6 +158,9 @@ def _plot_mean_value_of_feature_at_crash(X, y):
 
     :param X: Feature matrix
     :param y: labels
+
+    Folder:     Features/Crash Correlation/
+    Plot name:  barplot_mean_{feature name}_at_crash.pdf
 
     """
 
@@ -162,7 +185,7 @@ def _plot_mean_value_of_feature_at_crash(X, y):
 
         plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
 
-        filename = str(f_factory.feature_names[i]) + '_crash.pdf'
+        filename = 'barplot_mean_' + str(f_factory.feature_names[i]) + '_at_crash.pdf'
         hp.save_plot(plt, 'Features/Crash Correlation/', filename)
 
 
@@ -172,6 +195,9 @@ def _plot_feature(X, i):
 
     :param X: Feature matrix
     :param i: Feature index to plot (look at features_factoy for order)
+
+    Folder:     Features/Feature Plots/
+    Plot name:  lineplot_{feature name}_user_{user_idx}.pdf
 
     """
 
@@ -203,8 +229,8 @@ def _plot_feature(X, i):
 
         ax1.spines['top'].set_linewidth(0.3)
         ax1.spines['right'].set_linewidth(0.3)
-        filename = 'user_' + str(idx) + '_' + feature_name + '.pdf'
-        hp.save_plot(plt, 'Features/Feature_plots/' + feature_name + '/', filename)
+        filename = 'lineplot_' + feature_name + '_user_' + str(idx) + '.pdf'
+        hp.save_plot(plt, 'Features/Feature Plots/' + feature_name + '/', filename)
 
 
 def _plot_crashes_vs_timedelta(X):
@@ -212,6 +238,9 @@ def _plot_crashes_vs_timedelta(X):
     Plots the percentage of crashes happening depending on the timedelta-feature in a barchart
 
     :param X:  Feature matrix
+
+    Folder:     Features/
+    Plot name:  barplot_%crashes_vs_timedelta.pdf
 
     """
 
@@ -235,7 +264,9 @@ def _plot_crashes_vs_timedelta(X):
 
         :param i: Bin
         :return: tuple with (opercentage, #occurences)
+
         """
+
         conc = timedelta_values_at_crashes + timedelta_values_at_non_crashes
         try:
             return (len([x for x in timedelta_values_at_crashes if i/10 <= x <= i/10 + 0.1]) /
@@ -277,7 +308,7 @@ def _plot_crashes_vs_timedelta(X):
     ax.set_axisbelow(True)
     [i.set_linewidth(0.3) for i in ax.spines.values()]
 
-    hp.save_plot(plt, 'Features/', 'percentage_crashes_vs_timedelta.pdf')
+    hp.save_plot(plt, 'Features/', 'barplot_%crashes_vs_timedelta.pdf')
 
 
 def _plot_timedelta_vs_obstacle_scatter(X, y):
@@ -286,6 +317,9 @@ def _plot_timedelta_vs_obstacle_scatter(X, y):
 
     :param X: Feature matrix
     :param y: labels
+
+    Folder:     Features/Timedelta vs crash/
+    Plot name:  scatter_timedelta_crash_mean_over_all_users.pdf or scatter_timedelta_crash_user_{user_idx}.pdf
 
     """
 
@@ -329,16 +363,85 @@ def _plot_timedelta_vs_obstacle_scatter(X, y):
         plt.legend(handles=[green_patch, red_patch])
 
         if i == len(sd.df_list):
-            hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr_all.pdf')
+            hp.save_plot(plt, 'Features/Timedelta vs crash/', 'scatter_timedelta_crash_mean_over_all_users.pdf')
         else:
-            hp.save_plot(plt, 'Features/Correlations/', 'correlation_distr' + str(i) + '.pdf')
+            hp.save_plot(plt, 'Features/Timedelta vs crash/', 'scatter_timedelta_crash_user_' + str(i) + '.pdf')
 
 
+# NOTE: Not used anymore!!
+def _plot_scores_with_different_feature_selections():
+    """
+    After trying different feature selcetions, I plot the scores for each classifier in a barchart.
+    Note: The numbers were colelcted by analyzsing the performances!
+
+    1. timedelta_to_last_obst only
+    2. timedelta_to_last_obst + last_obstacle_crash
+    3. all features
+    4. old features (=all features without timedelta_to_last_obst)
+
+    Folder:     Performance
+    Plot name:  clf_performance_with_different_features.pdf
+
+    """
+
+    # TODO: Update scores...
+
+    scores_timedelta_only = [0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
+    scores_timedelta_and_last_obst_crash = [0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
+    scores_all_features = [0.68, 0.68, 0.61, 0.64, 0.96, 0.95, 0.965, 0.65]
+    scores_old_features = [0.62, 0.63, 0.57, 0.622, 0.53, 0.6, 0.64, 0.74]
+
+    fix, ax = plt.subplots()
+    bar_width = 0.2
+    line_width = 0.3
+
+    index = np.arange(len(scores_timedelta_only))
+    ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
+    ax.set_axisbelow(True)
+    [i.set_linewidth(line_width) for i in ax.spines.values()]
+
+    plt.bar(index, scores_timedelta_and_last_obst_crash, bar_width,
+            color=hp.red_color,
+            label='timedelta_to_last_obst + last_obstacle_crash',
+            )
+
+    plt.bar(index + bar_width, scores_timedelta_only, bar_width,
+            color=hp.blue_color,
+            label='timedelta_to_last_obst',
+            )
+
+    plt.bar(index + 2 * bar_width, scores_all_features, bar_width,
+            color=hp.green_color,
+            label='all features',
+            )
+
+    plt.bar(index + 3 * bar_width, scores_old_features, bar_width,
+            color=hp.yellow_color,
+            label='all features, but without timedelta_to_last_obst',
+            )
+
+    plt.ylabel('roc_auc')
+    plt.title('roc_auc when selecting different features')
+    plt.xticks(index + bar_width / 4, classifiers.names, rotation='vertical')
+    ax.set_ylim([0, 1.2])
+    plt.legend(prop={'size': 6})
+
+    plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+    plt.tight_layout()
+
+    hp.save_plot(plt, 'Performance/', 'clf_performance_with_different_features.pdf')
+
+
+# Note: Not used in the main program
 def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
     """
     Plots for each logfile the mean and std of timedelta_to_last_obst at each obstacle  and if a crash or not happened
 
     :param do_normalize: Whether to normalize timedelta_feature over time
+
+    Folder:     Features/Timedelta vs Crash Detailed
+    Plot name:  crash_user_{user_idx}.pdf
 
     """
 
@@ -393,67 +496,5 @@ def _plot_timedeltas_and_crash_per_logfile(do_normalize=True):
         plt.xticks([1, 2], ['No crash', 'Crash'])
         plt.title('Average timedelta value for logfile ' + str(idx) + ' when crash or not crash')
 
-        filename = str(idx) + '_crash.pdf'
-        hp.save_plot(plt, 'Features/Crash Correlation_Detailed/', filename)
-
-
-# NOTE: Not used anymore!!
-def _plot_scores_with_different_feature_selections():
-    """
-    After trying different feature selcetions, I plot the scores for each classifier in a barchart.
-    Note: The numbers were colelcted by analyzsing the performances!
-
-    1. timedelta_to_last_obst only
-    2. timedelta_to_last_obst + last_obstacle_crash
-    3. all features
-    4. old features (=all features without timedelta_to_last_obst)
-
-    """
-
-    # TODO: Update scores...
-
-    scores_timedelta_only = [0.69, 0.69, 0.84, 0.69, 0.86, 0.86, 0.8, 0.69]
-    scores_timedelta_and_last_obst_crash = [0.745, 0.726, 0.99, 0.73, 0.99, 0.994, 0.96, 0.73]
-    scores_all_features = [0.68, 0.68, 0.61, 0.64, 0.96, 0.95, 0.965, 0.65]
-    scores_old_features = [0.62, 0.63, 0.57, 0.622, 0.53, 0.6, 0.64, 0.74]
-
-    fix, ax = plt.subplots()
-    bar_width = 0.2
-    line_width = 0.3
-
-    index = np.arange(len(scores_timedelta_only))
-    ax.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
-    ax.set_axisbelow(True)
-    [i.set_linewidth(line_width) for i in ax.spines.values()]
-
-    plt.bar(index, scores_timedelta_and_last_obst_crash, bar_width,
-            color=hp.red_color,
-            label='timedelta_to_last_obst + last_obstacle_crash',
-            )
-
-    plt.bar(index + bar_width, scores_timedelta_only, bar_width,
-            color=hp.blue_color,
-            label='timedelta_to_last_obst',
-            )
-
-    plt.bar(index + 2 * bar_width, scores_all_features, bar_width,
-            color=hp.green_color,
-            label='all features',
-            )
-
-    plt.bar(index + 3 * bar_width, scores_old_features, bar_width,
-            color=hp.yellow_color,
-            label='all features, but without timedelta_to_last_obst',
-            )
-
-    plt.ylabel('roc_auc')
-    plt.title('roc_auc when selecting different features')
-    plt.xticks(index + bar_width / 4, classifiers.names, rotation='vertical')
-    ax.set_ylim([0, 1.2])
-    plt.legend(prop={'size': 6})
-
-    plt.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-
-    plt.tight_layout()
-
-    hp.save_plot(plt, 'Performance/', 'clf_performance_with_different_features.pdf')
+        filename = 'crash_user_' + str(idx) + '.pdf'
+        hp.save_plot(plt, 'Features/Timedelta vs Crash Detailed/', filename)

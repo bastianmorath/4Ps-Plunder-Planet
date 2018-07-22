@@ -72,7 +72,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
     fbmc_names_hr_points = [
         f
         for f in sorted(os.listdir(abs_path_logfiles))
-        if re.search(r".*FBMC_hr_([12]).*.log", f)  # TODO: Stefan is not considered..
+        if re.search(r".*FBMC_hr_([12]).*.log", f)
     ]
 
     sorted_names = sorted(fbmc_names_hr_points)
@@ -81,8 +81,7 @@ def setup(fewer_data=False, normalize_heartrate=True):
     globals()["use_fewer_data"] = fewer_data
 
     if fewer_data:
-        # globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
-        globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log']
+        globals()["names_logfiles"] = ['Is_FBMC_hr_1.log', 'Lo_FBMC_hr_1.log', 'MH_FBMC_hr_1.log']
 
     column_names = [
         "Time",

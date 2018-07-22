@@ -336,7 +336,7 @@ def _split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, siz
     :return: X_train, X_test, y_train, y_test, each as a list
     """
 
-    # random.seed(_seed)  # TODO: At the end, I can use random splits
+    # random.seed(_seed)
     c = list(zip(X_splitted, y_splitted))
     random.shuffle(c)
 

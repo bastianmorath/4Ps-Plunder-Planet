@@ -95,7 +95,7 @@ def get_argparse():
         "-s",
         "--use_synthesized_data",
         action="store_true",
-        help="Use synthesized data. Might not work with everything."  # TODO
+        help="Use synthesized data. Might not work with everything."
     )
 
     parser.add_argument(

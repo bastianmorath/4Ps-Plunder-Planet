@@ -23,7 +23,7 @@ import features_factory as f_factory
 import hyperparameter_optimization
 import plots_helpers
 import setup_dataframes as sd
-
+import plots_features
 
 # High level functions
 
@@ -71,7 +71,6 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
         names.append(clf_name)
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
-            # TODO: Use boxcox feature matrix
             X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True)
             roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
                 get_performance(clf, clf_name, X_n, y_n, create_curves=create_curves)
@@ -152,8 +151,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     recall_std = recalls_.std()
     roc_auc_std = roc_aucs_.std()
 
-    # if clf_name == 'Decision Tree':
-    #    plots_features.plot_graph_of_decision_classifier(model, X, y)
+    if clf_name == 'Decision Tree':
+        plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
@@ -163,7 +162,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
                                       specificity, precision_mean, precision_std, conf_mat, tuned_params_dict)
 
-    if create_curves:  # TODO: Wrongggg, name is always with_hp_tuning...
+    if create_curves:
         fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
         _plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
@@ -550,8 +549,6 @@ def _print_confidentiality_scores(X_train, X_test, y_train, y_test):
     :param y_test:  labels of test data
 
     """
-
-    # TODO: Use this somewhere
 
     from sklearn.neighbors import KNeighborsClassifier
     model = KNeighborsClassifier()

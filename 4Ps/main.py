@@ -26,11 +26,16 @@ import window_optimization
 import leave_one_group_out_cv
 import hyperparameter_optimization
 
-
+# TODO: remove .log from name_logfiles
 # TODO: Structure modules with comments s.a. helpers, main, PRivate etc.
-# TODO: clean up comments
+
 
 def main(args):
+    """
+    Call '$ python main.py -h' to see how to use this module
+    :param args: ArgumentParser
+
+    """
 
     start = time.time()
 
@@ -46,7 +51,7 @@ def main(args):
 
         X, y = f_factory.get_feature_matrix_and_label(
             verbose=True, use_cached_feature_matrix=False, save_as_pickle_file=False,
-            feature_selection=f_factory.use_reduced_features
+            reduced_features=f_factory.use_reduced_features
         )
 
     else:
@@ -59,8 +64,7 @@ def main(args):
                 verbose=True,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                # TODO: Remove f_selection argument as it is stored as local variable anyways
-                feature_selection=f_factory.use_reduced_features,
+                reduced_features=f_factory.use_reduced_features,
                 use_boxcox=False
         )
 
