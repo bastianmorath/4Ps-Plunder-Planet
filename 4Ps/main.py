@@ -64,6 +64,29 @@ def main(args):
                 reduced_features=f_factory.use_reduced_features,
                 use_boxcox=False
         )
+    '''
+
+    from sklearn.model_selection import train_test_split
+    from sklearn import metrics
+    
+    import numpy as np
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    model = classifiers.get_cclassifier_with_name('SVM', X, y).clf
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    y_pred_probas = [b for (a,b) in model.predict_proba(X_test)
+    print(metrics.roc_auc_score(y_test, y_pred_probas))
+    print(metrics.f1_score(y_test, y_pred))
+    print(metrics.recall_score(y_test, y_pred))
+    print(metrics.precision_score(y_test, y_pred))
+
+    predict_probabilities = model.predict_proba(X_test)
+    predict_mine = [0 if b > 0.001 else 1 for [a, b] in predict_probabilities ]
+    print(metrics.roc_auc_score(y_test, predict_mine))
+    print(metrics.f1_score(y_test, predict_mine))
+    print(metrics.recall_score(y_test, predict_mine))
+    print(metrics.precision_score(y_test, predict_mine))
+    '''
 
     if args.plot_roc_curves:
         print("\n################# Plotting ROC curves of classifiers #################\n")
@@ -130,8 +153,9 @@ def main(args):
 
     if args.evaluate_lstm:
         print("\n################# Get trained LSTM #################\n")
-        LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.get_trained_lstm[0])
-        # LSTM.get_finalscore(X, y, n_epochs=args.get_trained_lstm[0])
+
+        # LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
+        LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")

@@ -1,0 +1,87 @@
+Sender: LSF System <lsfadmin@eu-ms-012-14>
+Subject: Job 69599646: <python main.py -t 'Ada Boost'> in cluster <euler> Done
+
+Job <python main.py -t 'Ada Boost'> was submitted from host <eu-ms-009-21> by user <morathba> in cluster <euler> at Sun Jul 22 15:03:50 2018.
+Job was executed on host(s) <eu-ms-012-14>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Mon Jul 23 10:53:55 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Mon Jul 23 10:53:55 2018.
+Terminated at Mon Jul 23 13:53:56 2018.
+Results reported at Mon Jul 23 13:53:56 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -t 'Ada Boost'
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   10788.50 sec.
+    Max Memory :                                 378 MB
+    Average Memory :                             372.80 MB
+    Total Requested Memory :                     8000.00 MB
+    Delta Memory :                               7622.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   10828 sec.
+    Turnaround time :                            82206 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=2000 for Ada Boost...
+Time elapsed for hyperparameter tuning: 10774.426445960999
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.654 (std: 0.033)
+		Parameters: {'algorithm': 'SAMME', 'learning_rate': 0.06839589751627408, 'n_estimators': 124}
+	Model with rank: 2
+		Mean validation score: 0.654 (std: 0.038)
+		Parameters: {'algorithm': 'SAMME.R', 'learning_rate': 0.42643411430152434, 'n_estimators': 12}
+	Model with rank: 3
+		Mean validation score: 0.654 (std: 0.033)
+		Parameters: {'algorithm': 'SAMME', 'learning_rate': 0.36232436412585844, 'n_estimators': 34}
+
+Calculating performance of Ada Boost...
+
+******** Scores for Ada Boost (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'n_estimators': 124, 'learning_rate': 0.06839589751627408, 'algorithm': 'SAMME'},
+	roc_auc: 0.647 (+-0.05), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4780    0] 
+				 [1049    0]
+
+
+Time elapsed: 10794.4863884449

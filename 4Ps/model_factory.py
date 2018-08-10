@@ -277,17 +277,13 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
     :param title: title of the roc plot
 
     """
-
     # allows to add probability output to classifiers which implement decision_function()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-    clf = CalibratedClassifierCV(classifier)
-    clf.fit(X_train, y_train)
+    # clf = CalibratedClassifierCV(classifier)
 
-    predicted_probas = clf.predict_proba(X_test)  # returns class probabilities for each class
-
-    fpr, tpr, _ = roc_curve(y_test, predicted_probas[:, 1])
+    predicted_probas = cross_val_predict(classifier, X, y, cv=10, method='predict_proba')
+    fpr, tpr, thresholds = roc_curve(y, predicted_probas[:, 1])
     roc_auc = auc(fpr, tpr)
-
+    print(roc_auc)
     plt.figure()
     plt.title(title)
     plt.plot(fpr, tpr, plots_helpers.blue_color, label='AUC = %0.2f' % roc_auc)
@@ -297,6 +293,13 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
+
+    # create the axis of thresholds (scores)
+    ax2 = plt.gca().twinx()
+    ax2.plot(fpr, thresholds, markeredgecolor='r', linestyle='dashed', color='r')
+    ax2.set_ylabel('Threshold', color='r')
+    ax2.set_ylim([thresholds[-1], thresholds[0]])
+    ax2.set_xlim([fpr[0], fpr[-1]])
 
     plots_helpers.save_plot(plt, 'Performance/Roc Curves/', filename)
 
@@ -534,7 +537,7 @@ def _test_clf_with_timedelta_only():
 
     recall = metrics.recall_score(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
-    roc_auc = metrics.roc_auc_score(y, y_pred)
+    # roc_auc = metrics.roc_auc_score(y, y_pred)  # Wrong, use probas!!
     print(roc_auc, recall, specificity, precision)
     '''
 

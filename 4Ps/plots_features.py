@@ -29,7 +29,7 @@ def generate_plots_about_features(X, y):
     :param y: labels
 
     """
-    
+
     _plot_crashes_vs_timedelta(X)
     _plot_timedelta_vs_obstacle_scatter(X, y)
     _plot_feature_distributions(X)
@@ -56,9 +56,9 @@ def plot_graph_of_decision_classifier(model, X, y):
     """
 
     # Set class_weight to balanced, such that the graph makes more sense to interpret.
-    # I do not do this when actually predicting values  because the performance is better
-    params_sdecicion_tree = {"class_weight": "balanced", "max_depth": 4}
-    model.set_params(**params_sdecicion_tree)
+    # I do not do this when actually predicting values because the performance is better
+    params_decision_tree = {"class_weight": "balanced", "max_depth": 4}
+    model.set_params(**params_decision_tree)
     model.fit(X, y)
 
     sorted_importances = sorted(model.feature_importances_, reverse=True)

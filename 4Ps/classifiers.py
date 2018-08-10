@@ -85,26 +85,32 @@ class CSVM(CClassifier):
     param1_name = 'C'
     param2 = get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
-    tuned_params = {'C': param1, 'gamma': param2}
+    param3 = sp_randint(1, 20)  # degree
+    param3_name = 'degree'
+    param4 = ['rbf', 'poly', 'linear', 'sigmoid']  # kernel
+    param4_name = 'kernel'
+    tuned_params = {'C': param1, 'gamma': param2, 'degree': param3, 'kernel': param4}
     num_iter = 5 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        self.clf = SVC(class_weight='balanced')
+        self.clf = SVC(class_weight='balanced', kernel='poly', degree=3, probability=True)
 
 
 class CLinearSVM(CClassifier):
     name = 'Linear SVM'
-    param1 = sp_randint(1, 10000)  # C
+    param1 = sp_randint(1, 1000)  # C
     param1_name = 'C'
-    param2 = ['l1', 'l2']  # penalty
-    param2_name = 'penalty'
-    tuned_params = {'C': param1, 'penalty': param2}
-    num_iter = 300 * _random_search_multiplier
+    param2 = get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
+    param2_name = 'gamma'
+    param3 = sp_randint(1, 20)  # degree
+    param3_name = 'degree'
+    tuned_params = {'C': param1, 'gamma': param2, 'degree': param3}
+    num_iter = 5 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        self.clf = LinearSVC(class_weight='balanced', dual=False)
+        self.clf = SVC(class_weight='balanced', kernel='linear', probability=True)
 
 
 class CNearestNeighbors(CClassifier):
@@ -184,12 +190,12 @@ class CDecisionTreeClassifier(CClassifier):
     param2_name = 'splitter'
     param3 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)   # max_depth
     param3_name = 'max_depth'
-    param4 = sp_randint(2, 30)  # min_samples_split
+    param4 = sp_randint(2, 50)  # min_samples_split
     param4_name = 'min_samples_split'
-    param5 = sp_randint(1, 30)  # min_samples_leaf
+    param5 = sp_randint(1, 50)  # min_samples_leaf
     param5_name = 'min_samples_leaf'
 
-    num_iter = 5 * _random_search_multiplier
+    num_iter = 500 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
@@ -208,22 +214,21 @@ class CRandomForest(CClassifier):
 
     param1 = get_list_with_distr_and_opt_param(sp_randint(1, 50), None)  # max_depth
     param1_name = 'max_depth'
+    param2 = sp_randint(2, 40)  # min_samples_split
+    param2_name = 'min_samples_split'
+    param3 = sp_randint(1, 50)  # min_samples_leaf
+    param3_name = 'min_samples_leaf'
+    param4 = sp_randint(1, 128)  # number of trees
+    param4_name = 'n_estimators'
 
-    param3 = sp_randint(2, 40)  # min_samples_split
-    param3_name = 'min_samples_split'
-    param4 = sp_randint(1, 20)  # min_samples_leaf
-    param4_name = 'min_samples_leaf'
-    param5 = ['gini', 'entropy']  # criterion
-    param5_name = 'criterion'
-
-    num_iter = 100 * _random_search_multiplier
+    num_iter = 10 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier()
-
-        self.tuned_params = {'max_depth': CRandomForest.param1, 'min_samples_split': CRandomForest.param3,
-                             'min_samples_leaf': CRandomForest.param4, 'criterion': CRandomForest.param5}
+        self.tuned_params = {'max_depth': CRandomForest.param1,
+                             'min_samples_split': CRandomForest.param2, 'min_samples_leaf': CRandomForest.param3,
+                             'n_estimators':CRandomForest.param4}
 
 
 class CAdaBoost(CClassifier):

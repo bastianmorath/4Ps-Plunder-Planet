@@ -30,8 +30,8 @@ _seed = 1  # Seed used to split into testtrain/test/val data
 def get_finalscore(X, y, n_epochs, verbose=0):
     roc_aucs_mean: [float] = []
     f1s_mean: [float] = []
-    for i in range(0, 2):
-        roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose)
+    for i in range(0, 15):
+        roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose, final_score=True)
         roc_aucs_mean.append(roc_mean)
         f1s_mean.append(f1_mean)
 
@@ -45,7 +45,7 @@ def get_finalscore(X, y, n_epochs, verbose=0):
           ', (+-' + str(round(float(np.std(f1s_mean)), 3)) + ')')
 
 
-def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
+def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=False):
     """
     Reshapes feature matrix X, applies LSTM and returns the performance of the neural network
 
@@ -53,22 +53,31 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1):
     :param y: labels
     :param n_epochs: Number of epochs the model should be trained
     :param verbose: verbose mode of keras_model.fit
+    :param final_score: If final score should be printed, then don't use a validation set
     :return mean auroc, std auroc
     """
 
     X_list, y_list = _get_splitted_up_feature_matrix_and_labels(X, y)
     globals()["_maxlen"] = max(len(fm) for fm in X_list)
-    X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-        _split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=2)
 
-    X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
-    X_val, y_val = _get_reshaped_matrices(X_val, y_val)
+    if final_score:
+        X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
+            _split_into_train_test_val_data(X_list, y_list, size_test_set=5, size_val_set=0)
+        X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
+        model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-    model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
+        trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose)
 
-    trained_model = _train_lstm(model, X_lstm, y_lstm, X_val, y_val,  n_epochs, verbose)
-    print('Performance training set: ')
-    _calculate_performance(X_lstm, y_lstm, trained_model)
+    else:
+        X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
+            _split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=2)
+        X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
+        model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
+
+        trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose, val_set = (X_val, y_val))
+        print('Performance training set: ')
+        _calculate_performance(X_lstm, y_lstm, trained_model)
+
     print('Performance test set: ')
     mean_auroc, std_auroc = _calculate_performance(X_test_list, y_test_list, trained_model)
     return mean_auroc, std_auroc
@@ -127,11 +136,9 @@ def _generate_lstm_classifier(shape):
     model.add(Dropout(dropout))
 
     model.add(Dense(96, activation='relu'))
-    # model.add(Dense(64, activation='relu'))
     model.add(Dropout(dropout))
 
     model.add(Dense(96, activation='relu'))
-    # model.add(Dense(32, activation='relu'))
     model.add(Dropout(dropout))
 
     # Allows to compute one Dense layer per Timestep (instead of one dense Layer per sample),
@@ -144,10 +151,11 @@ def _generate_lstm_classifier(shape):
     return model
 
 
-def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose=1):
-
+def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=None):
+    validation = not val_set is None
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
-    one_hot_labels_val = keras.utils.to_categorical(y_val, num_classes=2)
+    if validation:
+        one_hot_labels_val = keras.utils.to_categorical(val_set[1], num_classes=2)
 
     # sample_weights need a 2D array with shape `(samples, sequence_length)`,
     # to apply a different weight to every timestep of every sample.
@@ -155,24 +163,25 @@ def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose
 
     _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
 
-    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True)
+    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True) if validation else []
 
     trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                      verbose=verbose, shuffle=True, validation_data=(X_val, one_hot_labels_val),
+                      verbose=verbose, shuffle=True, validation_data=None if not validation else (val_set[0], one_hot_labels_val),
                       sample_weight=_sample_weight,
-                      callbacks=[history_callback]
+                      callbacks=history_callback
                       )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
-    print(trained_model.summary())
 
     # Plot
+    if validation:
+        print(trained_model.summary())
 
-    _plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
-                              history_callback.train_losses, history_callback.val_losses,
-                              history_callback.f1s_train, history_callback.f1s_val,
-                              n_epochs
-                              )
+        _plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
+                                  history_callback.train_losses, history_callback.val_losses,
+                                  history_callback.f1s_train, history_callback.f1s_val,
+                                  n_epochs
+                                  )
 
     return trained_model
 
@@ -184,7 +193,7 @@ def _train_lstm(trained_model, X_train, y_train, X_val, y_val, n_epochs, verbose
 
 def _calculate_performance(X_test_list, y_test_list, lstm_model):
     """
-    Iterates over all featurematrices (one per logfile), pads it to max_len (since lstm got trained on that length),
+    Iterates over all feature matrices (one per logfile), pads it to max_len (since lstm got trained on that length),
     then predicts labels, and discards the padded ones
     :param X_test_list:
     :param y_test_list:
@@ -204,13 +213,14 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
         predictions = lstm_model.predict_classes(X_padded, batch_size=16, verbose=0).ravel()
-
+        probas = lstm_model.predict_proba(X_padded, batch_size=16, verbose=0)
+        predictions_probas = [b for (a, b) in probas[0][:length_old]]
         y_pred = predictions[:length_old]
         y_true = y_test_list[idx]
 
         y_pred_list.append(y_pred)  # Remove predictions for padded values
 
-        _roc_auc_scores.append(metrics.roc_auc_score(y_true, y_pred))
+        _roc_auc_scores.append(metrics.roc_auc_score(y_true, predictions_probas))
         _recall_scores.append(metrics.recall_score(y_true, y_pred))
         _precision_scores.append(metrics.precision_score(y_true, y_pred))
         _f1_scores.append(metrics.f1_score(y_true, y_pred))
@@ -389,6 +399,7 @@ class Histories(keras.callbacks.Callback):
 
         pred_y_train = self.model.predict_classes(self.training_data[0])
         y_pred_train_conc = list(itertools.chain.from_iterable(pred_y_train))
+
         y_true_train = list(itertools.chain.from_iterable(self.training_data[1]))
         y_true_train_conc = np.argmax(y_true_train, axis=1)
 
@@ -398,8 +409,11 @@ class Histories(keras.callbacks.Callback):
         val_x = self.validation_data[0]
         val_y_conc = list(itertools.chain.from_iterable(self.validation_data[1]))
         y_pred_conc = list(itertools.chain.from_iterable(self.model.predict_classes(val_x)))
+        probas = list(itertools.chain.from_iterable(self.model.predict_proba(val_x)))
+        y_pred_conc_probas = [b for (a, b) in probas]
+
         y_true_conc = np.argmax(val_y_conc, axis=1)
-        roc_auc_val = roc_auc_score(y_true_conc, y_pred_conc)
+        roc_auc_val = roc_auc_score(y_true_conc, y_pred_conc_probas)
         f1_val = f1_score(y_true_conc, y_pred_conc)
 
         self.aucs_train.append(round(roc_auc_train, 3))

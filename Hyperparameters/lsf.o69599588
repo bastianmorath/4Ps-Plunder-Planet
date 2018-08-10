@@ -1,0 +1,88 @@
+Sender: LSF System <lsfadmin@eu-ms-001-03>
+Subject: Job 69599588: <python main.py -t 'Random Forest'> in cluster <euler> Done
+
+Job <python main.py -t 'Random Forest'> was submitted from host <eu-ms-015-23> by user <morathba> in cluster <euler> at Sun Jul 22 14:53:24 2018.
+Job was executed on host(s) <eu-ms-001-03>, in queue <normal.120h>, as user <morathba> in cluster <euler> at Mon Jul 23 23:01:02 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Mon Jul 23 23:01:02 2018.
+Terminated at Tue Jul 24 00:11:17 2018.
+Results reported at Tue Jul 24 00:11:17 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -t 'Random Forest'
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   4211.67 sec.
+    Max Memory :                                 195 MB
+    Average Memory :                             166.32 MB
+    Total Requested Memory :                     8000.00 MB
+    Delta Memory :                               7805.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   4215 sec.
+    Turnaround time :                            119873 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+/cluster/home/morathba/.local/lib64/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=10000 for Random Forest...
+Time elapsed for hyperparameter tuning: 4206.932986021042
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.659 (std: 0.032)
+		Parameters: {'criterion': 'gini', 'max_depth': 1, 'min_samples_leaf': 3, 'min_samples_split': 35}
+	Model with rank: 2
+		Mean validation score: 0.658 (std: 0.029)
+		Parameters: {'criterion': 'entropy', 'max_depth': 4, 'min_samples_leaf': 15, 'min_samples_split': 31}
+	Model with rank: 3
+		Mean validation score: 0.658 (std: 0.031)
+		Parameters: {'criterion': 'gini', 'max_depth': 1, 'min_samples_leaf': 16, 'min_samples_split': 7}
+
+Calculating performance of Random Forest...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+
+******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
+
+	Hyperparameters: {'max_depth': 1, 'min_samples_split': 35, 'min_samples_leaf': 3, 'criterion': 'gini'},
+	roc_auc: 0.647 (+-0.06), recall: 0.000 (+-0.00), specificity: 1.000, precision: 0.000 (+-0.00) 
+
+	Confusion matrix: 	 [4780    0] 
+				 [1049    0]
+
+
+Time elapsed: 4209.629264831543
