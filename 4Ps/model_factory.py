@@ -12,7 +12,7 @@ from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (
-    auc, roc_curve, confusion_matrix, precision_recall_curve
+    auc, roc_curve, confusion_matrix, precision_recall_curve, precision_score, recall_score, roc_auc_score
 )
 from sklearn.model_selection import (
     cross_validate, train_test_split, cross_val_predict
@@ -26,6 +26,24 @@ import setup_dataframes as sd
 import plots_features
 
 # High level functions
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+
+class CustomThreshold(BaseEstimator, ClassifierMixin):
+    """ Custom threshold wrapper for binary classification"""
+    def __init__(self, base, threshold=0.5):
+        self.base = base
+        self.threshold = threshold
+
+    def fit(self, *args, **kwargs):
+        self.base.fit(*args, **kwargs)
+        return self
+
+    def predict_proba(self, X):
+        return self.base.predict_proba(X)
+
+    def predict(self, X):
+        return (self.base.predict_proba(X)[:, 1] > self.threshold).astype(int)
 
 
 def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True,
@@ -130,18 +148,23 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     """
     if verbose:
         print('Calculating performance of %s...' % clf_name)
-
+    # model = CalibratedClassifierCV(model)
     # Compute performance scores
-    y_pred = cross_val_predict(model, X, y, cv=10)
+    # Thresholds:
+    # Nearest Neighbor: 0.35
+    thresh_model = CustomThreshold(model, 0.5)
+
+    y_pred = cross_val_predict(thresh_model, X, y, cv=10)
     conf_mat = confusion_matrix(y, y_pred)
     specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
 
     # Calculates one score of each fold and returns it in a list (-> Macro averaging)
-    scores = cross_validate(model, X, y, cv=10, scoring=['roc_auc', 'recall', 'precision'])
+    scores = cross_validate(thresh_model, X, y, cv=10, scoring=['recall', 'precision'])
+    scores_roc_auc = cross_validate(model, X, y, cv=10, scoring=['roc_auc', 'recall', 'precision'])
 
     precisions_ = scores['test_precision']
     recalls_ = scores['test_recall']
-    roc_aucs_ = scores['test_roc_auc']
+    roc_aucs_ = scores_roc_auc['test_roc_auc']
 
     precision_mean = precisions_.mean()
     recall_mean = recalls_.mean()
@@ -166,7 +189,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
         _plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
-        plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
+        plot_precision_recall_curve(thresh_model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
         # Write result to a file
@@ -283,7 +306,7 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
     predicted_probas = cross_val_predict(classifier, X, y, cv=10, method='predict_proba')
     fpr, tpr, thresholds = roc_curve(y, predicted_probas[:, 1])
     roc_auc = auc(fpr, tpr)
-    print(roc_auc)
+
     plt.figure()
     plt.title(title)
     plt.plot(fpr, tpr, plots_helpers.blue_color, label='AUC = %0.2f' % roc_auc)
@@ -298,6 +321,7 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
     ax2 = plt.gca().twinx()
     ax2.plot(fpr, thresholds, markeredgecolor='r', linestyle='dashed', color='r')
     ax2.set_ylabel('Threshold', color='r')
+
     ax2.set_ylim([thresholds[-1], thresholds[0]])
     ax2.set_xlim([fpr[0], fpr[-1]])
 
