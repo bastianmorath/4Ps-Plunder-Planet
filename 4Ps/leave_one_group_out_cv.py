@@ -107,7 +107,7 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
         model.fit(X_train, y_train)
 
         # I do MACRO averaging such that I can compute std!
-        roc_auc, _, recall, _, specificity, precision, _, conf_mat, _ = \
+        roc_auc, _, recall, _, specificity, _, precision, _, conf_mat, _ = \
             model_factory.get_performance(model, "", X_test, y_test, verbose=False, create_curves=False)
 
         # I calculate the indices that were left out, and map them back to one row of the data,

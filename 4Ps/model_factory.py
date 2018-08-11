@@ -8,6 +8,8 @@ import random
 
 import matplotlib.pyplot as plt
 import numpy as np
+import itertools
+
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
@@ -15,8 +17,8 @@ from sklearn.metrics import (
     auc, roc_curve, confusion_matrix, precision_recall_curve, precision_score, recall_score, roc_auc_score
 )
 from sklearn.model_selection import (
-    cross_validate, train_test_split, cross_val_predict
-)
+    cross_validate, train_test_split,
+    KFold)
 
 import classifiers
 import features_factory as f_factory
@@ -26,24 +28,8 @@ import setup_dataframes as sd
 import plots_features
 
 # High level functions
-from sklearn.base import BaseEstimator, ClassifierMixin
 
-
-class CustomThreshold(BaseEstimator, ClassifierMixin):
-    """ Custom threshold wrapper for binary classification"""
-    def __init__(self, base, threshold=0.5):
-        self.base = base
-        self.threshold = threshold
-
-    def fit(self, *args, **kwargs):
-        self.base.fit(*args, **kwargs)
-        return self
-
-    def predict_proba(self, X):
-        return self.base.predict_proba(X)
-
-    def predict(self, X):
-        return (self.base.predict_proba(X)[:, 1] > self.threshold).astype(int)
+threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc. with Youdens j-score)
 
 
 def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True,
@@ -90,14 +76,14 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
             X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True)
-            roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
-                get_performance(clf, clf_name, X_n, y_n, create_curves=create_curves)
+            roc_auc, roc_auc_std, recall, recall_std, specificity, specificity_std, precision, precision_std, \
+                conf_mat, _ = get_performance(clf, clf_name, X_n, y_n, create_curves=create_curves)
         else:
-            roc_auc, roc_auc_std, recall, recall_std, specificity, precision, precision_std, conf_mat, _ = \
-                get_performance(clf, clf_name, X, y, tuned_parameters, create_curves=create_curves)
+            roc_auc, roc_auc_std, recall, recall_std, specificity, specificity_std, precision, precision_std, \
+                conf_mat, _ = get_performance(clf, clf_name, X, y, tuned_parameters, create_curves=create_curves)
 
         scores_mean.append([roc_auc, recall, specificity, precision])
-        scores_std.append([roc_auc_std, recall_std, precision_std])
+        scores_std.append([roc_auc_std, recall_std, specificity_std, precision_std])
         tuned_params.append(get_tuned_params_dict(clf, tuned_parameters))
         conf_mats.append(conf_mat)
 
@@ -111,15 +97,16 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     roc_scores = [s[0] for s in scores_mean]
     roc_scores_std = [s[0] for s in scores_std]
     recall_scores = [s[1] for s in scores_mean]
-    recall_scores_std = [s[0] for s in scores_std]
+    recall_scores_std = [s[1] for s in scores_std]
     specifity_scores = [s[2] for s in scores_mean]
+    specifity_scores_std = [s[2] for s in scores_mean]
     precision_scores = [s[3] for s in scores_mean]
-    precision_scores_std = [s[2] for s in scores_std]
+    precision_scores_std = [s[3] for s in scores_std]
 
     for i, name in enumerate(names):
         s += create_string_from_scores(name, roc_scores[i], roc_scores_std[i], recall_scores[i], recall_scores_std[i],
-                                       specifity_scores[i], precision_scores[i], precision_scores_std[i],
-                                       conf_mats[i], tuned_params[i])
+                                       specifity_scores[i], specifity_scores_std[i], precision_scores[i],
+                                       precision_scores_std[i], conf_mats[i], tuned_params[i])
 
     if do_write_to_file:
         write_to_file(s, 'Performance/', filename + '.txt', 'w+')
@@ -142,54 +129,99 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     :param do_write_to_file: Write summary of performance into a file (optional)
     :param create_curves: Create roc_curves and precision_recall curve
 
-    :return: roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std,
-            confusion_matrix and summary of those as a string
+    :return: roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity_mean, specificity_std,
+             precision_mean, precision_std, confusion_matrix and summary of those as a string
 
+    Note: I could have also done this emthod with cross_val_predict etc, but this would have required multiple of those,
+          which is inefficient.
     """
+
     if verbose:
         print('Calculating performance of %s...' % clf_name)
-    # model = CalibratedClassifierCV(model)
-    # Compute performance scores
-    # Thresholds:
-    # Nearest Neighbor: 0.35
-    thresh_model = CustomThreshold(model, 0.5)
 
-    y_pred = cross_val_predict(thresh_model, X, y, cv=10)
-    conf_mat = confusion_matrix(y, y_pred)
-    specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+    def cutoff_youdens_j(fpr, tpr, thresholds):
+        """
+        Computes optimal threshold of roc curve via Youdens j-score
 
-    # Calculates one score of each fold and returns it in a list (-> Macro averaging)
-    scores = cross_validate(thresh_model, X, y, cv=10, scoring=['recall', 'precision'])
-    scores_roc_auc = cross_validate(model, X, y, cv=10, scoring=['roc_auc', 'recall', 'precision'])
+        :param fpr: False Positive Rate
+        :param tpr: True Postitive Rate
+        :param thresholds: Thresholds from roc_curve
 
-    precisions_ = scores['test_precision']
-    recalls_ = scores['test_recall']
-    roc_aucs_ = scores_roc_auc['test_roc_auc']
+        """
 
-    precision_mean = precisions_.mean()
-    recall_mean = recalls_.mean()
-    roc_auc_mean = roc_aucs_.mean()
+        j_scores = tpr - fpr
+        j_ordered = sorted(zip(j_scores, thresholds))
+        return j_ordered[-1][1]
 
-    precision_std = precisions_.std()
-    recall_std = recalls_.std()
-    roc_auc_std = roc_aucs_.std()
+    y = np.asarray(y)
+
+    precisions_ = []
+    recalls_ = []
+    roc_aucs_ = []
+    specificities_ = []
+    y_pred_list = []
+    y_true_list = []
+    predicted_probas_list = []
+
+    kf = KFold(n_splits=10)
+
+    for train_index, test_index in kf.split(X):
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+
+        model.fit(X_train, y_train)
+
+        predicted_probas = model.predict_proba(X_test)
+        predicted_probas_list.append(predicted_probas[:, 1])
+
+        fpr, tpr, thresholds = roc_curve(y_test, predicted_probas[:, 1])
+        threshold = cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
+        print(threshold)
+        y_pred = [1 if b > threshold else 0 for (a, b) in predicted_probas]
+
+        y_pred_list.append(y_pred)
+        y_true_list.append(y_test)
+
+        conf_mat = confusion_matrix(y_test, y_pred)
+        specificities_.append(conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1]))
+
+        precisions_.append(precision_score(y_test, y_pred))
+        recalls_.append(recall_score(y_test, y_pred))
+        roc_aucs_.append(roc_auc_score(y_test, predicted_probas[:, 1]))
+
+    precision_mean = np.mean(precisions_)
+    recall_mean = np.mean(recalls_)
+    roc_auc_mean = np.mean(roc_aucs_)
+    specificity_mean = np.mean(specificities_)
+
+    precision_std = np.std(precisions_)
+    recall_std = np.std(recalls_)
+    roc_auc_std = np.std(roc_aucs_)
+    specificity_std = np.std(specificities_)
+
+    conf_mat = confusion_matrix(list(itertools.chain.from_iterable(y_true_list)),
+                                list(itertools.chain.from_iterable(y_pred_list)))
+    print(conf_mat)
+    print(recalls_)
 
     if clf_name == 'Decision Tree':
         plots_features.plot_graph_of_decision_classifier(model, X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
-                                      specificity, precision_mean, precision_std, conf_mat)
+                                      specificity_mean, specificity_std, precision_mean, precision_std, conf_mat)
     else:
         tuned_params_dict = get_tuned_params_dict(model, tuned_params_keys)
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
-                                      specificity, precision_mean, precision_std, conf_mat, tuned_params_dict)
+                                      specificity_mean, specificity_std, precision_mean, precision_std,
+                                      conf_mat, tuned_params_dict)
 
     if create_curves:
         fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
-        _plot_roc_curve(model, X, y, fn, 'ROC for ' + clf_name + ' without hyperparameter tuning')
-        plot_precision_recall_curve(thresh_model, X, y, 'precision_recall_curve_' + clf_name)
+        _plot_roc_curve(list(itertools.chain.from_iterable(predicted_probas_list)), y, fn, 'ROC for ' + clf_name +
+                        ' without hyperparameter tuning')
+        plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
         # Write result to a file
@@ -197,7 +229,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
                     str(f_factory.gradient_w) + '.txt'
         write_to_file(s, 'Performance/', filename, 'w+')
 
-    return roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity, precision_mean, precision_std, conf_mat, s
+    return roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity_mean, specificity_std, precision_mean, \
+        precision_std, conf_mat, s
 
 
 """
@@ -246,7 +279,7 @@ def get_tuned_params_dict(model, tuned_params_keys):
 
 
 def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity_mean,
-                              precision_mean, precision_std, conf_mat, tuned_params_dict=None):
+                              specificity_std, precision_mean, precision_std, conf_mat, tuned_params_dict=None):
     """
     Creates a formatted string from the performance scores, confusion matrix and optionally the tuned hyperparameters
 
@@ -255,7 +288,8 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
     :param roc_auc_std:         roc_auc standard deviation
     :param recall_mean:         recall mean
     :param recall_std:          recall standard deviation
-    :param specificity_mean:    specificity  mean
+    :param specificity_mean:    specificity mean
+    :param specificity_std:     specificity  std
     :param precision_mean:      precision mean
     :param precision_std:       precision standard deviation
     :param conf_mat:            confusion matrice
@@ -268,21 +302,22 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
         s = '\n\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\troc_auc: %.3f (+-%.2f), ' \
             'recall: %.3f (+-%.2f), ' \
-            'specificity: %.3f, ' \
+            'specificity: %.3f (+-%.2f), ' \
             'precision: %.3f (+-%.2f) \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n\n' \
             % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, roc_auc_mean, roc_auc_std, recall_mean,
-               recall_std, specificity_mean, precision_mean, precision_std, conf_mat[0], conf_mat[1])
+               recall_std, specificity_mean, specificity_std, precision_mean, precision_std, conf_mat[0], conf_mat[1])
     else:
         s = '\n******** Scores for %s (Windows:  %i, %i, %i) ******** \n\n' \
             '\tHyperparameters: %s,\n' \
             '\troc_auc: %.3f (+-%.2f), ' \
             'recall: %.3f (+-%.2f), ' \
-            'specificity: %.3f, ' \
+            'specificity: %.3f (+-%.2f), ' \
             'precision: %.3f (+-%.2f) \n\n' \
             '\tConfusion matrix: \t %s \n\t\t\t\t %s\n\n' \
             % (clf_name, f_factory.hw, f_factory.cw, f_factory.gradient_w, tuned_params_dict, roc_auc_mean, roc_auc_std,
-               recall_mean, recall_std, specificity_mean, precision_mean, precision_std, conf_mat[0], conf_mat[1])
+               recall_mean, recall_std, specificity_mean, specificity_std, precision_mean, precision_std,
+               conf_mat[0], conf_mat[1])
 
     return s
 
@@ -290,11 +325,10 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
 # Plotting
 
 
-def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
+def _plot_roc_curve(predicted_probas,  y, filename, title='ROC'):
     """Plots roc_curve for a given classifier
 
-    :param classifier:  Classifier
-    :param X: Feature matrix
+    :param predicted_probas: Probabilities of positive label
     :param y: labels
     :param filename: name of the file that the roc plot should be stored in
     :param title: title of the roc plot
@@ -303,13 +337,12 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
     # allows to add probability output to classifiers which implement decision_function()
     # clf = CalibratedClassifierCV(classifier)
 
-    predicted_probas = cross_val_predict(classifier, X, y, cv=10, method='predict_proba')
-    fpr, tpr, thresholds = roc_curve(y, predicted_probas[:, 1])
-    roc_auc = auc(fpr, tpr)
+    fpr_, tpr_, thresholds_ = roc_curve(y, predicted_probas)
+    roc_auc = auc(fpr_, tpr_)
 
     plt.figure()
     plt.title(title)
-    plt.plot(fpr, tpr, plots_helpers.blue_color, label='AUC = %0.2f' % roc_auc)
+    plt.plot(fpr_, tpr_, plots_helpers.blue_color, label='AUC = %0.2f' % roc_auc)
     plt.legend(loc='lower right')
     plt.plot([0, 1], [0, 1], c=plots_helpers.red_color,  ls='--')
     plt.xlim([0, 1])
@@ -319,11 +352,11 @@ def _plot_roc_curve(classifier, X, y, filename, title='ROC'):
 
     # create the axis of thresholds (scores)
     ax2 = plt.gca().twinx()
-    ax2.plot(fpr, thresholds, markeredgecolor='r', linestyle='dashed', color='r')
+    ax2.plot(fpr_, thresholds_, markeredgecolor='r', linestyle='dashed', color='r')
     ax2.set_ylabel('Threshold', color='r')
 
-    ax2.set_ylim([thresholds[-1], thresholds[0]])
-    ax2.set_xlim([fpr[0], fpr[-1]])
+    ax2.set_ylim([thresholds_[-1], thresholds_[0]])
+    ax2.set_xlim([fpr_[0], fpr_[-1]])
 
     plots_helpers.save_plot(plt, 'Performance/Roc Curves/', filename)
 

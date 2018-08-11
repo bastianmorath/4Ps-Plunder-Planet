@@ -121,7 +121,7 @@ class CNearestNeighbors(CClassifier):
     param2 = ['minkowski', 'euclidean', 'manhattan']  # metric
     param2_name = 'metric'
     tuned_params = {'n_neighbors': param1, 'metric': param2}
-    num_iter = 20 * _random_search_multiplier
+    num_iter = 15 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
