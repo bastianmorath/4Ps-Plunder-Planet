@@ -154,8 +154,8 @@ def main(args):
     if args.evaluate_lstm:
         print("\n################# Get trained LSTM #################\n")
 
-        # LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
-        LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
+        LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
+        # LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")

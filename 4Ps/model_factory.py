@@ -139,20 +139,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     if verbose:
         print('Calculating performance of %s...' % clf_name)
 
-    def cutoff_youdens_j(fpr, tpr, thresholds):
-        """
-        Computes optimal threshold of roc curve via Youdens j-score
-
-        :param fpr: False Positive Rate
-        :param tpr: True Postitive Rate
-        :param thresholds: Thresholds from roc_curve
-
-        """
-
-        j_scores = tpr - fpr
-        j_ordered = sorted(zip(j_scores, thresholds))
-        return j_ordered[-1][1]
-
     y = np.asarray(y)
 
     precisions_ = []
@@ -176,7 +162,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 
         fpr, tpr, thresholds = roc_curve(y_test, predicted_probas[:, 1])
         threshold = cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
-        print(threshold)
+
         y_pred = [1 if b > threshold else 0 for (a, b) in predicted_probas]
 
         y_pred_list.append(y_pred)
@@ -187,7 +173,12 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 
         precisions_.append(precision_score(y_test, y_pred))
         recalls_.append(recall_score(y_test, y_pred))
-        roc_aucs_.append(roc_auc_score(y_test, predicted_probas[:, 1]))
+
+        if len(np.unique(y_test)) == 2:
+            roc_aucs_.append(roc_auc_score(y_test, predicted_probas[:, 1]))
+        else:
+            print('Only one class present in y_true! roc_auc is not defined.')
+            recalls_.append(0.5)
 
     precision_mean = np.mean(precisions_)
     recall_mean = np.mean(recalls_)
@@ -199,10 +190,9 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     roc_auc_std = np.std(roc_aucs_)
     specificity_std = np.std(specificities_)
 
-    conf_mat = confusion_matrix(list(itertools.chain.from_iterable(y_true_list)),
-                                list(itertools.chain.from_iterable(y_pred_list)))
-    print(conf_mat)
-    print(recalls_)
+    y_pred = list(itertools.chain.from_iterable(y_pred_list))
+    y_true = list(itertools.chain.from_iterable(y_true_list))
+    conf_mat = confusion_matrix(y_true, y_pred)
 
     if clf_name == 'Decision Tree':
         plots_features.plot_graph_of_decision_classifier(model, X, y)
@@ -219,7 +209,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     if create_curves:
         fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
-        _plot_roc_curve(list(itertools.chain.from_iterable(predicted_probas_list)), y, fn, 'ROC for ' + clf_name +
+        _plot_roc_curve(list(itertools.chain.from_iterable(predicted_probas_list)), y_true, fn, 'ROC for ' + clf_name +
                         ' without hyperparameter tuning')
         plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
@@ -237,6 +227,21 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 Helper Functions
 
 """
+
+
+def cutoff_youdens_j(fpr, tpr, thresholds):
+    """
+    Computes optimal threshold of roc curve via Youdens j-score
+
+    :param fpr: False Positive Rate
+    :param tpr: True Postitive Rate
+    :param thresholds: Thresholds from roc_curve
+
+    """
+
+    j_scores = tpr - fpr
+    j_ordered = sorted(zip(j_scores, thresholds))
+    return j_ordered[-1][1]
 
 
 def write_to_file(string, folder, filename, mode, verbose=True):

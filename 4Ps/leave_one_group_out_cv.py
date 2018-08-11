@@ -10,14 +10,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
+
+from sklearn.metrics import (
+    auc, roc_curve, confusion_matrix, precision_recall_curve, precision_score, recall_score, roc_auc_score
+)
 
 import classifiers
 import features_factory as f_factory
 import model_factory
 import plots_helpers
 import setup_dataframes as sd
+
+threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc. with Youdens j-score)
 
 
 def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=False):
@@ -107,15 +112,25 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
         model.fit(X_train, y_train)
 
         # I do MACRO averaging such that I can compute std!
-        roc_auc, _, recall, _, specificity, _, precision, _, conf_mat, _ = \
-            model_factory.get_performance(model, "", X_test, y_test, verbose=False, create_curves=False)
+        predicted_probas = model.predict_proba(X_test)
+
+        fpr, tpr, thresholds = roc_curve(y_test, predicted_probas[:, 1])
+        threshold = model_factory.cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
+
+        y_pred = [1 if b > threshold else 0 for (a, b) in predicted_probas]
+
+        conf_mat = confusion_matrix(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, predicted_probas[:, 1])
+        recall = recall_score(y_test, y_pred)
+        specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
+        precision = precision_score(y_test, y_pred)
 
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
         left_out_group_indices = sorted(set(range(0, len(df_obstacles_concatenated))) - set(train_index))
         group = df_obstacles_concatenated.loc[[left_out_group_indices[0]]]
         user_id = group['userID'].item()
-        # print(auc, recall, precision, specificity)
+
         scores_and_ids.append((roc_auc, recall, specificity, precision, user_id))
 
     # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
@@ -234,12 +249,13 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
 
     auc_std = np.std([a[0] for a in scores])
     recall_std = np.std([a[1] for a in scores])
+    specificity_std = np.std([a[2] for a in scores])
     precision_std = np.std([a[3] for a in scores])
 
     conf_mat = confusion_matrix(y, y_pred)
 
     s = model_factory.create_string_from_scores(clf_name, auc_mean, auc_std, recall_mean, recall_std,  specificity_mean,
-                                                precision_mean, precision_std, conf_mat)
+                                                specificity_std, precision_mean, precision_std, conf_mat)
 
     # scores for each individual user left out in cross_validation
     s += '\n\nroc_auc score for each user that was left out in training set and predicted on in test_set:'

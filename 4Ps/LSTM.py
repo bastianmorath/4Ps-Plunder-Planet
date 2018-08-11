@@ -17,7 +17,7 @@ from matplotlib.ticker import FormatStrFormatter
 from numpy import array
 from sklearn import metrics
 from sklearn.metrics import (
-    roc_auc_score, confusion_matrix, f1_score)
+    roc_auc_score, confusion_matrix, f1_score, roc_curve)
 
 import model_factory
 import plots_helpers
@@ -25,6 +25,8 @@ import setup_dataframes as sd
 
 _maxlen = 0  # Length of the feature matrix of the logfile with the most obstacles
 _seed = 1  # Seed used to split into testtrain/test/val data
+
+threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc. with Youdens j-score)
 
 
 def get_finalscore(X, y, n_epochs, verbose=0):
@@ -74,7 +76,7 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
         X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
         model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-        trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose, val_set = (X_val, y_val))
+        trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose, val_set=(X_val, y_val))
         print('Performance training set: ')
         _calculate_performance(X_lstm, y_lstm, trained_model)
 
@@ -152,7 +154,7 @@ def _generate_lstm_classifier(shape):
 
 
 def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=None):
-    validation = not val_set is None
+    validation = val_set is not None
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
     if validation:
         one_hot_labels_val = keras.utils.to_categorical(val_set[1], num_classes=2)
@@ -163,10 +165,12 @@ def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=No
 
     _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
 
-    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True) if validation else []
+    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True) \
+        if validation else []
 
     trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                      verbose=verbose, shuffle=True, validation_data=None if not validation else (val_set[0], one_hot_labels_val),
+                      verbose=verbose, shuffle=True, validation_data=None if not validation else
+                      (val_set[0], one_hot_labels_val),
                       sample_weight=_sample_weight,
                       callbacks=history_callback
                       )
@@ -212,11 +216,16 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
-        predictions = lstm_model.predict_classes(X_padded, batch_size=16, verbose=0).ravel()
+        # predictions = lstm_model.predict_classes(X_padded, batch_size=16, verbose=0).ravel()
         probas = lstm_model.predict_proba(X_padded, batch_size=16, verbose=0)
         predictions_probas = [b for (a, b) in probas[0][:length_old]]
-        y_pred = predictions[:length_old]
         y_true = y_test_list[idx]
+
+        fpr, tpr, thresholds = roc_curve(y_true, predictions_probas)
+        threshold = model_factory.cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
+        y_pred = [1 if p > threshold else 0 for p in predictions_probas]
+
+        #  y_pred = predictions[:length_old]
 
         y_pred_list.append(y_pred)  # Remove predictions for padded values
 
@@ -233,8 +242,8 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
     conf_mat = confusion_matrix(y_true, y_pred)
 
     print(model_factory.create_string_from_scores('LSTM', np.mean(_roc_auc_scores), np.std(_roc_auc_scores),
-          np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.mean(_precision_scores),
-          np.std(_precision_scores), conf_mat))
+          np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.std(_specificity_scores),
+          np.mean(_precision_scores), np.std(_precision_scores), conf_mat))
 
     return np.mean(_roc_auc_scores), np.mean(_f1_scores)
 
