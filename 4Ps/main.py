@@ -130,9 +130,9 @@ def main(args):
                     X, y, clf_name=args.performance_with_tuning
                 )
 
-                _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X, y,
-                                                                               tuned_params, verbose=True,
-                                                                               do_write_to_file=False)
+                _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X,
+                                                                                  y, tuned_params, verbose=True,
+                                                                                  do_write_to_file=False)
             else:
                 model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y)
 

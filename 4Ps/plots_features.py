@@ -31,11 +31,11 @@ def generate_plots_about_features(X, y):
     """
 
     _plot_crashes_vs_timedelta(X)
-    _plot_timedelta_vs_obstacle_scatter(X, y)
+    # _plot_timedelta_vs_obstacle_scatter(X, y)  # TODO: Some plots are not necessary I think...
     _plot_feature_distributions(X)
-    _plot_mean_value_of_feature_at_crash(X, y)
-    for i in range(0, len(f_factory.feature_names)):
-        _plot_feature(X, i)
+    # _plot_mean_value_of_feature_at_crash(X, y)
+    # for i in range(0, len(f_factory.feature_names)):
+    #    _plot_feature(X, i)
 
     # Has to be at the end, since if we use reduced_features everyhere except here, the names_logfiles would be updated
     # to the non-reduced feature amtrix, which messes things up later
@@ -55,9 +55,7 @@ def plot_graph_of_decision_classifier(model, X, y):
 
     """
 
-    # Set class_weight to balanced, such that the graph makes more sense to interpret.
-    # I do not do this when actually predicting values because the performance is better
-    params_decision_tree = {"class_weight": "balanced", "max_depth": 4}
+    params_decision_tree = {"max_depth": 2}
     model.set_params(**params_decision_tree)
     model.fit(X, y)
 
@@ -146,6 +144,8 @@ def _plot_feature_distributions(X):
             plt.hist(x, bins=np.arange(mean - 2 * std_dev, mean + 2 * std_dev, 0.005))
         else:
             plt.hist(x)
+            # add a 'best fit' line
+            # sb.distplot(x)
 
         plt.title(feature)
         plt.tight_layout()

@@ -12,7 +12,7 @@ from sklearn.ensemble import (
 )
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC, LinearSVC
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 import features_factory as f_factory
@@ -125,7 +125,7 @@ class CNearestNeighbors(CClassifier):
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        self.clf = KNeighborsClassifier()
+        self.clf = KNeighborsClassifier(weights='distance')
 
 
 class CQuadraticDiscriminantAnalysis(CClassifier):
@@ -206,7 +206,7 @@ class CDecisionTreeClassifier(CClassifier):
                              'min_samples_leaf': CDecisionTreeClassifier.param5,
                              }
 
-    clf = DecisionTreeClassifier()
+    clf = DecisionTreeClassifier(class_weight="balanced")
 
 
 class CRandomForest(CClassifier):
@@ -228,7 +228,7 @@ class CRandomForest(CClassifier):
         self.clf = RandomForestClassifier()
         self.tuned_params = {'max_depth': CRandomForest.param1,
                              'min_samples_split': CRandomForest.param2, 'min_samples_leaf': CRandomForest.param3,
-                             'n_estimators':CRandomForest.param4}
+                             'n_estimators': CRandomForest.param4}
 
 
 class CAdaBoost(CClassifier):

@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import collections
 
+from collections import OrderedDict
 from matplotlib.ticker import MaxNLocator
 
 import features_factory as f_factory
@@ -23,6 +24,7 @@ Plots concerned with logfiles
 
 
 def generate_plots_about_logfiles():
+    '''
     _plot_heartrate_change()
     _plot_heartrate_and_events()
     _crashes_per_obstacle_arrangement()
@@ -30,6 +32,7 @@ def generate_plots_about_logfiles():
     _plot_hr_vs_difficulty_scatter_plot()
     _print_obstacle_information()
     _plot_difficulty_vs_size_obstacle_scatter_plot()
+     '''
     _plot_hr_or_points_and_difficulty('Heartrate')
     _plot_hr_or_points_and_difficulty('Points')
 
@@ -37,6 +40,7 @@ def generate_plots_about_logfiles():
     _plot_hr_of_dataframes()
     _plot_average_hr_over_all_logfiles()
     _plot_heartrate_histogram()
+    _plot_difficulties()
 
 
 def _plot_heartrate_and_events():
@@ -185,7 +189,13 @@ def _plot_mean_and_std_hr_boxplot():
     df2 = conc_dataframes.pivot(columns=conc_dataframes.columns[1], index=conc_dataframes.index)
     df2.columns = df2.columns.droplevel()
     conc_dataframes[['Heartrate', 'userID']].boxplot(by='userID', grid=False, sym='r+')
+
+    names = [n[:2] for n in sd.names_logfiles]
+    locs, labels = plt.xticks()  # Get locations and labels
+    plt.xticks(locs,     list(OrderedDict.fromkeys(names)))
+
     plt.ylabel('Heartrate (bpm)')
+    plt.xlabel('User name')
     plt.title('')
     hp.save_plot(plt, 'Logfiles/', 'boxplot_mean_hr_per_user.pdf')
 
@@ -265,10 +275,38 @@ def _plot_hr_or_points_and_difficulty(to_compare):
             ax2.set_ylabel('physDifficulty', color=hp.green_color)
             ax2.tick_params('y', colors=hp.green_color)
             ax2.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
+            ax2.set_yticks([1, 2, 3])
             plt.title('Difficulty and ' + to_compare + ' for user ' + sd.names_logfiles[idx])
             hp.save_plot(plt, 'Logfiles/', to_compare + ' Difficulty Corr/lineplot_' + to_compare + '_difficulty_' +
                          str(sd.names_logfiles[idx]) + '.pdf')
 
+
+def _plot_difficulties():
+    """
+    Plots difficulties over time as a scatter time and exludes the ones where the difficulty is constant 2 or 3.
+
+    Folder:     Logfiles/
+    Plot name:  difficulties.pdf
+
+    """
+
+    resolution = 10  # resample every x seconds -> the bigger, the smoother
+    fig, ax = plt.subplots()
+
+    for idx, df in enumerate(sd.df_list):
+
+        df = _transform_df_to_numbers(df)
+        df_num_resampled = hp.resample_dataframe(df, resolution)
+        ax.scatter(df_num_resampled['Time'], df_num_resampled['physDifficulty'], c=hp.green_color, alpha=0.3)
+
+    ax.set_ylabel('physDifficulty')
+    ax.set_xlabel('Time (s)',)
+
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
+    plt.title('Difficulties')
+
+    hp.save_plot(plt, 'Logfiles/', 'difficulties.pdf')
+            
 
 '''Returns a list which says how many times the obstacle has size {0,1,2,3,4} for each difficulty level in the form
     [0, 0, 0, 0, 0, 0, 143, 0, 581, 25, 0, 2659, 0, 299, 5589]

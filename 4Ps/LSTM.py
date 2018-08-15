@@ -57,6 +57,7 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
     :param verbose: verbose mode of keras_model.fit
     :param final_score: If final score should be printed, then don't use a validation set
     :return mean auroc, std auroc
+
     """
 
     X_list, y_list = _get_splitted_up_feature_matrix_and_labels(X, y)
@@ -74,8 +75,8 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
         X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
             _split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=2)
         X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
+        X_val, y_val = _get_reshaped_matrices(X_val, y_val)
         model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
-
         trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose, val_set=(X_val, y_val))
         print('Performance training set: ')
         _calculate_performance(X_lstm, y_lstm, trained_model)
@@ -98,18 +99,18 @@ Features: 9 or 16 (depending on feature_reduction or not)
 
 
 def _get_reshaped_matrices(new_X, new_y):
-    """ Returns the reshaped feature matrix needed for applying LSTM. Also does zero-padding
+    """
+    Returns the reshaped feature matrix needed for applying LSTM. Also does zero-padding
 
     :param new_X: Non-reshaped/original feature matrix (list)
 
     :return: Reshaped feature matrix (3D) as arrays
+
     """
 
-    # _minlen = min(len(fm) for fm in new_X)
-
-    # print('Maxlen (=Max. #obstacles of logfiles) is ' + str(_maxlen) + ', minlen is ' + str(_minlen))
     # I pad with 0s (Even though there are features that also are 0, it never occurs that ALL features of one timestep
-    # are all 0, so those won't be masked later :)
+    # are 0, so those won't be masked later :)
+
     new_X = sequence.pad_sequences(new_X, maxlen=_maxlen, padding='post', dtype='float64')
     new_y = sequence.pad_sequences(new_y, maxlen=_maxlen, padding='post', dtype='float64')
 
@@ -126,7 +127,12 @@ def _get_reshaped_matrices(new_X, new_y):
 
 def _generate_lstm_classifier(shape):
     """
+    Returns a lstm classifier with the given input shape
+
+    :param shape: Shape of the input layer; must be three dimensional
+
     :return: trained classifier
+
     """
 
     dropout = 0.2
@@ -154,26 +160,32 @@ def _generate_lstm_classifier(shape):
 
 
 def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=None):
+    """
+
+    """
     validation = val_set is not None
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
-    if validation:
-        one_hot_labels_val = keras.utils.to_categorical(val_set[1], num_classes=2)
 
     # sample_weights need a 2D array with shape `(samples, sequence_length)`,
     # to apply a different weight to every timestep of every sample.
     to_2d = y_train.reshape(y_train.shape[0], y_train.shape[1])
 
     _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10,
+                                 drawing_enabled=True)
+    if validation:
+        one_hot_labels_val = keras.utils.to_categorical(val_set[1], num_classes=2)
 
-    history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10, drawing_enabled=True) \
-        if validation else []
-
-    trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                      verbose=verbose, shuffle=True, validation_data=None if not validation else
-                      (val_set[0], one_hot_labels_val),
-                      sample_weight=_sample_weight,
-                      callbacks=history_callback
-                      )
+        trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
+                          verbose=verbose, shuffle=True, validation_data=(val_set[0], one_hot_labels_val),
+                          sample_weight=_sample_weight,
+                          callbacks=[history_callback]
+                          )
+    else:
+        trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
+                          verbose=verbose, shuffle=True, validation_data=None,
+                          sample_weight=_sample_weight,
+                          )
 
     # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
 

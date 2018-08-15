@@ -14,7 +14,6 @@ import pandas as pd
 from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
 
-import plots_features
 import setup_dataframes as sd
 import synthesized_data
 
@@ -23,7 +22,7 @@ use_reduced_features = True
 
 _verbose = True
 
-
+# TODO: Make sure we have correct window sizes 10, 5 and 10!!!!!!
 hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
 cw = 5  # Over how many preceeding seconds should %crashes be calculated?
 gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
