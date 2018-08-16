@@ -24,15 +24,22 @@ Plots concerned with logfiles
 
 
 def generate_plots_about_logfiles():
+
     '''
     _plot_heartrate_change()
     _plot_heartrate_and_events()
-    _crashes_per_obstacle_arrangement()
-    _plot_crashes_vs_size_of_obstacle()
-    _plot_hr_vs_difficulty_scatter_plot()
+    '''
+
     _print_obstacle_information()
+
+    _plot_crashes_vs_size_of_obstacle()
+
+    _crashes_per_obstacle_arrangement()
+
+    _plot_hr_vs_difficulty_scatter_plot()
+
     _plot_difficulty_vs_size_obstacle_scatter_plot()
-     '''
+
     _plot_hr_or_points_and_difficulty('Heartrate')
     _plot_hr_or_points_and_difficulty('Points')
 
@@ -40,7 +47,6 @@ def generate_plots_about_logfiles():
     _plot_hr_of_dataframes()
     _plot_average_hr_over_all_logfiles()
     _plot_heartrate_histogram()
-    _plot_difficulties()
 
 
 def _plot_heartrate_and_events():
@@ -259,7 +265,7 @@ def _plot_hr_or_points_and_difficulty(to_compare):
 
     resolution = 10  # resample every x seconds -> the bigger, the smoother
     for idx, df in enumerate(sd.df_list):
-        df = _transform_df_to_numbers(df)
+        df = transform_df_to_numbers(df)
         if not (df['Heartrate'] == -1).all():
             df_num_resampled = hp.resample_dataframe(df, resolution)
             # Plot Heartrate
@@ -275,37 +281,10 @@ def _plot_hr_or_points_and_difficulty(to_compare):
             ax2.set_ylabel('physDifficulty', color=hp.green_color)
             ax2.tick_params('y', colors=hp.green_color)
             ax2.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
-            ax2.set_yticks([1, 2, 3])
+            plt.yticks([1, 2, 3], ['Low', 'Medium', 'High'])
             plt.title('Difficulty and ' + to_compare + ' for user ' + sd.names_logfiles[idx])
             hp.save_plot(plt, 'Logfiles/', to_compare + ' Difficulty Corr/lineplot_' + to_compare + '_difficulty_' +
                          str(sd.names_logfiles[idx]) + '.pdf')
-
-
-def _plot_difficulties():
-    """
-    Plots difficulties over time as a scatter time and exludes the ones where the difficulty is constant 2 or 3.
-
-    Folder:     Logfiles/
-    Plot name:  difficulties.pdf
-
-    """
-
-    resolution = 10  # resample every x seconds -> the bigger, the smoother
-    fig, ax = plt.subplots()
-
-    for idx, df in enumerate(sd.df_list):
-
-        df = _transform_df_to_numbers(df)
-        df_num_resampled = hp.resample_dataframe(df, resolution)
-        ax.scatter(df_num_resampled['Time'], df_num_resampled['physDifficulty'], c=hp.green_color, alpha=0.3)
-
-    ax.set_ylabel('physDifficulty')
-    ax.set_xlabel('Time (s)',)
-
-    ax.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
-    plt.title('Difficulties')
-
-    hp.save_plot(plt, 'Logfiles/', 'difficulties.pdf')
             
 
 '''Returns a list which says how many times the obstacle has size {0,1,2,3,4} for each difficulty level in the form
@@ -324,7 +303,7 @@ def _get_number_of_obstacles_per_difficulty():
     """
 
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
-    conc_num = _transform_df_to_numbers(conc_dataframes)  # Transform Difficulties into integers
+    conc_num = transform_df_to_numbers(conc_dataframes)  # Transform Difficulties into integers
     # count num.obstacle parts per obstacle
     new = conc_num['obstacle'].apply(lambda x: 0 if x == 'none' else x.count(",") + 1)
     conc_num = conc_num.assign(numObstacles=new)
@@ -362,6 +341,7 @@ def _plot_difficulty_vs_size_obstacle_scatter_plot():
     plt.title('Size of obstacle vs difficulty ')
     plt.ylabel('obstacle size')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
+    plt.xticks([1, 2, 3], ['Low', 'Medium', 'High'])
 
     plt.xlabel('Difficulty')
     x = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3]
@@ -408,9 +388,9 @@ def _plot_hr_vs_difficulty_scatter_plot():
     """
 
     df = pd.concat(sd.df_list, ignore_index=True)
-    df_num = _transform_df_to_numbers(df)
+    df_num = transform_df_to_numbers(df)
     df_num.set_index('timedelta', inplace=True)
-    resolution = 10
+    resolution = 3
 
     # resample and take mean over difficulty. This means that a point can now have a difficulty "between"
     # Low/Medium/High, depending on how many seconds out of the resolution seconds it was on which level.
@@ -422,6 +402,7 @@ def _plot_hr_vs_difficulty_scatter_plot():
     x = avg_hr_df_resampled['physDifficulty']
     y = avg_hr_df_resampled['Heartrate']
     plt.scatter(x, y, s=30)
+    plt.xticks([1, 2, 3], ['Low', 'Medium', 'High'])
 
     hp.save_plot(plt, 'Logfiles/', 'scatter_difficulty_vs_heartrate.pdf')
 
@@ -436,7 +417,7 @@ def _plot_crashes_vs_size_of_obstacle():
     """
 
     conc_dataframes = pd.concat(sd.df_list, ignore_index=True)
-    conc_dataframes = _transform_df_to_numbers(conc_dataframes)
+    conc_dataframes = transform_df_to_numbers(conc_dataframes)
     new = conc_dataframes['obstacle'].apply(
         lambda x: 0 if x == 'none' else x.count(",") + 1)  # count number of obstacle parts per obstacle
     conc_num = conc_dataframes.assign(numObstacles=new)
@@ -474,7 +455,7 @@ def _crashes_per_obstacle_arrangement():
     """
 
     df = pd.concat(sd.df_list, ignore_index=True)
-    conc_dataframes = _transform_df_to_numbers(df)
+    conc_dataframes = transform_df_to_numbers(df)
 
     # For each obstacle-arrangement, make a dictionary-entry with a list [#occurences, #crashes]
     obst_dict = {}
@@ -526,7 +507,7 @@ Helper functions
 """
 
 
-def _transform_df_to_numbers(df):
+def transform_df_to_numbers(df):
     """
     Subsitutes difficulties with numbers to work with them in a better way, from 1 to 3
 

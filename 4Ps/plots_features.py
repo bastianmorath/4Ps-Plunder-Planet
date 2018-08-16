@@ -19,7 +19,7 @@ import classifiers
 import features_factory as f_factory
 import plots_helpers as hp
 import setup_dataframes as sd
-
+import plots_report
 
 def generate_plots_about_features(X, y):
     """
@@ -33,13 +33,16 @@ def generate_plots_about_features(X, y):
     _plot_crashes_vs_timedelta(X)
     # _plot_timedelta_vs_obstacle_scatter(X, y)  # TODO: Some plots are not necessary I think...
     _plot_feature_distributions(X)
-    # _plot_mean_value_of_feature_at_crash(X, y)
+    _plot_mean_value_of_feature_at_crash(X, y)
     # for i in range(0, len(f_factory.feature_names)):
     #    _plot_feature(X, i)
 
     # Has to be at the end, since if we use reduced_features everyhere except here, the names_logfiles would be updated
     # to the non-reduced feature amtrix, which messes things up later
     _plot_feature_correlation_matrix(reduced_features=True)
+
+    plots_report.generate_plots_for_report()
+
 
 
 def plot_graph_of_decision_classifier(model, X, y):
@@ -179,10 +182,11 @@ def _plot_mean_value_of_feature_at_crash(X, y):
 
         plt.subplots()
 
-        plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_crash)
-        plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_no_crash)
+        plt.bar(1, mean_when_no_crash, width=0.5, yerr=std_when_crash, color=hp.blue_color)
+        plt.bar(2, mean_when_crash, width=0.5, yerr=std_when_no_crash, color=hp.green_color)
         plt.ylim(0)
         plt.xticks([1, 2], ['No crash', 'Crash'])
+        plt.ylabel(str(f_factory.feature_names[i]))
 
         plt.title('Average value of feature ' + str(f_factory.feature_names[i]) + ' when crash or not crash')
 
