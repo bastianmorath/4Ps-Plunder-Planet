@@ -12,7 +12,7 @@ import plots_logfiles as pl
 import setup_dataframes as sd
 import plots_helpers as ph
 import features_factory as f_factory
-
+import setup_dataframes
 
 def generate_plots_for_report():
     """
@@ -207,7 +207,11 @@ def _plot_heartrate_and_events():
     Plot name:  lineplot_hr_and_events.pdf
 
     """
-
+    setup_dataframes.setup(
+        fewer_data=False,  # Specify if we want fewer data (for debugging purposes...)
+        normalize_heartrate=False,
+        remove_tutorials=False  # We want tutorial to be exactly at 3 and 7.5 minutes!
+    )
     print("Plotting heartrate and events...")
     # resolution = 3
     df = sd.df_list[4]

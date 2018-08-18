@@ -56,6 +56,7 @@ def main(args):
         setup_dataframes.setup(
             fewer_data=args.debugging,  # Specify if we want fewer data (for debugging purposes...)
             normalize_heartrate=(not args.do_not_normalize_heartrate),
+            remove_tutorials=False
         )
 
         X, y = f_factory.get_feature_matrix_and_label(

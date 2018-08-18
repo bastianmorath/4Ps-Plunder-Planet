@@ -40,13 +40,15 @@ df_list = []  # List with all dataframes; 1 dataframe per logfile
 obstacle_df_list = []
 
 
-def setup(fewer_data=False, normalize_heartrate=True):
+def setup(fewer_data=False, normalize_heartrate=True, remove_tutorials=True):
     """ Sets up the logfile datastructures/lists and does some basic refactoring
     
     Note: No machine learning specific things are done yet!
 
     :param fewer_data: Whether we should only use a little part of the data or not (helps for faster debugging)
     :param normalize_heartrate: Whether we should normalize heartrate or not
+    :param remove_tutorials: Remove MOVEMENT_TUTORIAL at the beginning. Shouldn't be done when hr and events are plotted
+
     """
 
     print("Loading dataframes...")
@@ -107,7 +109,8 @@ def setup(fewer_data=False, normalize_heartrate=True):
     if normalize_heartrate:
         _normalize_heartrate_of_logfiles()
 
-    _remove_movement_tutorials()
+    if remove_tutorials:
+        _remove_movement_tutorials()
 
     refactoring.add_timedelta_column()
 
