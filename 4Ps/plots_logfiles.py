@@ -25,10 +25,8 @@ Plots concerned with logfiles
 
 def generate_plots_about_logfiles():
 
-    '''
     _plot_heartrate_change()
     _plot_heartrate_and_events()
-    '''
 
     _print_obstacle_information()
 
@@ -208,15 +206,14 @@ def _plot_mean_and_std_hr_boxplot():
 
 def _plot_heartrate_change():
     """
-    Plot Heartrate change
+    Plot Heartrate changes from one time point to the next for each logfile
 
-    Folder:     Logfiles/ and Logfiles/Abs Heartrate Changes/
-    Plot name:  barplot_hr_change_abs.pdf and histogram_hr_change_percentage_{logfile name}.pdf
+    Folder:     Logfiles/Abs Heartrate Changes/
+    Plot name:  histogram_hr_change_percentage_{logfile name}.pdf
 
     """
 
-    bpm_changes_max = []  # Stores max. absolute change in HR per logfile
-    bpm_changes_rel = []  # Stores max. percentage change in HR per logfile
+    bpm_changes = [] # Stores all percentage changes in HR per logfile
 
     X = []
     for idx, df in enumerate(sd.df_list):
@@ -225,31 +222,17 @@ def _plot_heartrate_change():
             resampled = hp.resample_dataframe(df, 1)
             percentage_change = np.diff(resampled['Heartrate']) / resampled['Heartrate'][:-1] * 100.
             x = percentage_change[np.logical_not(np.isnan(percentage_change))]
-            bpm_changes_max.append(x.max())
-            bpm_changes_rel.append(x)
+            bpm_changes.append(x)
 
     plt.ylabel('#Times HR changed')
     plt.xlabel('Change in Heartrate [%]')
 
-    for idx, l in enumerate(bpm_changes_rel):  # Histogram per user
+    for idx, l in enumerate(bpm_changes):  # Histogram per user
         name = str(sd.names_logfiles[idx])
         plt.figure()
         plt.title('Heartrate change for plot ' + name)
         plt.hist(l, color=hp.blue_color)
         hp.save_plot(plt, 'Logfiles/Abs Heartrate Changes/', 'histogram_hr_change_percentage_' + name + '.pdf')
-
-    fig, ax = plt.subplots()
-
-    plt.title('Maximal heartrate change')
-    plt.ylabel('Max heartrate change [%]')
-    plt.xlabel('Logfile')
-    plt.bar([x for x in X], bpm_changes_max, color=hp.blue_color, width=0.25)
-
-    ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
-    ax.set_axisbelow(True)
-    [i.set_linewidth(0.3) for i in ax.spines.values()]
-
-    hp.save_plot(plt, 'Logfiles/', 'barplot_hr_change_abs.pdf')
 
 
 def _plot_hr_or_points_and_difficulty(to_compare):

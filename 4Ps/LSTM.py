@@ -18,6 +18,7 @@ from numpy import array
 from sklearn import metrics
 from sklearn.metrics import (
     roc_auc_score, confusion_matrix, f1_score, roc_curve)
+from sklearn.preprocessing import MinMaxScaler
 
 import model_factory
 import plots_helpers
@@ -187,7 +188,6 @@ def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=No
                           sample_weight=_sample_weight,
                           )
 
-    # trained_model.save('trained_model.h5')  # creates a HDF5 file 'my_model.h5'
 
     # Plot
     if validation:
@@ -380,6 +380,13 @@ def _split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, siz
     y_train = y_splitted[size_test_set+size_val_set:]
     y_test = y_splitted[:size_test_set]
     y_val = y_splitted[size_test_set:size_test_set+size_val_set]
+
+    # Scaling: Fit on training set only, then transform all
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler.fit(np.concatenate(X_train))
+    X_train = [scaler.transform(X) for X in X_train]
+    X_test = [scaler.transform(X) for X in X_test]
+    X_val = [scaler.transform(X) for X in X_val]
 
     return X_train, y_train, X_test, y_test, X_val, y_val
 

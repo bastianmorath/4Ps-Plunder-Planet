@@ -16,6 +16,8 @@ import pandas as pd
 import seaborn as sns
 
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import MinMaxScaler
 
 import classifiers
 import features_factory as f_factory
@@ -59,7 +61,6 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
     :return: optimized classifier, dictionary of tuned_params
 
     """
-
     c_classifier = classifiers.get_cclassifier_with_name(clf_name, X, y)
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
@@ -75,17 +76,22 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
     else:
         print('Doing RandomizedSearchCV with n_iter=' + str(c_classifier.num_iter) + ' for ' + clf_name + '...')
         start = time.time()
-
-        clf = RandomizedSearchCV(c_classifier.clf, c_classifier.tuned_params, cv=5,
-                                 scoring='roc_auc', n_iter=c_classifier.num_iter)
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        p = make_pipeline(scaler, c_classifier.clf)
+        params = dict((c_classifier.estimator_name + '__' + key, value) for (key, value) in
+                      c_classifier.tuned_params.items())
+        clf = RandomizedSearchCV(p, params, cv=3,
+                                 scoring='roc_auc', n_iter=c_classifier.num_iter, verbose=False)
         clf.fit(X, y)
         end = time.time()
+
         print("Time elapsed for hyperparameter tuning: " + str(end - start))
+
         if verbose:
             _report(clf.cv_results_)
 
-    return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_,
-                                                                    list(c_classifier.tuned_params.keys()))
+        return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_,
+                                                                        list(params.keys()))
 
 
 def _plot_heat_map_of_grid_search(cv_results, Classifier):

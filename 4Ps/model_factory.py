@@ -19,6 +19,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import (
     cross_validate, train_test_split,
     KFold)
+from sklearn.preprocessing import MinMaxScaler
 
 import classifiers
 import features_factory as f_factory
@@ -47,9 +48,8 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
 
     :return list of roc_aucs, list of roc_auc_stds (one score for each classifier) and formatted string of scores
     """
-
     if reduced_clfs:
-        clf_names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'Decision Tree', 'Naive Bayes']
+        clf_names = ['SVM', 'Nearest Neighbor', 'Random Forest', 'Naive Bayes']
     else:
         clf_names = classifiers.names
 
@@ -149,11 +149,16 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     y_true_list = []
     predicted_probas_list = []
 
-    kf = KFold(n_splits=10)
+    kf = KFold(n_splits=3)
 
     for train_index, test_index in kf.split(X):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
+
+        scaler = MinMaxScaler(feature_range=(0, 1))
+
+        X_train = scaler.fit_transform(X_train)  # Fit and transform on trainig set, then transform test set too
+        X_test = scaler.transform(X_test)
 
         model.fit(X_train, y_train)
 
@@ -278,7 +283,6 @@ def get_tuned_params_dict(model, tuned_params_keys):
 
     :return: Dictionary with tuned parameters and its values
     """
-
     values = [model.get_params()[x] for x in tuned_params_keys]
     return dict(zip(tuned_params_keys, values))
 

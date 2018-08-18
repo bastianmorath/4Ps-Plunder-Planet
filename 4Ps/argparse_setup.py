@@ -81,7 +81,15 @@ def get_argparse():
         "--generate_plots_about_features",
         action="store_true",
         help="Generates different plots from the feature matrix (Look at main.py for details) and stores it "
-             "in folder /Evaluation/Features",
+             "in folder /Plots/Features",
+    )
+
+    parser.add_argument(
+        "-r",
+        "--generate_plots_for_report",
+        action="store_true",
+        help="Generates plots that are used in report and sotres it "
+             "in folder /Plots/Report",
     )
 
     parser.add_argument(
@@ -89,7 +97,7 @@ def get_argparse():
         "--generate_plots_about_logfiles",
         action="store_true",
         help="Generates different plots from the logfiles (Look at main.py for details) and stores it "
-             "in folder /Evaluation/Logfiles (Note: Probably use in combination with -n, i.e. without "
+             "in folder /Plots/Logfiles (Note: Probably use in combination with -n, i.e. without "
              "normalizing heartrate)",
     )
 
@@ -108,15 +116,15 @@ def get_argparse():
     )
 
     parser.add_argument(
-        "-d",
+        "-n",
         "--do_not_normalize_heartrate",
         action="store_true",
         help="Do not normalize heartrate (e.g. if you want plots or values with real heartrate)",
     )
 
     parser.add_argument(
-        "-r",
-        "--reduced_data",
+        "-d",
+        "--debugging",
         action="store_true",
         help="Use only a small part of the data. Mostly for debugging purposes",
     )

@@ -19,7 +19,7 @@ import classifiers
 import features_factory as f_factory
 import plots_helpers as hp
 import setup_dataframes as sd
-import plots_report
+
 
 def generate_plots_about_features(X, y):
     """
@@ -31,18 +31,11 @@ def generate_plots_about_features(X, y):
     """
 
     _plot_crashes_vs_timedelta(X)
-    # _plot_timedelta_vs_obstacle_scatter(X, y)  # TODO: Some plots are not necessary I think...
+    _plot_timedelta_vs_obstacle_scatter(X, y)  # TODO: Some plots are not necessary I think...
     _plot_feature_distributions(X)
     _plot_mean_value_of_feature_at_crash(X, y)
-    # for i in range(0, len(f_factory.feature_names)):
-    #    _plot_feature(X, i)
-
-    # Has to be at the end, since if we use reduced_features everyhere except here, the names_logfiles would be updated
-    # to the non-reduced feature amtrix, which messes things up later
-    _plot_feature_correlation_matrix(reduced_features=True)
-
-    plots_report.generate_plots_for_report()
-
+    for i in range(0, len(f_factory.feature_names)):
+        _plot_feature(X, i)
 
 
 def plot_graph_of_decision_classifier(model, X, y):
@@ -85,43 +78,6 @@ def plot_graph_of_decision_classifier(model, X, y):
     os.remove(sd.working_directory_path + '/decision_tree_graph')
     os.rename(sd.working_directory_path + '/decision_tree_graph.pdf',
               sd.working_directory_path + '/Plots/Features/decision_tree_graph.pdf')
-
-
-def _plot_feature_correlation_matrix(reduced_features=True):
-    """
-    Function plots a heatmap of the correlation matrix for each pair of columns (=features) in the dataframe.
-
-    Source: https://seaborn.pydata.org/examples/many_pairwise_correlations.html
-
-    :param reduced_features: Should we use all features or only the reduced ones?
-
-    Folder:     Features/
-    Plot name:  correlation_matrix_all_features.pdf or correlation_matrix_reduced_features.pdf
-
-    """
-
-    print("Plotting correlation matrix...")
-
-    X, _ = f_factory.get_feature_matrix_and_label(False, True, True, False, reduced_features)
-    X = pd.DataFrame(X)
-    corr = X.corr()
-    sb.set(style="white")
-    # Generate a mask for the upper triangle
-    mask = np.zeros_like(corr, dtype=np.bool)
-    mask[np.triu_indices_from(mask)] = True
-    # Set up the matplotlib figure
-    plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
-    # Generate a custom diverging colormap
-    cmap = sb.diverging_palette(220, 10, as_cmap=True)
-    # Draw the heatmap with the mask and correct aspect ratio
-    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True, xticklabels=f_factory.feature_names,
-               yticklabels=f_factory.feature_names, square=True,
-               linewidths=.5, cbar_kws={"shrink": .5}, vmin=-1, vmax=1)
-
-    if reduced_features:
-        hp.save_plot(plt, 'Features/', 'correlation_matrix_reduced_features.pdf')
-    else:
-        hp.save_plot(plt, 'Features/', 'correlation_matrix_all_features.pdf')
 
 
 def _plot_feature_distributions(X):
@@ -229,7 +185,7 @@ def _plot_feature(X, i):
         plt.title('Feature ' + feature_name + ' for logfile ' + sd.names_logfiles[idx])
         ax1.tick_params('y', colors=hp.blue_color)
         # plt.ylim([max(np.mean(X[:, i]) - 3 * np.std(X[:, i]), min(X[:, i])), max(X[:, i])])
-        plt.ylim([0, 1])
+        # plt.ylim([0, 1])
         ax1.yaxis.grid(True, zorder=0, color='grey', linewidth=0.3)
         ax1.set_axisbelow(True)
 
@@ -251,7 +207,8 @@ def _plot_crashes_vs_timedelta(X):
     """
 
     print("Plotting percentage crashes vs timedelta...")
-
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    X = scaler.fit_transform(X)
     timedelta_values_at_crashes = []
     timedelta_values_at_non_crashes = []
     timedelta_feature_index = f_factory.feature_names.index('timedelta_to_last_obst')

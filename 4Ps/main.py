@@ -17,6 +17,7 @@ import LSTM
 import classifiers
 import model_factory
 import argparse_setup
+import plots_report
 import plots_features as fp
 import plots_logfiles as lp
 import features_factory as f_factory
@@ -53,7 +54,7 @@ def main(args):
 
     else:
         setup_dataframes.setup(
-            fewer_data=args.reduced_data,  # Specify if we want fewer data (for debugging purposes...)
+            fewer_data=args.debugging,  # Specify if we want fewer data (for debugging purposes...)
             normalize_heartrate=(not args.do_not_normalize_heartrate),
         )
 
@@ -94,7 +95,7 @@ def main(args):
         if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
-                                                     reduced_clfs=False)
+                                                     reduced_clfs=True)
         else:
             X_old = X
             y_old = y
@@ -131,8 +132,8 @@ def main(args):
     if args.evaluate_lstm:
         print("\n################# Get trained LSTM #################\n")
 
-        LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
-        # LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
+        # LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
+        LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")
@@ -141,6 +142,10 @@ def main(args):
     if args.generate_plots_about_logfiles:
         print("\n################# Generate plots about logfiles #################\n")
         plot_logfiles(args)
+
+    if args.generate_plots_for_report:
+        print("\n################# Generate plots for report #################\n")
+        plots_report.generate_plots_for_report()
 
     end = time.time()
     print("Time elapsed: " + str(end - start))

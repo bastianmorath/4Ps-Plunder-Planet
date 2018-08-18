@@ -93,9 +93,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['std_hr'] = _get_standard_feature('std', 'Heartrate')  # hw
         matrix['lin_regression_hr_slope'] = _get_lin_regression_hr_slope_feature()  # gradient_w
         matrix['hr_gradient_changes'] = _get_number_of_gradient_changes('Heartrate')  # gradient_w
-        matrix['points_gradient_changes'] = _get_number_of_gradient_changes('Points')  # gradient_w
-        matrix['mean_points'] = _get_standard_feature('mean', 'Points')  # hw
-        matrix['std_points'] = _get_standard_feature('std', 'Points')  # hw
+        matrix['score_gradient_changes'] = _get_number_of_gradient_changes('Points')  # gradient_w
+        matrix['mean_score'] = _get_standard_feature('mean', 'Points')  # hw
+        matrix['std_score'] = _get_standard_feature('std', 'Points')  # hw
         matrix['%crashes'] = _get_percentage_crashes_feature()  # cw
 
         if not use_reduced_features:
@@ -104,9 +104,9 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
             matrix['max_hr'] = _get_standard_feature('max', 'Heartrate')  # hw
             matrix['min_hr'] = _get_standard_feature('min', 'Heartrate')  # hw
             matrix['max_over_min_hr'] = _get_standard_feature('max_over_min', 'Heartrate')  # hw
-            matrix['max_points'] = _get_standard_feature('max', 'Points')  # hw
-            matrix['min_points'] = _get_standard_feature('min', 'Points')  # hw
-            matrix['max_minus_min_points'] = _get_standard_feature('max_minus_min', 'Points')  # hw
+            matrix['max_score'] = _get_standard_feature('max', 'Points')  # hw
+            matrix['min_score'] = _get_standard_feature('min', 'Points')  # hw
+            matrix['max_minus_min_score'] = _get_standard_feature('max_minus_min', 'Points')  # hw
 
         # Boxcox transformation
         if use_boxcox:
@@ -135,8 +135,6 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
 
     # Create feature matrix from df
     X = matrix.values
-    scaler1 = MinMaxScaler(feature_range=(0, 1))
-    X = scaler1.fit_transform(X)  # Rescale between 0 and 1
 
     if verbose:
         print('Feature matrix and labels created!')
@@ -264,7 +262,7 @@ def _get_number_of_gradient_changes(data_name):
         changes_list.append(changes)
 
     if data_name == 'Points':
-        return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['points_gradient_changes'])
+        return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['score_gradient_changes'])
     else:
         return pd.DataFrame(list(itertools.chain.from_iterable(changes_list)), columns=['hr_gradient_changes'])
 

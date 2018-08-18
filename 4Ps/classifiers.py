@@ -2,6 +2,8 @@
 This module contains different classifier classes. They are all subclasses of the Classifier-class and
 contain hyperparameters to do grid search over and the classifier obeject itself
 
+Note: estimator_name is needed for RandomizedSearchCV and pipeline!
+
 """
 
 from scipy.stats import randint as sp_randint
@@ -63,31 +65,31 @@ class CClassifier(object):
 
 class CSVM(CClassifier):
     name = 'SVM'
-    param1 = uniform(2**(-5), 2**15)  # C
+    estimator_name = 'svc'
+    param1 = uniform(2**(-5), 2**5)  # C
     param1_name = 'C'
     param2 = uniform(2**(-15), 2**3)  # get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
-    param3 = sp_randint(1, 5)  # degree
+    param3 = sp_randint(1, 3)  # degree
     param3_name = 'degree'
-    param4 = ['rbf', 'poly', 'sigmoid']  # kernel
+    param4 = ['rbf', 'sigmoid']  # kernel
     param4_name = 'kernel'
-    tuned_params = {'C': param1, 'gamma': param2, 'degree': param3, 'kernel': param4, 'class_weight': ['balanced']}
-    num_iter = 5 * _random_search_multiplier
+    tuned_params = {'C': param1, 'gamma': param2, 'degree': param3, 'kernel': param4}
+    num_iter = 3 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        self.clf = SVC(class_weight='balanced', probability=True)
+        self.clf = SVC(class_weight='balanced', probability=True, cache_size=1500)
 
 
 class CLinearSVM(CClassifier):
     name = 'Linear SVM'
-    param1 = uniform(2**(-5), 2**15)  # C
+    estimator_name = 'svc'
+    param1 = uniform(2**(-5), 2**5)  # C
     param1_name = 'C'
     param2 = uniform(2**(-15), 2**3)  # get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
     param2_name = 'gamma'
-    param3 = sp_randint(1, 20)  # degree
-    param3_name = 'degree'
-    tuned_params = {'C': param1, 'gamma': param2, 'degree': param3}
+    tuned_params = {'C': param1, 'gamma': param2}
     num_iter = 5 * _random_search_multiplier
 
     def __init__(self, X, y):
@@ -97,6 +99,7 @@ class CLinearSVM(CClassifier):
 
 class CNearestNeighbors(CClassifier):
     name = 'Nearest Neighbor'
+    estimator_name = 'kneighborsclassifier'
 
     param1 = sp_randint(1, 1000)  # n_neighbors
     param1_name = 'n_neighbors'
@@ -112,6 +115,7 @@ class CNearestNeighbors(CClassifier):
 
 class CQuadraticDiscriminantAnalysis(CClassifier):
     name = 'QDA'
+    estimator_name = 'quadraticdiscriminantanalysis'
 
     param1 = uniform(0, 1)  # reg_param
     param1_name = 'reg_param'
@@ -127,6 +131,7 @@ class CQuadraticDiscriminantAnalysis(CClassifier):
 
 class CGradientBoostingClassifier(CClassifier):
     name = 'Gradient Boosting'
+    estimator_name = "gradientboostingclassifier"
 
     param1 = ['deviance', 'exponential']  # loss
     param1_name = 'loss'
@@ -165,6 +170,7 @@ class CGradientBoostingClassifier(CClassifier):
 
 class CDecisionTreeClassifier(CClassifier):
     name = 'Decision Tree'
+    estimator_name = "decisiontreeclassifier"
 
     param1 = ['gini', 'entropy']  # criterion
     param1_name = 'criterion'
@@ -190,6 +196,7 @@ class CDecisionTreeClassifier(CClassifier):
 
 class CRandomForest(CClassifier):
     name = 'Random Forest'
+    estimator_name = "randomforestclassifier"
 
     param3 = sp_randint(1, 50)  # min_samples_leaf
     param3_name = 'min_samples_leaf'
@@ -208,6 +215,7 @@ class CRandomForest(CClassifier):
 class CAdaBoost(CClassifier):
 
     name = 'Ada Boost'
+    estimator_name = "adaboostclassifier"
 
     param1 = sp_randint(1, 500)  # n_estimators
     param1_name = 'n_estimators'
