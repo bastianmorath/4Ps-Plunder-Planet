@@ -22,6 +22,7 @@ import features_factory as f_factory
 _EPSILON = 0.0001
 
 names = ['SVM', 'Linear SVM', 'Nearest Neighbor', 'QDA', 'Decision Tree', 'Random Forest', 'Ada Boost', 'Naive Bayes']
+reduced_names = ['SVM', 'Nearest Neighbor', 'Random Forest', 'Naive Bayes']
 
 # RandomizedSearchCV parameter space is defined such that all classifiers should approximately take
 # the same amount of time. With 'random_search_multiplier', one can increase or decrease the space linearily.
@@ -74,7 +75,7 @@ class CSVM(CClassifier):
     estimator_name = 'svc'
     param1 = uniform(2**(-5), 2**5)  # C
     param1_name = 'C'
-    param2 = uniform(2**(-15), 2**3)  # get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
+    param2 = uniform(2**(-15), 2**3)  # gamma
     param2_name = 'gamma'
     param3 = sp_randint(1, 3)  # degree
     param3_name = 'degree'
@@ -86,7 +87,8 @@ class CSVM(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = SVC(class_weight='balanced', probability=True, cache_size=1500)
-        self.tuned_clf = SVC(class_weight='balanced', probability=True, cache_size=1500, C=11.369, gamma=0.0028776, kernel='rbf', degree=2)
+        self.tuned_clf = SVC(class_weight='balanced', probability=True, cache_size=1500,
+                             C=11.369, gamma=0.0028776, kernel='rbf', degree=2)
 
 
 class CLinearSVM(CClassifier):
@@ -94,7 +96,7 @@ class CLinearSVM(CClassifier):
     estimator_name = 'svc'
     param1 = uniform(2**(-5), 2**5)  # C
     param1_name = 'C'
-    param2 = uniform(2**(-15), 2**3)  # get_list_with_distr_and_opt_param(uniform(_EPSILON, 10), 'auto')  # gamma
+    param2 = uniform(2**(-15), 2**3)  # gamma
     param2_name = 'gamma'
     tuned_params = {'C': param1, 'gamma': param2}
     num_iter = 5 * _random_search_multiplier
@@ -211,12 +213,12 @@ class CRandomForest(CClassifier):
     param4 = sp_randint(1, 128)  # number of trees
     param4_name = 'n_estimators'
 
-    num_iter = 10 * _random_search_multiplier
+    num_iter = 50 * _random_search_multiplier
 
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
-        self.clf = RandomForestClassifier()
-        self.tuned_clf = RandomForestClassifier(min_samples_leaf=48, n_estimators=13)
+        self.clf = RandomForestClassifier(class_weight="balanced")
+        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=48, n_estimators=13)
         self.tuned_params = {'min_samples_leaf': CRandomForest.param3,
                              'n_estimators': CRandomForest.param4}
 

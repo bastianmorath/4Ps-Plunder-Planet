@@ -88,6 +88,9 @@ def main(args):
         )
 
     if args.performance_without_tuning or args.performance_with_tuning:
+        # IMPORTANT: pre-set == True takes already tuned parameters if possible. Change if you always want to do tuning!
+        pre_set = False
+
         if args.performance_with_tuning:
             print("\n################# Calculating performance with hyperparameter tuning #################\n")
         else:
@@ -96,7 +99,7 @@ def main(args):
         if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
-                                                     reduced_clfs=True)
+                                                     reduced_clfs=True, pre_set=pre_set)
         else:
             X_old = X
             y_old = y
@@ -106,7 +109,7 @@ def main(args):
 
             if args.performance_with_tuning:
                 clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
-                    X, y, clf_name=args.performance_with_tuning
+                    X, y, clf_name=args.performance_with_tuning, pre_set=pre_set,
                 )
 
                 _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X,

@@ -33,7 +33,8 @@ threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc
 
 
 def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduced_clfs=True,
-                                         create_barchart=True, create_curves=True, do_write_to_file=True):
+                                         create_barchart=True, create_curves=True, do_write_to_file=True,
+                                         pre_set=False):
     """Computes performance (roc_auc, recall, specificity, precision, confusion matrix) of either all
     or only reduced classifiers, and optionally writes it into a file and plots roc_auc scores  in a barchart.
 
@@ -44,11 +45,13 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     :param create_barchart: Create a barchart consisting of the roc_auc scores
     :param create_curves: Create roc_curves and precision_recall curve
     :param do_write_to_file: Write summary of performance into a file (optional)
+    :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those isntead of tuning
 
     :return list of roc_aucs, list of roc_auc_stds (one score for each classifier) and formatted string of scores
     """
+
     if reduced_clfs:
-        clf_names = ['SVM', 'Nearest Neighbor', 'Random Forest', 'Naive Bayes']
+        clf_names = classifiers.reduced_names
     else:
         clf_names = classifiers.names
 
@@ -59,8 +62,9 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
             clf_list = [classifiers.get_cclassifier_with_name(name, X, y).tuned_clf for name in clf_names]
 
         else:  # If we need all classifiers, do RandomizedSearchCV
+
             clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
-                        verbose=False)[0] for name in clf_names]
+                        verbose=False, pre_set=pre_set)[0] for name in clf_names]
 
     scores_mean = []
     scores_std = []

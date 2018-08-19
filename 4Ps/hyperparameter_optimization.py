@@ -48,7 +48,7 @@ def _report(results, n_top=3):
     print(s)
 
 
-def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
+def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True, pre_set=True):
     """
     This method optimizes hyperparameters with cross-validation using RandomizedSearchCV, optionally creates a ROC curve
     and returns this optimized classifier and the tuned parameters
@@ -57,6 +57,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
     :param y: labels
     :param clf_name:  Name of the classifier as given in classifiers.py
     :param verbose: Whether scores of top hyperparameter configurations should be printed out
+    :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those
 
     :return: optimized classifier, dictionary of tuned_params
 
@@ -74,24 +75,29 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True):
         return c_classifier.clf, []
 
     else:
-        print('Doing RandomizedSearchCV with n_iter=' + str(c_classifier.num_iter) + ' for ' + clf_name + '...')
-        start = time.time()
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        p = make_pipeline(scaler, c_classifier.clf)
-        params = dict((c_classifier.estimator_name + '__' + key, value) for (key, value) in
-                      c_classifier.tuned_params.items())
-        clf = RandomizedSearchCV(p, params, cv=3,
-                                 scoring='roc_auc', n_iter=c_classifier.num_iter, verbose=False)
-        clf.fit(X, y)
-        end = time.time()
+        if pre_set and hasattr(c_classifier, 'tuned_clf'):
+            print('Hyperparamters already tuned, taking those pre-set parameters')
+            return c_classifier.tuned_clf, model_factory.get_tuned_params_dict(c_classifier.tuned_clf,
+                                                                               list(c_classifier.tuned_params.keys()))
+        else:
+            print('Doing RandomizedSearchCV with n_iter=' + str(c_classifier.num_iter) + ' for ' + clf_name + '...')
+            start = time.time()
+            scaler = MinMaxScaler(feature_range=(0, 1))
+            p = make_pipeline(scaler, c_classifier.clf)
+            params = dict((c_classifier.estimator_name + '__' + key, value) for (key, value) in
+                          c_classifier.tuned_params.items())
+            clf = RandomizedSearchCV(p, params, cv=3,
+                                     scoring='roc_auc', n_iter=c_classifier.num_iter)
+            clf.fit(X, y)
+            end = time.time()
 
-        print("Time elapsed for hyperparameter tuning: " + str(end - start))
+            print("Time elapsed for hyperparameter tuning: " + str(end - start))
 
-        if verbose:
-            _report(clf.cv_results_)
+            if verbose:
+                _report(clf.cv_results_)
 
-        return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_,
-                                                                        list(params.keys()))
+            return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_,
+                                                                            list(params.keys()))
 
 
 def _plot_heat_map_of_grid_search(cv_results, Classifier):
@@ -105,10 +111,8 @@ def _plot_heat_map_of_grid_search(cv_results, Classifier):
     """
 
     params = ([list(set(v.compressed())) for k, v in cv_results.items() if k.startswith('param_')])
-    print(params)
     plt.figure()
     results_df = pd.DataFrame(cv_results)
-    print(results_df)
     scores = np.array(results_df.mean_test_score).reshape(len(params[0]), len(params[1]))
     sns.heatmap(scores, annot=True,
                 xticklabels=params[0], yticklabels=params[1], cmap=plt.cm.RdYlGn)
