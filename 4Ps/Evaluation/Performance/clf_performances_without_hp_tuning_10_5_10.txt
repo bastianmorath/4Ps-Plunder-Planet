@@ -2,35 +2,35 @@
 ******** Scores for SVM (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'C': 1.0, 'gamma': 'auto', 'degree': 3, 'kernel': 'rbf'},
-	roc_auc: 0.646 (+-0.02), recall: 0.554 (+-0.04), specificity: 0.706 (+-0.71), precision: 0.296 (+-0.05) 
+	roc_auc: 0.644 (+-0.02), recall: 0.553 (+-0.04), specificity: 0.706 (+-0.71), precision: 0.295 (+-0.05) 
 
-	Confusion matrix: 	 [3371 1409] 
-				 [473 576]
+	Confusion matrix: 	 [3385 1418] 
+				 [476 576]
 
 
 ******** Scores for Nearest Neighbor (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'n_neighbors': 5, 'metric': 'minkowski'},
-	roc_auc: 0.589 (+-0.00), recall: 0.544 (+-0.13), specificity: 0.612 (+-0.61), precision: 0.241 (+-0.04) 
+	roc_auc: 0.587 (+-0.00), recall: 0.566 (+-0.10), specificity: 0.585 (+-0.59), precision: 0.233 (+-0.04) 
 
-	Confusion matrix: 	 [2909 1871] 
-				 [494 555]
+	Confusion matrix: 	 [2797 2006] 
+				 [469 583]
 
 
 ******** Scores for Random Forest (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {'min_samples_leaf': 1, 'n_estimators': 10},
-	roc_auc: 0.592 (+-0.01), recall: 0.353 (+-0.07), specificity: 0.754 (+-0.75), precision: 0.243 (+-0.01) 
+	roc_auc: 0.599 (+-0.01), recall: 0.329 (+-0.11), specificity: 0.786 (+-0.79), precision: 0.254 (+-0.04) 
 
-	Confusion matrix: 	 [3614 1166] 
-				 [670 379]
+	Confusion matrix: 	 [3763 1040] 
+				 [720 332]
 
 
 ******** Scores for Naive Bayes (Windows:  10, 5, 10) ******** 
 
 	Hyperparameters: {},
-	roc_auc: 0.629 (+-0.02), recall: 0.503 (+-0.06), specificity: 0.752 (+-0.75), precision: 0.317 (+-0.06) 
+	roc_auc: 0.623 (+-0.02), recall: 0.488 (+-0.05), specificity: 0.758 (+-0.76), precision: 0.315 (+-0.06) 
 
-	Confusion matrix: 	 [3589 1191] 
-				 [527 522]
+	Confusion matrix: 	 [3640 1163] 
+				 [543 509]
 

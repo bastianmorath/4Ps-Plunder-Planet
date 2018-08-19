@@ -57,6 +57,12 @@ def get_cclassifier_with_name(clf_name, X, y):
 
 
 class CClassifier(object):
+    """
+    clf = Standard classifier without tuned parameters
+    tuned_clf = With RandomizedSearchCV tuned classifier
+
+    """
+
     def __init__(self, X, y):
 
         self.X = X
@@ -80,6 +86,7 @@ class CSVM(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = SVC(class_weight='balanced', probability=True, cache_size=1500)
+        self.tuned_clf = SVC(class_weight='balanced', probability=True, cache_size=1500, C=11.369, gamma=0.0028776, kernel='rbf', degree=2)
 
 
 class CLinearSVM(CClassifier):
@@ -111,6 +118,7 @@ class CNearestNeighbors(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = KNeighborsClassifier(weights='distance')
+        self.tuned_clf = KNeighborsClassifier(weights='distance', n_neighbors=438)
 
 
 class CQuadraticDiscriminantAnalysis(CClassifier):
@@ -208,6 +216,7 @@ class CRandomForest(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier()
+        self.tuned_clf = RandomForestClassifier(min_samples_leaf=48, n_estimators=13)
         self.tuned_params = {'min_samples_leaf': CRandomForest.param3,
                              'n_estimators': CRandomForest.param4}
 
@@ -243,3 +252,4 @@ class CNaiveBayes(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = GaussianNB()
+        self.tuned_clf = GaussianNB()

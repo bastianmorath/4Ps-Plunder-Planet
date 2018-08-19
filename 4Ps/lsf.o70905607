@@ -1,0 +1,245 @@
+Sender: LSF System <lsfadmin@eu-ms-010-25>
+Subject: Job 70905607: <python main.py -m 130> in cluster <euler> Done
+
+Job <python main.py -m 130> was submitted from host <eu-login-13-ng> by user <morathba> in cluster <euler> at Sat Aug 18 16:38:18 2018.
+Job was executed on host(s) <eu-ms-010-25>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Sat Aug 18 16:38:30 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Sat Aug 18 16:38:30 2018.
+Terminated at Sat Aug 18 16:45:38 2018.
+Results reported at Sat Aug 18 16:45:38 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -m 130
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   773.85 sec.
+    Max Memory :                                 904 MB
+    Average Memory :                             664.07 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               120.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                8
+    Run time :                                   456 sec.
+    Turnaround time :                            440 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+WARNING:tensorflow:Variable *= will be deprecated. Use variable.assign_mul if you want assignment to the variable value or 'x = x * y' if you want a new python Tensor object.
+2018-08-18 16:38:39.876672: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Get trained LSTM #################
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.645 (+-0.10), recall: 0.529 (+-0.24), specificity: 0.717 (+-0.14), precision: 0.257 (+-0.03) 
+
+	Confusion matrix: 	 [950 383] 
+				 [113 128]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.611 (+-0.03), recall: 0.458 (+-0.22), specificity: 0.751 (+-0.20), precision: 0.353 (+-0.08) 
+
+	Confusion matrix: 	 [947 308] 
+				 [166 154]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.577 (+-0.04), recall: 0.428 (+-0.19), specificity: 0.735 (+-0.16), precision: 0.262 (+-0.07) 
+
+	Confusion matrix: 	 [946 329] 
+				 [136 104]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.625 (+-0.05), recall: 0.526 (+-0.20), specificity: 0.712 (+-0.16), precision: 0.306 (+-0.04) 
+
+	Confusion matrix: 	 [921 361] 
+				 [127 156]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.688 (+-0.05), recall: 0.722 (+-0.14), specificity: 0.592 (+-0.20), precision: 0.306 (+-0.08) 
+
+	Confusion matrix: 	 [771 516] 
+				 [ 78 205]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.639 (+-0.03), recall: 0.548 (+-0.14), specificity: 0.707 (+-0.13), precision: 0.271 (+-0.06) 
+
+	Confusion matrix: 	 [954 381] 
+				 [106 146]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.629 (+-0.07), recall: 0.596 (+-0.16), specificity: 0.626 (+-0.18), precision: 0.327 (+-0.15) 
+
+	Confusion matrix: 	 [718 437] 
+				 [133 184]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.613 (+-0.04), recall: 0.641 (+-0.10), specificity: 0.570 (+-0.06), precision: 0.283 (+-0.11) 
+
+	Confusion matrix: 	 [643 498] 
+				 [112 183]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.657 (+-0.05), recall: 0.564 (+-0.17), specificity: 0.716 (+-0.11), precision: 0.241 (+-0.08) 
+
+	Confusion matrix: 	 [990 392] 
+				 [ 97 116]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.600 (+-0.02), recall: 0.469 (+-0.25), specificity: 0.720 (+-0.25), precision: 0.315 (+-0.08) 
+
+	Confusion matrix: 	 [919 330] 
+				 [150 141]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.599 (+-0.05), recall: 0.544 (+-0.21), specificity: 0.655 (+-0.15), precision: 0.257 (+-0.05) 
+
+	Confusion matrix: 	 [839 441] 
+				 [118 154]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.661 (+-0.08), recall: 0.628 (+-0.14), specificity: 0.641 (+-0.17), precision: 0.256 (+-0.07) 
+
+	Confusion matrix: 	 [883 486] 
+				 [ 88 149]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.647 (+-0.06), recall: 0.540 (+-0.12), specificity: 0.700 (+-0.10), precision: 0.316 (+-0.11) 
+
+	Confusion matrix: 	 [875 351] 
+				 [131 162]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.621 (+-0.07), recall: 0.447 (+-0.19), specificity: 0.791 (+-0.10), precision: 0.302 (+-0.03) 
+
+	Confusion matrix: 	 [1035  272] 
+				 [139 118]
+
+
+
+Compiling lstm network...
+Performance test set: 
+
+
+******** Scores for LSTM (Windows:  10, 5, 10) ******** 
+
+	roc_auc: 0.652 (+-0.07), recall: 0.628 (+-0.23), specificity: 0.639 (+-0.16), precision: 0.252 (+-0.05) 
+
+	Confusion matrix: 	 [838 464] 
+				 [ 82 159]
+
+
+
+[0.64, 0.61, 0.58, 0.62, 0.69, 0.64, 0.63, 0.61, 0.66, 0.6, 0.6, 0.66, 0.65, 0.62, 0.65]
+Max roc: 0.688
+Mean roc: 0.631, (+-0.028)
+Max f1: 0.412
+Mean f1: 0.355, (+-0.028)
+Time elapsed: 420.9503207206726

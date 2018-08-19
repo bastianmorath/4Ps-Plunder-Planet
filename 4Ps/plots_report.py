@@ -14,6 +14,7 @@ import plots_helpers as ph
 import features_factory as f_factory
 import setup_dataframes
 
+
 def generate_plots_for_report():
     """
     Generate plots that are specifically for the report
@@ -46,7 +47,7 @@ def _plot_difficulties():
         df = pl.transform_df_to_numbers(df)
         df_num_resampled = hp.resample_dataframe(df, resolution)
         ax.scatter(df_num_resampled['Time'], df_num_resampled['physDifficulty'], c=hp.green_color, alpha=0.3)
-        high += len(df_num_resampled[df_num_resampled['physDifficulty']==3])
+        high += len(df_num_resampled[df_num_resampled['physDifficulty'] == 3])
         total += len(df_num_resampled)
 
     print('Across all logfiles, the users are in ' + str(round(high/total, 2)) + '% on level HIGH')
@@ -180,16 +181,16 @@ def _plot_feature_correlation_matrix(reduced_features=True):
     sb.set(style="white")
     # Generate a mask for the upper triangle
     mask = np.zeros_like(corr, dtype=np.bool)
-    mask[np.triu_indices_from(mask)] = True
+    mask[np.triu_indices_from(mask, k=1)] = True
     # Set up the matplotlib figure
     fig, ax = plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
     # Generate a custom diverging colormap
     cmap = sb.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
     ax.tick_params(labelsize=20)
-    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True, xticklabels=f_factory.feature_names,
+    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=False, xticklabels=f_factory.feature_names,
                yticklabels=f_factory.feature_names, square=True,
-               linewidths=.5, cbar_kws={"shrink": .6}, vmin=-1, vmax=1)
+               linewidths=0.0, cbar_kws={"shrink": .6}, vmin=-1, vmax=1)
     cax = plt.gcf().axes[-1]
     cax.tick_params(labelsize=20)
     if reduced_features:
@@ -201,7 +202,7 @@ def _plot_feature_correlation_matrix(reduced_features=True):
 def _plot_heartrate_and_events():
     """
     Plots the heartrate of logfile 4 (user Is), together with the crashes, Shieldtutorials and Brokenship events.
-    Note: Sama as plot_heartrate_and_events in plots_logfiles.py, but only for a specific logfile
+    Note: Same as plot_heartrate_and_events in plots_logfiles.py, but only for one specific logfile
 
     Folder:     Report/
     Plot name:  lineplot_hr_and_events.pdf
@@ -213,36 +214,35 @@ def _plot_heartrate_and_events():
         remove_tutorials=False  # We want tutorial to be exactly at 3 and 7.5 minutes!
     )
     print("Plotting heartrate and events...")
-    # resolution = 3
+
     df = sd.df_list[4]
     idx = 4
 
-    # df_num_resampled = hp.resample_dataframe(df, resolution)
-    df_num_resampled = df
     # Plot Heartrate
     _, ax1 = plt.subplots()
-    ax1.plot(df_num_resampled['Time'], df_num_resampled['Heartrate'], hp.blue_color, linewidth=1.0)
+    ax1.plot(df['Time'], df['Heartrate'], hp.blue_color, linewidth=1.0, label='Heartrate')
     ax1.set_xlabel('Playing time (s)')
     ax1.set_ylabel('Heartrate', color=hp.blue_color)
     ax1.tick_params('y', colors=hp.blue_color)
 
-    # Plot crashes
     times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
     heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
                          for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
-    plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='crash')
+    plt.scatter(times_crashes, heartrate_crashes, c='r', marker='.', label='Crash')
 
     # Plot Brokenships
     times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'BROKENSHIP']
     hr_max = df['Heartrate'].max()
     hr_min = df['Heartrate'].min()
     for xc in times_repairing:
-        plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1, label='ship broken')
+        plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1, label='Ship broken')
 
     # Plot Shieldtutorial
-    times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'SHIELDTUTORIAL']
+    times_repairing = [row['Time'] for _, row in
+                       df.iterrows() if row['Gamemode'] == 'SHIELDTUTORIAL']
     hr_max = df['Heartrate'].max()
     hr_min = df['Heartrate'].min()
+
     for xc in times_repairing:
         plt.vlines(x=xc, ymin=hr_min, ymax=hr_max + 0.2, color='g', linewidth=1, label='Shield tutorial')
 

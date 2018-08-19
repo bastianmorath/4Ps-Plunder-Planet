@@ -26,7 +26,6 @@ import features_factory as f_factory
 import hyperparameter_optimization
 import plots_helpers
 import setup_dataframes as sd
-import plots_features
 
 # High level functions
 
@@ -54,9 +53,14 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
         clf_names = classifiers.names
 
     clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
+
     if tune_hyperparameters:
-        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
-                    verbose=False)[0] for name in clf_names]
+        if reduced_clfs:  # We already tuned the 4 classifiers used in Bachelor thesis
+            clf_list = [classifiers.get_cclassifier_with_name(name, X, y).tuned_clf for name in clf_names]
+
+        else:  # If we need all classifiers, do RandomizedSearchCV
+            clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
+                        verbose=False)[0] for name in clf_names]
 
     scores_mean = []
     scores_std = []

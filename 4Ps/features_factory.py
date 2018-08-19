@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 
 from scipy import stats
-from sklearn.preprocessing import MinMaxScaler
 
 import setup_dataframes as sd
 import synthesized_data
