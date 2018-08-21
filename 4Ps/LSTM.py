@@ -33,7 +33,7 @@ threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc
 def get_finalscore(X, y, n_epochs, verbose=0):
     roc_aucs_mean: [float] = []
     f1s_mean: [float] = []
-    for i in range(0, 15):
+    for i in range(0, 20):
         roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose, final_score=True)
         roc_aucs_mean.append(roc_mean)
         f1s_mean.append(f1_mean)
@@ -66,11 +66,11 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
 
     if final_score:
         X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
-            _split_into_train_test_val_data(X_list, y_list, size_test_set=5, size_val_set=0)
+            _split_into_train_test_val_data(X_list, y_list, size_test_set=3, size_val_set=0)
         X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
         model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
 
-        trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose)
+        trained_model = _fit_lstm(model, X_lstm, y_lstm, n_epochs, verbose)
 
     else:
         X_train_list, y_train_list, X_test_list, y_test_list, X_val, y_val = \
@@ -78,7 +78,7 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
         X_lstm, y_lstm = _get_reshaped_matrices(X_train_list, y_train_list)
         X_val, y_val = _get_reshaped_matrices(X_val, y_val)
         model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
-        trained_model = _train_lstm(model, X_lstm, y_lstm, n_epochs, verbose, val_set=(X_val, y_val))
+        trained_model = _fit_lstm(model, X_lstm, y_lstm, n_epochs, verbose, val_set=(X_val, y_val))
         print('Performance training set: ')
         _calculate_performance(X_lstm, y_lstm, trained_model)
 
@@ -144,7 +144,7 @@ def _generate_lstm_classifier(shape):
     model.add(LSTM(96, return_sequences=True, activation='tanh'))
     model.add(Dropout(dropout))
 
-    model.add(Dense(96, activation='relu'))
+    model.add(Dense(96,  activation='relu'))
     model.add(Dropout(dropout))
 
     model.add(Dense(96, activation='relu'))
@@ -154,16 +154,36 @@ def _generate_lstm_classifier(shape):
     # e.g. model.add(TimeDistributed(Dense(1)) computes one Dense layer per timestep for each sample
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
-    adam = optimizers.adam(lr=0.0003, decay=0.000004, amsgrad=True)
+    adam = optimizers.adam(lr=0.0003, decay=0.000004, amsgrad=False)
     model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
+    '''
+    from keras.utils import plot_model
+    plot_model(model,
+               to_file='model.png',
+               show_shapes=True,
+               show_layer_names=False,
+               rankdir='TD')
+     '''
 
     return model
 
 
-def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=None):
+def _fit_lstm(compiled_model, X_train, y_train, n_epochs, verbose=1, val_set=None):
     """
+    This method fits a compiled model to data, if a validation set is given it plots roc_auc, f1 and loss over
+    over the epochs and returns this model
+
+    :param compiled_model: THe compiled network
+    :param X_train: Training features
+    :param y_train: Training labels
+    :param n_epochs: Number of epochs to train
+    :param verbose: Verbose settings
+    :param val_set: OPtionally give a validation_set that can then be plotted
+
+    :return trained model
 
     """
+
     validation = val_set is not None
     one_hot_labels_train = keras.utils.to_categorical(y_train, num_classes=2)
 
@@ -171,27 +191,26 @@ def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=No
     # to apply a different weight to every timestep of every sample.
     to_2d = y_train.reshape(y_train.shape[0], y_train.shape[1])
 
-    _sample_weight = np.array([[1 if v == 0 else 4 for v in row] for row in to_2d])
+    _sample_weight = np.array([[1 if v == 0 else 5 for v in row] for row in to_2d])
     history_callback = Histories((X_train, one_hot_labels_train), n_epochs, interval=10,
                                  drawing_enabled=True)
     if validation:
         one_hot_labels_val = keras.utils.to_categorical(val_set[1], num_classes=2)
 
-        trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                          verbose=verbose, shuffle=True, validation_data=(val_set[0], one_hot_labels_val),
-                          sample_weight=_sample_weight,
-                          callbacks=[history_callback]
-                          )
+        compiled_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
+                           verbose=verbose, shuffle=True, validation_data=(val_set[0], one_hot_labels_val),
+                           sample_weight=_sample_weight,
+                           callbacks=[history_callback]
+                           )
     else:
-        trained_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
-                          verbose=verbose, shuffle=True, validation_data=None,
-                          sample_weight=_sample_weight,
-                          )
-
+        compiled_model.fit(X_train, one_hot_labels_train, epochs=n_epochs, batch_size=128,
+                           verbose=verbose, shuffle=True, validation_data=None,
+                           sample_weight=_sample_weight,
+                           )
 
     # Plot
     if validation:
-        print(trained_model.summary())
+        print(compiled_model.summary())
 
         _plot_losses_and_roc_aucs(history_callback.aucs_train, history_callback.aucs_val,
                                   history_callback.train_losses, history_callback.val_losses,
@@ -199,7 +218,7 @@ def _train_lstm(trained_model, X_train, y_train, n_epochs, verbose=1, val_set=No
                                   n_epochs
                                   )
 
-    return trained_model
+    return compiled_model
 
 
 """

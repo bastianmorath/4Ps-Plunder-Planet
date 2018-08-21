@@ -15,6 +15,7 @@ from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 from sklearn.metrics import (
     auc, roc_curve, confusion_matrix, precision_recall_curve, precision_score, recall_score, roc_auc_score
 )
+from sklearn.preprocessing import MinMaxScaler
 
 import classifiers
 import features_factory as f_factory
@@ -25,7 +26,8 @@ import setup_dataframes as sd
 threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc. with Youdens j-score)
 
 
-def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=False):
+def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=True,
+                                                 reduced_classifiers=True, pre_set=True):
     """
     Plots a barchart with the mean roc_auc score for each classfier in two scenarios:
     1. Do normal crossvalidation to get roc_auc (There can thus be part of a users
@@ -40,18 +42,25 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     :param plot_auc_score_per_user: Whether or not we should create a plot for each user left out with the auc_score of
                                     each classifier when using LeaveOneGroupOut cross validation
     :param reduced_features: Whether we should use all features or do feature selection first
+    :param reduced_classifiers: Only use reduced classifiers (see classifiers.py)
+    :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those isntead of tuning
 
     """
+    if reduced_classifiers:
+        clf_names = classifiers.reduced_names
+    else:
+        clf_names = classifiers.names
 
-    clf_names = classifiers.names
-
-    clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
+    if pre_set:
+        clf_list = [classifiers.get_cclassifier_with_name(name, X, y).tuned_clf for name in clf_names]
+    else:
+        clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
 
     # Get scores for scenario 1 (normal crossvalidation)
     print('\n***** Scenario 1 (normal crossvalidation) *****\n')
     auc_scores_scenario_1, auc_stds_scenario_1, s = model_factory. \
-        calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
-                                             reduced_clfs=False, create_curves=False, do_write_to_file=False)
+        calculate_performance_of_classifiers(X, y, tune_hyperparameters=True, reduced_clfs=reduced_classifiers,
+                                             create_curves=False, do_write_to_file=False, pre_set=True)
 
     # Get scores for scenario 2 (Leave one user out in training phase)
     print('\n***** Scenario 2  (Leave one user out in training phase) ***** \n')
@@ -109,6 +118,12 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
 
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
+
+        scaler = MinMaxScaler(feature_range=(0, 1))
+
+        X_train = scaler.fit_transform(X_train)  # Fit and transform on trainig set, then transform test set too
+        X_test = scaler.transform(X_test)
+
         model.fit(X_train, y_train)
 
         # I do MACRO averaging such that I can compute std!

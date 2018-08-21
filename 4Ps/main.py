@@ -89,7 +89,7 @@ def main(args):
 
     if args.performance_without_tuning or args.performance_with_tuning:
         # IMPORTANT: pre-set == True takes already tuned parameters if possible. Change if you always want to do tuning!
-        pre_set = False
+        pre_set = True
 
         if args.performance_with_tuning:
             print("\n################# Calculating performance with hyperparameter tuning #################\n")
@@ -130,12 +130,12 @@ def main(args):
     if args.leave_one_group_out:
         print("\n################# Leave one out #################\n")
         leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
-            X, y, True
+            X, y, True, reduced_features=f_factory.use_reduced_features, reduced_classifiers=True
         )
 
     if args.evaluate_lstm:
         print("\n################# Get trained LSTM #################\n")
-
+        # TODO: Separate those maybe
         # LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
         LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
 

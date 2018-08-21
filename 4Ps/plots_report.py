@@ -13,6 +13,7 @@ import setup_dataframes as sd
 import plots_helpers as ph
 import features_factory as f_factory
 import setup_dataframes
+import window_optimization
 
 
 def generate_plots_for_report():
@@ -23,11 +24,11 @@ def generate_plots_for_report():
     """
 
     _plot_heartrate_change()
-
     _plot_difficulties()
     _plot_mean_value_of_heartrate_at_crash()
     _plot_feature_correlation_matrix(reduced_features=False)
     _plot_heartrate_and_events()
+    window_optimization.test_all_windows()  # Potentially takes a long time. Uncomment if you want to use it
 
 
 def _plot_difficulties():
@@ -215,8 +216,8 @@ def _plot_heartrate_and_events():
     )
     print("Plotting heartrate and events...")
 
-    df = sd.df_list[4]
     idx = 4
+    df = sd.df_list[idx]
 
     # Plot Heartrate
     _, ax1 = plt.subplots()

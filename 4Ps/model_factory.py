@@ -38,14 +38,14 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     """Computes performance (roc_auc, recall, specificity, precision, confusion matrix) of either all
     or only reduced classifiers, and optionally writes it into a file and plots roc_auc scores  in a barchart.
 
-    :param X: feature matrix
-    :param y: labels
-    :param tune_hyperparameters: Whether or not hyperparameter should be tuned
-    :param reduced_clfs: Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
-    :param create_barchart: Create a barchart consisting of the roc_auc scores
-    :param create_curves: Create roc_curves and precision_recall curve
-    :param do_write_to_file: Write summary of performance into a file (optional)
-    :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those isntead of tuning
+    :param X:                       Feature matrix
+    :param y:                       labels
+    :param tune_hyperparameters:    Whether or not hyperparameter should be tuned
+    :param reduced_clfs:            Either do all classifiers or only SVM, Linear SVM, Nearest Neighbor, QDA and Naive Bayes
+    :param create_barchart:         Create a barchart consisting of the roc_auc scores
+    :param create_curves:           Create roc_curves and precision_recall curve
+    :param do_write_to_file:        Write summary of performance into a file (optional)
+    :param pre_set:                 Some classifiers have pre_tuned parameters (on Euler). Take those instead of tuning
 
     :return list of roc_aucs, list of roc_auc_stds (one score for each classifier) and formatted string of scores
     """
@@ -57,14 +57,9 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
 
     clf_list = [classifiers.get_cclassifier_with_name(name, X, y).clf for name in clf_names]
 
-    if tune_hyperparameters:
-        if reduced_clfs:  # We already tuned the 4 classifiers used in Bachelor thesis
-            clf_list = [classifiers.get_cclassifier_with_name(name, X, y).tuned_clf for name in clf_names]
-
-        else:  # If we need all classifiers, do RandomizedSearchCV
-
-            clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
-                        verbose=False, pre_set=pre_set)[0] for name in clf_names]
+    if tune_hyperparameters or pre_set:
+        clf_list = [hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(X, y, name,
+                    verbose=False, pre_set=pre_set)[0] for name in clf_names]
 
     scores_mean = []
     scores_std = []
@@ -128,14 +123,14 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         cross_val_predict, and returns roc_auc, recall, specificity, precision, confusion matrix and summary of those
         as a string (plus tuned hyperparameters optionally)
 
-    :param model: the classifier that should be applied
-    :param clf_name: Name of the classifier (used to print scores)
-    :param X: Feature matrix
-    :param y: labels
-    :param tuned_params_keys: keys of parameters that got tuned (in classifiers.py) (optional)
-    :param verbose: Whether a detailed score should be printed out (optional)
-    :param do_write_to_file: Write summary of performance into a file (optional)
-    :param create_curves: Create roc_curves and precision_recall curve
+    :param model:               The classifier that should be applied
+    :param clf_name:            Name of the classifier (used to print scores)
+    :param X:                   Feature matrix
+    :param y:                   labels
+    :param tuned_params_keys:   keys of parameters that got tuned (in classifiers.py) (optional)
+    :param verbose: Whether     a detailed score should be printed out (optional)
+    :param do_write_to_file:    Write summary of performance into a file (optional)
+    :param create_curves:       Create roc_curves and precision_recall curve
 
     :return: roc_auc_mean, roc_auc_std, recall_mean, recall_std, specificity_mean, specificity_std,
              precision_mean, precision_std, confusion_matrix and summary of those as a string
@@ -223,7 +218,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         fn = 'roc_scores_' + clf_name + '_with_hp_tuning.pdf' if tuned_params_keys is not None \
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
         _plot_roc_curve(list(itertools.chain.from_iterable(predicted_probas_list)), y_true, fn, 'ROC for ' + clf_name +
-                        ' without hyperparameter tuning')
+                        ' without hyperparameter tuning', plot_thresholds=False)
         plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
@@ -246,9 +241,11 @@ def cutoff_youdens_j(fpr, tpr, thresholds):
     """
     Computes optimal threshold of roc curve via Youdens j-score
 
-    :param fpr: False Positive Rate
-    :param tpr: True Postitive Rate
-    :param thresholds: Thresholds from roc_curve
+    :param fpr:         False Positive Rate
+    :param tpr:         True Postitive Rate
+    :param thresholds:  Thresholds from roc_curve
+
+    :return optimal threshold
 
     """
 
@@ -260,11 +257,11 @@ def cutoff_youdens_j(fpr, tpr, thresholds):
 def write_to_file(string, folder, filename, mode, verbose=True):
     """Writes a string to a file while checking that the path already exists and creating it if not
 
-        :param string:  Strin to be written to the file
-        :param folder: Folder to be saved to
-        :param filename: The name (.pdf) under which the plot should be saved\
-        :param mode: w+, a+, etc..
-        :param verbose: Print path of saved file
+        :param string:      String to be written to the file
+        :param folder:      Folder to be saved to
+        :param filename:    The name (.pdf) under which the plot should be saved\
+        :param mode:        w+, a+, etc..
+        :param verbose:     Print path of saved file
 
     """
     path = sd.working_directory_path + '/Evaluation/' + folder + '/'
@@ -313,6 +310,7 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
     :param tuned_params_dict:   Dictionary containing the tuned parameters and its values
 
     :return: Formatted string from scores
+
     """
 
     if tuned_params_dict is None:
@@ -342,15 +340,18 @@ def create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, 
 # Plotting
 
 
-def _plot_roc_curve(predicted_probas,  y, filename, title='ROC'):
-    """Plots roc_curve for a given classifier
+def _plot_roc_curve(predicted_probas,  y, filename, title='ROC', plot_thresholds=False):
+    """
+    Plots roc_curve for a given classifier
 
     :param predicted_probas: Probabilities of positive label
     :param y: labels
     :param filename: name of the file that the roc plot should be stored in
     :param title: title of the roc plot
+    :param plot_thresholds: Also plot thresholds
 
     """
+
     # allows to add probability output to classifiers which implement decision_function()
     # clf = CalibratedClassifierCV(classifier)
 
@@ -367,13 +368,14 @@ def _plot_roc_curve(predicted_probas,  y, filename, title='ROC'):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
 
-    # create the axis of thresholds (scores)
-    ax2 = plt.gca().twinx()
-    ax2.plot(fpr_, thresholds_, markeredgecolor='r', linestyle='dashed', color='r')
-    ax2.set_ylabel('Threshold', color='r')
+    if plot_thresholds:
+        # create the axis of thresholds (scores)
+        ax2 = plt.gca().twinx()
+        ax2.plot(fpr_, thresholds_, markeredgecolor='r', linestyle='dashed', color='r')
+        ax2.set_ylabel('Threshold', color='r')
 
-    ax2.set_ylim([thresholds_[-1], thresholds_[0]])
-    ax2.set_xlim([fpr_[0], fpr_[-1]])
+        ax2.set_ylim([thresholds_[-1], thresholds_[0]])
+        ax2.set_xlim([fpr_[0], fpr_[-1]])
 
     plots_helpers.save_plot(plt, 'Performance/Roc Curves/', filename)
 
@@ -438,13 +440,15 @@ def plot_roc_curves(X, y, reduced_clfs=True, hyperparameter_tuning=False):
 
 
 def _plot_barchart_scores(names, roc_auc_scores, roc_auc_scores_std, title, filename):
-    """Plots the roc_auc scores of each classifier into a barchart
+    """
+    Plots the roc_auc scores of each classifier into a barchart
 
     :param names: list of names of classifiers
     :param roc_auc_scores: roc_auc of each classifier
     :param roc_auc_scores_std: standard deviations of roc_auc of each classifier
     :param title: title of the barchart
     :param filename: name of the file
+
     """
 
     plots_helpers.plot_barchart(title=title,
@@ -467,6 +471,7 @@ def plot_precision_recall_curve(classifier, X, y, filename):
     :param X:           Feature matrix
     :param y:           labels
     :param filename:    Name of the file the plot should be stored to
+
     """
 
     # allows to add probability output to classifiers which implement decision_function()
@@ -497,13 +502,14 @@ def plot_precision_recall_curve(classifier, X, y, filename):
 
 # Note: Not used in the main program
 def _feature_selection(X, y, verbose=False):
-    """Feature Selection with ExtraTreesClassifier. Prints and plots the importance of the features
+    """
+    Feature Selection with ExtraTreesClassifier. Prints and plots the importance of the features
 
 
     Source: http://scikit-learn.org/stable/auto_examples/ensemble/plot_forest_importances.html
 
-    :param X:  Feature matrix
-    :param y: labels
+    :param X:       Feature matrix
+    :param y:       labels
     :param verbose: Whether a detailed report should be printed out
 
     :return new feature matrix with selected features

@@ -84,7 +84,7 @@ def setup(fewer_data=False, normalize_heartrate=True, remove_tutorials=True):
     globals()["use_fewer_data"] = fewer_data
 
     if fewer_data:
-        globals()["names_logfiles"] = ['Is_FBMC_hr_1', 'Lo_FBMC_hr_1', 'MH_FBMC_hr_1']
+        globals()["names_logfiles"] = ['EK_FBMC_hr_1', 'FM_FBMC_hr_1', 'Lo_FBMC_hr_1', 'MH_FBMC_hr_1', 'Is_FBMC_hr_1']
 
     column_names = [
         "Time",

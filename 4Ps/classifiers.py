@@ -218,7 +218,7 @@ class CRandomForest(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier(class_weight="balanced")
-        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=48, n_estimators=13)
+        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=44, n_estimators=29)
         self.tuned_params = {'min_samples_leaf': CRandomForest.param3,
                              'n_estimators': CRandomForest.param4}
 

@@ -1,0 +1,142 @@
+Sender: LSF System <lsfadmin@eu-ms-011-22>
+Subject: Job 71117772: <python main.py -r> in cluster <euler> Exited
+
+Job <python main.py -r> was submitted from host <eu-login-23-ng> by user <morathba> in cluster <euler> at Tue Aug 21 11:44:26 2018.
+Job was executed on host(s) <eu-ms-011-22>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Tue Aug 21 11:44:49 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Tue Aug 21 11:44:49 2018.
+Terminated at Tue Aug 21 11:45:21 2018.
+Results reported at Tue Aug 21 11:45:21 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -r
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   30.09 sec.
+    Max Memory :                                 372 MB
+    Average Memory :                             298.00 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               652.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   55 sec.
+    Turnaround time :                            55 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Testing all window sizes #################
+
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Feature matrix and labels created!
+Feature matrix already cached!
+Traceback (most recent call last):
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 99, in try_read
+    return read_wrapper(lambda f: pkl.load(f))
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 82, in read_wrapper
+    is_text=False)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/common.py", line 396, in _get_handle
+    f = open(path_or_buf, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/Pickle/reduced_features/feature_matrix_10_60_10.pickle'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 104, in try_read
+    lambda f: pc.load(f, encoding=encoding, compat=False))
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 82, in read_wrapper
+    is_text=False)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/common.py", line 396, in _get_handle
+    f = open(path_or_buf, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/Pickle/reduced_features/feature_matrix_10_60_10.pickle'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 110, in read_pickle
+    return try_read(path)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 108, in try_read
+    lambda f: pc.load(f, encoding=encoding, compat=True))
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 82, in read_wrapper
+    is_text=False)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/common.py", line 396, in _get_handle
+    f = open(path_or_buf, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/Pickle/reduced_features/feature_matrix_10_60_10.pickle'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 99, in try_read
+    return read_wrapper(lambda f: pkl.load(f))
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 82, in read_wrapper
+    is_text=False)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/common.py", line 396, in _get_handle
+    f = open(path_or_buf, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/Pickle/reduced_features/feature_matrix_10_60_10.pickle'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 104, in try_read
+    lambda f: pc.load(f, encoding=encoding, compat=False))
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 82, in read_wrapper
+    is_text=False)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/common.py", line 396, in _get_handle
+    f = open(path_or_buf, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/Pickle/reduced_features/feature_matrix_10_60_10.pickle'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "main.py", line 172, in <module>
+    main(_args)
+  File "main.py", line 69, in main
+    window_optimization.test_all_windows()
+  File "/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/window_optimization.py", line 105, in test_all_windows
+    gradient_window=const_w)
+  File "/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/features_factory.py", line 83, in get_feature_matrix_and_label
+    matrix = pd.read_pickle(path)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 113, in read_pickle
+    return try_read(path, encoding='latin1')
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 108, in try_read
+    lambda f: pc.load(f, encoding=encoding, compat=True))
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/pickle.py", line 82, in read_wrapper
+    is_text=False)
+  File "/cluster/home/morathba/.local/lib64/python3.6/site-packages/pandas/io/common.py", line 396, in _get_handle
+    f = open(path_or_buf, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/cluster/home/morathba/4Ps-Plunder-Planet/4Ps/Pickle/reduced_features/feature_matrix_10_60_10.pickle'

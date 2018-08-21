@@ -76,7 +76,7 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True, 
 
     else:
         if pre_set and hasattr(c_classifier, 'tuned_clf'):
-            print('Hyperparamters already tuned, taking those pre-set parameters')
+            print('Hyperparameters for ' + clf_name + ' already got tuned, taking those pre-set parameters')
             return c_classifier.tuned_clf, model_factory.get_tuned_params_dict(c_classifier.tuned_clf,
                                                                                list(c_classifier.tuned_params.keys()))
         else:

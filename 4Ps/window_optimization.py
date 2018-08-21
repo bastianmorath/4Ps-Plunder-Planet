@@ -14,7 +14,7 @@ import numpy as np
 import features_factory as f_factory
 import model_factory
 import plots_helpers
-
+import classifiers
 
 def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):
     """
@@ -46,19 +46,18 @@ def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_fil
         model_factory.write_to_file(s, 'Performance/Windows/', filename, 'w+')
 
 
-# Note: Not used in the main program
 def test_all_windows():
     """
-    Keeps one window fixed and changes the other two. At the end, it plots the mean value over all
-    classifier roc_auc scores with plt.imshow.
+    Keeps one window fixed and changes the other two. Calculates the roc_auc of the Random Forest with
+    pre-tuned parameters for each window combination and plots it.
 
     """
     print("\n################# Testing all window sizes #################\n")
 
-    const_window = 'gradient_w'
+    const_window = 'cw'
 
     const_w = 10
-    list_1 = [5, 10, 20, 30, 50, 60, 80, 100, 120]
+    list_1 = [5, 10, 20, 30, 50, 60]
     list_2 = list_1[::-1]
 
     if const_window == 'hw':
@@ -75,50 +74,49 @@ def test_all_windows():
         filename = 'windows_const_gradient_w.pdf'
 
     mean_scores = np.zeros((len(list_1), len(list_2)))
-
+    model_name = 'SVM'
     for idx_w1, w1 in enumerate(list_1):
         for idx_w2, w2 in enumerate(list_2):
             if const_window == 'hw':
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=const_w, c_window=w1,
                                                               gradient_window=w2)
+                model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
-                auc_mean_scores, auc_std_scores, _ = model_factory. \
-                    calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
-                                                         reduced_clfs=False, do_write_to_file=False)
+                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _ = model_factory. \
+                    get_performance(model, model_name,  X, y, tuned_params_keys=None, verbose=False,
+                                    create_curves=False)
 
-                print(np.max(auc_mean_scores))
-                print(np.mean(auc_mean_scores))
-                print(np.min(auc_mean_scores))
-                print(auc_mean_scores[0])
-                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]  # np.mean(auc_mean_scores)
+                print('const_hw')
+                print(roc_auc_mean, const_w, w1, w2)
+                mean_scores[idx_w1][idx_w2] = roc_auc_mean
             elif const_window == 'cw':
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=const_w,
                                                               gradient_window=w2)
+                model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
-                auc_mean_scores, auc_std_scores, _ = model_factory. \
-                    calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
-                                                         reduced_clfs=False, do_write_to_file=False)
+                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _ = model_factory. \
+                    get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
+                    create_curves=False)
 
-                print(np.max(auc_mean_scores))
-                print(np.mean(auc_mean_scores))
-                print(np.min(auc_mean_scores))
-                print(auc_mean_scores[0])
-                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]  # np.mean(auc_mean_scores)
+                print('const_cw')
+                print(roc_auc_mean, w1, const_w, w2)
+                mean_scores[idx_w1][idx_w2] = roc_auc_mean
             else:
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=w2,
                                                               gradient_window=const_w)
 
-                auc_mean_scores, auc_std_scores, _ = model_factory. \
-                    calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
-                                                         reduced_clfs=False, do_write_to_file=False)
+                model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
-                print(np.max(auc_mean_scores))
-                print(np.mean(auc_mean_scores))
-                print(np.min(auc_mean_scores))
-                mean_scores[idx_w1][idx_w2] = auc_mean_scores[0]
+                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _ = model_factory. \
+                    get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
+                    create_curves=False)
+
+                print('const_gradient_w')
+                print(roc_auc_mean, w1, w2, const_w)
+                mean_scores[idx_w1][idx_w2] = roc_auc_mean
 
     mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly
 
