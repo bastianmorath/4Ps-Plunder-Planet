@@ -83,7 +83,7 @@ def test_all_windows():
                                                               gradient_window=w2)
                 model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
-                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _ = model_factory. \
+                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name,  X, y, tuned_params_keys=None, verbose=False,
                                     create_curves=False)
 
@@ -96,7 +96,7 @@ def test_all_windows():
                                                               gradient_window=w2)
                 model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
-                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _ = model_factory. \
+                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
                     create_curves=False)
 
@@ -110,7 +110,7 @@ def test_all_windows():
 
                 model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
-                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _ = model_factory. \
+                roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
                     create_curves=False)
 

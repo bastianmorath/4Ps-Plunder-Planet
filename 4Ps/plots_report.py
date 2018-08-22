@@ -14,6 +14,7 @@ import plots_helpers as ph
 import features_factory as f_factory
 import setup_dataframes
 import window_optimization
+import model_factory
 
 
 def generate_plots_for_report():
@@ -22,13 +23,15 @@ def generate_plots_for_report():
 
 
     """
+    model_factory.plot_roc_curves(hyperparameter_tuning=True, pre_set=True)
 
     _plot_heartrate_change()
     _plot_difficulties()
     _plot_mean_value_of_heartrate_at_crash()
     _plot_feature_correlation_matrix(reduced_features=False)
     _plot_heartrate_and_events()
-    window_optimization.test_all_windows()  # Potentially takes a long time. Uncomment if you want to use it
+
+    # window_optimization.test_all_windows()  # Potentially takes a long time. Uncomment if you want to use it
 
 
 def _plot_difficulties():
@@ -182,7 +185,7 @@ def _plot_feature_correlation_matrix(reduced_features=True):
     sb.set(style="white")
     # Generate a mask for the upper triangle
     mask = np.zeros_like(corr, dtype=np.bool)
-    mask[np.triu_indices_from(mask, k=1)] = True
+    mask[np.triu_indices_from(mask, k=0)] = True
     # Set up the matplotlib figure
     fig, ax = plt.subplots(figsize=(len(f_factory.feature_names), len(f_factory.feature_names)))
     # Generate a custom diverging colormap

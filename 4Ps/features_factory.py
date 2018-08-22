@@ -21,10 +21,9 @@ use_reduced_features = True
 
 _verbose = True
 
-# TODO: Make sure we have correct window sizes 10, 5 and 10!!!!!!
-hw = 10  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
-cw = 5  # Over how many preceeding seconds should %crashes be calculated?
-gradient_w = 10  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
+hw = 20  # Over how many preceeding seconds should most of features such as min, max, mean of hr and points be averaged?
+cw = 10  # Over how many preceeding seconds should %crashes be calculated?
+gradient_w = 30  # Over how many preceeding seconds should hr features be calculated that have sth. do to with change?
 
 
 _path_reduced_features = sd.working_directory_path + '/Pickle/reduced_features/'
@@ -86,26 +85,26 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         if _verbose:
             print('Creating feature matrix...')
 
-        matrix['last_obstacle_crash'] = _get_last_obstacle_crash_feature()  # cw
-        matrix['timedelta_to_last_obst'] = _get_timedelta_to_last_obst_feature(do_normalize=False)
         matrix['mean_hr'] = _get_standard_feature('mean', 'Heartrate')  # hw
         matrix['std_hr'] = _get_standard_feature('std', 'Heartrate')  # hw
-        matrix['lin_regression_hr_slope'] = _get_lin_regression_hr_slope_feature()  # gradient_w
+        matrix['max_minus_min_hr'] = _get_standard_feature('max_minus_min', 'Heartrate')  # hw
         matrix['hr_gradient_changes'] = _get_number_of_gradient_changes('Heartrate')  # gradient_w
-        matrix['score_gradient_changes'] = _get_number_of_gradient_changes('Points')  # gradient_w
+        matrix['lin_regression_hr_slope'] = _get_lin_regression_hr_slope_feature()  # gradient_w
         matrix['mean_score'] = _get_standard_feature('mean', 'Points')  # hw
         matrix['std_score'] = _get_standard_feature('std', 'Points')  # hw
+        matrix['max_minus_min_score'] = _get_standard_feature('max_minus_min', 'Points')  # hw
         matrix['%crashes'] = _get_percentage_crashes_feature()  # cw
+        matrix['last_obstacle_crash'] = _get_last_obstacle_crash_feature()  # cw
+        matrix['timedelta_to_last_obst'] = _get_timedelta_to_last_obst_feature(do_normalize=False)
 
         if not use_reduced_features:
 
-            matrix['max_minus_min_hr'] = _get_standard_feature('max_minus_min', 'Heartrate')  # hw
             matrix['max_hr'] = _get_standard_feature('max', 'Heartrate')  # hw
             matrix['min_hr'] = _get_standard_feature('min', 'Heartrate')  # hw
             matrix['max_over_min_hr'] = _get_standard_feature('max_over_min', 'Heartrate')  # hw
             matrix['max_score'] = _get_standard_feature('max', 'Points')  # hw
             matrix['min_score'] = _get_standard_feature('min', 'Points')  # hw
-            matrix['max_minus_min_score'] = _get_standard_feature('max_minus_min', 'Points')  # hw
+            matrix['score_gradient_changes'] = _get_number_of_gradient_changes('Points')  # gradient_w
 
         # Boxcox transformation
         if use_boxcox:

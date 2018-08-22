@@ -13,7 +13,7 @@ import pandas as pd
 from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 
 from sklearn.metrics import (
-    auc, roc_curve, confusion_matrix, precision_recall_curve, precision_score, recall_score, roc_auc_score
+    roc_curve, confusion_matrix, precision_score, recall_score, roc_auc_score, f1_score
 )
 from sklearn.preprocessing import MinMaxScaler
 
@@ -139,6 +139,7 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
         recall = recall_score(y_test, y_pred)
         specificity = conf_mat[0, 0] / (conf_mat[0, 0] + conf_mat[0, 1])
         precision = precision_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
 
         # I calculate the indices that were left out, and map them back to one row of the data,
         # then taking its userid and logID
@@ -146,7 +147,7 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
         group = df_obstacles_concatenated.loc[[left_out_group_indices[0]]]
         user_id = group['userID'].item()
 
-        scores_and_ids.append((roc_auc, recall, specificity, precision, user_id))
+        scores_and_ids.append((roc_auc, recall, specificity, precision, f1, user_id))
 
     # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
     names = []
@@ -261,16 +262,19 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
     recall_mean = np.mean([a[1] for a in scores])
     specificity_mean = np.mean([a[2] for a in scores])
     precision_mean = np.mean([a[3] for a in scores])
+    f1_mean = np.mean([a[4] for a in scores])
 
     auc_std = np.std([a[0] for a in scores])
     recall_std = np.std([a[1] for a in scores])
     specificity_std = np.std([a[2] for a in scores])
     precision_std = np.std([a[3] for a in scores])
+    f1_std = np.std([a[4] for a in scores])
 
     conf_mat = confusion_matrix(y, y_pred)
 
     s = model_factory.create_string_from_scores(clf_name, auc_mean, auc_std, recall_mean, recall_std,  specificity_mean,
-                                                specificity_std, precision_mean, precision_std, conf_mat)
+                                                specificity_std, precision_mean, precision_std, f1_mean,
+                                                f1_std, conf_mat)
 
     # scores for each individual user left out in cross_validation
     s += '\n\nroc_auc score for each user that was left out in training set and predicted on in test_set:'

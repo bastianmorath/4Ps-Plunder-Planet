@@ -35,13 +35,6 @@ def get_argparse():
     )
 
     parser.add_argument(
-        "-c",
-        "--plot_roc_curves",
-        action="store_true",
-        help="Plots the ROC curves of the classifiers into a single plot under Plots/Performance/roc_curves.pdf",
-    )
-
-    parser.add_argument(
         "-w",
         "--test_windows",
         type=int,

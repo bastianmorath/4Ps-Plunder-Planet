@@ -67,11 +67,6 @@ def main(args):
                 use_boxcox=False
         )
 
-    if args.plot_roc_curves:
-        print("\n################# Plotting ROC curves of classifiers #################\n")
-
-        model_factory.plot_roc_curves(X, y, hyperparameter_tuning=False)  # Change to True if necessary
-
     if args.print_keynumbers_logfiles:
         print("\n################# Printing keynumbers #################\n")
 
@@ -111,14 +106,13 @@ def main(args):
                 clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
                     X, y, clf_name=args.performance_with_tuning, pre_set=pre_set,
                 )
-
-                _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X,
+                _, _, _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X,
                                                                                   y, tuned_params, verbose=True,
                                                                                   do_write_to_file=False)
             else:
                 model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y)
 
-                _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(model.clf,
+                _, _, _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(model.clf,
                                                                                   args.performance_without_tuning,
                                                                                   X, y, verbose=True,
                                                                                   do_write_to_file=False)
