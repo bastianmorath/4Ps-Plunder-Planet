@@ -158,7 +158,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     predicted_probas_list = []
 
     kf = KFold(n_splits=10)
-    print(y)
     for train_index, test_index in kf.split(X):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]

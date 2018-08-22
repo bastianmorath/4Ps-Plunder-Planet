@@ -1,0 +1,36 @@
+Using TensorFlow backend.
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=1500 for Nearest Neighbor...
+Time elapsed for hyperparameter tuning: 4370.049921989441
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.641 (std: 0.014)
+		Parameters: {'kneighborsclassifier__metric': 'euclidean', 'kneighborsclassifier__n_neighbors': 655}
+	Model with rank: 1
+		Mean validation score: 0.641 (std: 0.014)
+		Parameters: {'kneighborsclassifier__metric': 'euclidean', 'kneighborsclassifier__n_neighbors': 655}
+	Model with rank: 3
+		Mean validation score: 0.641 (std: 0.015)
+		Parameters: {'kneighborsclassifier__metric': 'minkowski', 'kneighborsclassifier__n_neighbors': 670}
+	Model with rank: 3
+		Mean validation score: 0.641 (std: 0.015)
+		Parameters: {'kneighborsclassifier__metric': 'euclidean', 'kneighborsclassifier__n_neighbors': 670}
+
+Calculating performance of Nearest Neighbor...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+
+******** Scores for Nearest Neighbor (Windows:  20, 10, 30) ******** 
+
+	Hyperparameters: {'kneighborsclassifier__n_neighbors': 655, 'kneighborsclassifier__metric': 'euclidean'},
+	roc_auc: 0.644 (+-0.06), recall: 0.618 (+-0.18), specificity: 0.631 (+-0.21), precision: 0.300 (+-0.10), f1: 0.376 (+-0.08) 
+
+	Confusion matrix: 	 [2942 1744] 
+				 [406 628]
+
+
+Time elapsed: 4373.578933238983

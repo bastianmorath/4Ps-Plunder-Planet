@@ -1,0 +1,33 @@
+Using TensorFlow backend.
+Loading dataframes...
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=5000 for Random Forest...
+Time elapsed for hyperparameter tuning: 4538.288999080658
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.637 (std: 0.018)
+		Parameters: {'randomforestclassifier__min_samples_leaf': 48, 'randomforestclassifier__n_estimators': 16}
+	Model with rank: 2
+		Mean validation score: 0.634 (std: 0.022)
+		Parameters: {'randomforestclassifier__min_samples_leaf': 48, 'randomforestclassifier__n_estimators': 34}
+	Model with rank: 3
+		Mean validation score: 0.632 (std: 0.018)
+		Parameters: {'randomforestclassifier__min_samples_leaf': 41, 'randomforestclassifier__n_estimators': 28}
+
+Calculating performance of Random Forest...
+	This classifier doesn't implement decision_function(), thus no precision_recall curve can be generated
+
+******** Scores for Random Forest (Windows:  20, 10, 30) ******** 
+
+	Hyperparameters: {'randomforestclassifier__min_samples_leaf': 48, 'randomforestclassifier__n_estimators': 16},
+	roc_auc: 0.635 (+-0.07), recall: 0.570 (+-0.12), specificity: 0.665 (+-0.10), precision: 0.280 (+-0.08), f1: 0.363 (+-0.07) 
+
+	Confusion matrix: 	 [3108 1578] 
+				 [457 577]
+
+
+Time elapsed: 4541.340993642807

@@ -31,21 +31,33 @@ threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc
 
 
 def get_finalscore(X, y, n_epochs, verbose=0):
-    roc_aucs_mean: [float] = []
-    f1s_mean: [float] = []
-    for i in range(0, 20):
-        roc_mean, f1_mean = get_performance_of_lstm_classifier(X, y, n_epochs, verbose, final_score=True)
-        roc_aucs_mean.append(roc_mean)
-        f1s_mean.append(f1_mean)
+    roc_auc_per_run = []
+    recall_per_run = []
+    specificity_per_run = []
+    precision_per_run = []
+    f1_per_run = []
 
-    print([round(float(r), 2) for r in roc_aucs_mean])
+    n_runs = 20
+    for i in range(0, n_runs):
+        rocs, recalls, specificities, presicions, f1s = get_performance_of_lstm_classifier(X, y, n_epochs, verbose,
+                                                                                           final_score=True)
+        roc_auc_per_run.append(np.mean(rocs))
+        recall_per_run.append(np.mean(recalls))
+        specificity_per_run.append(np.mean(specificities))
+        precision_per_run.append(np.mean(presicions))
+        f1_per_run.append(np.mean(f1s))
 
-    print('Max roc: ' + str(round(np.max(roc_aucs_mean), 3)))
-    print('Mean roc: ' + str(round(float(np.mean(roc_aucs_mean)), 3)) +
-          ', (+-' + str(round(float(np.std(roc_aucs_mean)), 3)) + ')')
-    print('Max f1: ' + str(round(np.max(f1s_mean), 3)))
-    print('Mean f1: ' + str(round(float(np.mean(f1s_mean)), 3)) +
-          ', (+-' + str(round(float(np.std(f1s_mean)), 3)) + ')')
+    s = '\n\n******** Scores for LSTM with %d runs and %e epochs each ******** \n\n' \
+        '\troc_auc: %.3f (+-%.2f), ' \
+        'recall: %.3f (+-%.2f), ' \
+        'specificity: %.3f (+-%.2f), ' \
+        'precision: %.3f (+-%.2f), ' \
+        'f1: %.3f (+-%.2f) \n\n' \
+        % (n_runs, n_epochs, np.mean(roc_auc_per_run), np.std(roc_auc_per_run), np.mean(recall_per_run),
+           np.std(recall_per_run), np.mean(specificity_per_run), np.std(specificity_per_run),
+           np.mean(precision_per_run), np.std(precision_per_run), np.mean(f1_per_run), np.std(f1_per_run))
+
+    print(s)
 
 
 def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=False):
@@ -57,7 +69,8 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
     :param n_epochs: Number of epochs the model should be trained
     :param verbose: verbose mode of keras_model.fit
     :param final_score: If final score should be printed, then don't use a validation set
-    :return mean auroc, std auroc
+
+    :return rocs, recalls, specificities, presicions, f1s
 
     """
 
@@ -83,8 +96,8 @@ def get_performance_of_lstm_classifier(X, y, n_epochs, verbose=1, final_score=Fa
         _calculate_performance(X_lstm, y_lstm, trained_model)
 
     print('Performance test set: ')
-    mean_auroc, std_auroc = _calculate_performance(X_test_list, y_test_list, trained_model)
-    return mean_auroc, std_auroc
+    rocs, recalls, specificities, presicions, f1s = _calculate_performance(X_test_list, y_test_list, trained_model)
+    return rocs, recalls, specificities, presicions, f1s
 
 
 """
@@ -234,7 +247,7 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
     :param y_test_list:
     :param lstm_model:
 
-    :return mean auroc, mean f1
+    :return AUC scores, recall scores, specificity scores, precision scores, f1 scores
     """
     y_pred_list = []
     _roc_auc_scores = []
@@ -274,9 +287,9 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
 
     print(model_factory.create_string_from_scores('LSTM', np.mean(_roc_auc_scores), np.std(_roc_auc_scores),
           np.mean(_recall_scores), np.std(_recall_scores), np.mean(_specificity_scores), np.std(_specificity_scores),
-          np.mean(_precision_scores), np.std(_precision_scores), conf_mat))
+          np.mean(_precision_scores), np.std(_precision_scores), np.mean(_f1_scores), np.std(_f1_scores), conf_mat))
 
-    return np.mean(_roc_auc_scores), np.mean(_f1_scores)
+    return _roc_auc_scores, _recall_scores, _specificity_scores, _precision_scores, _f1_scores
 
 
 """

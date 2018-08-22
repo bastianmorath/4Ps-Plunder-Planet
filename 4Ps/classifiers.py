@@ -88,7 +88,7 @@ class CSVM(CClassifier):
         CClassifier.__init__(self, X, y)
         self.clf = SVC(class_weight='balanced', probability=True, cache_size=1500)
         self.tuned_clf = SVC(class_weight='balanced', probability=True, cache_size=1500,
-                             C=30.9, gamma=0.086497, kernel='rbf', degree=1)
+                             C=16.7523, gamma=0.05147, kernel='rbf', degree=2)
 
 
 class CLinearSVM(CClassifier):
@@ -218,7 +218,7 @@ class CRandomForest(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier(class_weight="balanced")
-        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=49, n_estimators=124)
+        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=48, n_estimators=16)
         self.tuned_params = {'min_samples_leaf': CRandomForest.param3,
                              'n_estimators': CRandomForest.param4}
 

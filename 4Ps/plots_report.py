@@ -15,6 +15,7 @@ import features_factory as f_factory
 import setup_dataframes
 import window_optimization
 import model_factory
+import leave_one_group_out_cv
 
 
 def generate_plots_for_report():
@@ -23,6 +24,14 @@ def generate_plots_for_report():
 
 
     """
+    X, y = f_factory.get_feature_matrix_and_label(
+                verbose=False,
+                use_cached_feature_matrix=True,
+                save_as_pickle_file=True,
+                reduced_features=True,
+                use_boxcox=False
+            )
+
     model_factory.plot_roc_curves(hyperparameter_tuning=True, pre_set=True)
 
     _plot_heartrate_change()
@@ -31,7 +40,11 @@ def generate_plots_for_report():
     _plot_feature_correlation_matrix(reduced_features=False)
     _plot_heartrate_and_events()
 
-    # window_optimization.test_all_windows()  # Potentially takes a long time. Uncomment if you want to use it
+    # The following plots take a little longer, so only uncomment them if you really want them
+    leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
+        X, y, False, reduced_features=True, reduced_classifiers=True
+    )
+    # window_optimization.test_all_windows()
 
 
 def _plot_difficulties():

@@ -45,6 +45,8 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
     :param reduced_classifiers: Only use reduced classifiers (see classifiers.py)
     :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those isntead of tuning
 
+    Folder:     Report/
+    Plot name:  clf_performance_with_user_left_out_vs_normal.pdf
     """
     if reduced_classifiers:
         clf_names = classifiers.reduced_names
@@ -112,7 +114,7 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
     # Each user should be a separate group, s.t. we can always leaveout one user
     groups_ids = pd.concat(sd.obstacle_df_list)['userID'].map(str).tolist()
     logo = LeaveOneGroupOut()
-    scores_and_ids = []  # tuples of (auc, recall, specificity, precision, user_id)
+    scores_and_ids = []  # tuples of (auc, recall, specificity, precision, f1s, user_id)
     df_obstacles_concatenated = pd.concat(sd.obstacle_df_list, ignore_index=True)
     for train_index, test_index in logo.split(X, y, groups_ids):
 
@@ -151,7 +153,7 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
 
     # Get a list with the user names (in the order that LeaveOneGroupOut left the users out in training phase)
     names = []
-    for _, (auc, rec, spec, prec, user_id) in enumerate(scores_and_ids):
+    for _, (auc, rec, spec, prec, f1, user_id) in enumerate(scores_and_ids):
         for df_idx, df in enumerate(sd.df_list):
             # Get the username out of userID
             if df.iloc[0]['userID'] == user_id:
@@ -220,7 +222,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
     plt.title('Performance when leaving one user out in training phase')
     plt.xticks(index + bar_width/2, names, rotation='vertical')
     ax.set_ylim([0, 1.2])
-    plt.legend(prop={'size': 6})
+    plt.legend(prop={'size': 10})
 
     '''
     def autolabel(rects):
@@ -239,7 +241,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
 
     plt.tight_layout()
 
-    plots_helpers.save_plot(plt, 'Performance/LeaveOneGroupOut/', 'clf_performance_with_user_left_out_vs_normal.pdf')
+    plots_helpers.save_plot(plt, 'Report/', 'clf_performance_with_user_left_out_vs_normal.pdf')
 
 
 def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
@@ -278,10 +280,10 @@ def _write_detailed_report_to_file(scores, y, y_pred, clf_name, names):
 
     # scores for each individual user left out in cross_validation
     s += '\n\nroc_auc score for each user that was left out in training set and predicted on in test_set:'
-    for i, (auc, rec, spec, prec, user_id) in enumerate(scores):
+    for i, (auc, rec, spec, prec, f1, user_id) in enumerate(scores):
         name = names[i]
-        s += '\n' + name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, Precision = %.3f' \
-             % (auc, rec, spec, prec)
+        s += '\n' + name + ':\t\t Auc= %.3f, Recall = %.3f, Specificity= %.3f, Precision = %.3f, F1 = %.3f' \
+             % (auc, rec, spec, prec, f1)
 
     # Write log to file
     if clf_name == classifiers.names[0]:  # First classifier -> New file

@@ -16,6 +16,7 @@ import model_factory
 import plots_helpers
 import classifiers
 
+
 def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_file=True):
     """
     Prints and writes to a file scores of all classifiers with the given window sizes
