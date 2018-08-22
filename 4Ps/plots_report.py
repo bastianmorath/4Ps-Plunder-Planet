@@ -13,14 +13,14 @@ import setup_dataframes as sd
 import plots_helpers as ph
 import features_factory as f_factory
 import setup_dataframes
-import window_optimization
 import model_factory
-import leave_one_group_out_cv
+import classifiers
 
 
 def generate_plots_for_report():
     """
-    Generate plots that are specifically for the report
+    Generate all plots that are used for the report.
+    Note: Some plots were modified a little manually, such as removing titles or so.
 
 
     """
@@ -31,9 +31,19 @@ def generate_plots_for_report():
                 reduced_features=True,
                 use_boxcox=False
             )
+    # Plot example of a Decision Tree by taking first tree of tuned random forest
+    decision_tree_clf = classifiers.get_cclassifier_with_name('Random Forest', X, y).tuned_clf
 
-    model_factory.plot_roc_curves(hyperparameter_tuning=True, pre_set=True)
+    model_factory.get_performance(decision_tree_clf, 'Random Forest', X, y, None,
+                                  verbose=False, create_curves=False)
 
+    # Plot roc_curve of Nearest Neighbor (J-Index in report was added manually..)
+    print('Plotting ROC curve of Nearest Neighbor classifier...')
+
+    nearest_neighbor_clf = classifiers.get_cclassifier_with_name('Nearest Neighbor', X, y).tuned_clf
+    model_factory.get_performance(nearest_neighbor_clf, 'Nearest Neighbor', X, y, None,
+                                  verbose=False, create_curves=True)
+    model_factory.plot_roc_curves(True, True)
     _plot_heartrate_change()
     _plot_difficulties()
     _plot_mean_value_of_heartrate_at_crash()
@@ -41,10 +51,16 @@ def generate_plots_for_report():
     _plot_heartrate_and_events()
 
     # The following plots take a little longer, so only uncomment them if you really want them
+
+    '''
+    import leave_one_group_out_cv
+    import window_optimization
+
     leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
         X, y, False, reduced_features=True, reduced_classifiers=True
     )
-    # window_optimization.test_all_windows()
+    window_optimization.test_all_windows()
+    '''
 
 
 def _plot_difficulties():
@@ -55,6 +71,7 @@ def _plot_difficulties():
     Plot name:  difficulties.pdf
 
     """
+    print("Plotting difficulties...")
 
     resolution = 10  # resample every x seconds -> the bigger, the smoother
     fig, ax = plt.subplots()
@@ -67,7 +84,7 @@ def _plot_difficulties():
         high += len(df_num_resampled[df_num_resampled['physDifficulty'] == 3])
         total += len(df_num_resampled)
 
-    print('Across all logfiles, the users are in ' + str(round(high/total, 2)) + '% on level HIGH')
+    # print('Across all logfiles, the users are in ' + str(round(high/total, 2)) + '% on level HIGH')
 
     ax.set_ylabel('physDifficulty')
     ax.set_xlabel('Time (s)',)

@@ -47,7 +47,7 @@ def get_finalscore(X, y, n_epochs, verbose=0):
         precision_per_run.append(np.mean(presicions))
         f1_per_run.append(np.mean(f1s))
 
-    s = '\n\n******** Scores for LSTM with %d runs and %e epochs each ******** \n\n' \
+    s = '\n\n******** Scores for LSTM with %d runs and %d epochs each ******** \n\n' \
         '\troc_auc: %.3f (+-%.2f), ' \
         'recall: %.3f (+-%.2f), ' \
         'specificity: %.3f (+-%.2f), ' \
@@ -176,8 +176,7 @@ def _generate_lstm_classifier(shape):
                show_shapes=True,
                show_layer_names=False,
                rankdir='TD')
-     '''
-
+    '''
     return model
 
 

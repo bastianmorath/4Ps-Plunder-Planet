@@ -51,8 +51,6 @@ def setup(fewer_data=False, normalize_heartrate=True, remove_tutorials=True):
 
     """
 
-    print("Loading dataframes...")
-
     if not Path(abs_path_logfiles).exists():
         # The very first time, we need to refactor the original logfiles to speed up everything afterwards
         refactoring.refactor_crashes()
@@ -113,14 +111,6 @@ def setup(fewer_data=False, normalize_heartrate=True, remove_tutorials=True):
         _remove_movement_tutorials()
 
     refactoring.add_timedelta_column()
-
-    '''
-    len_before = len(pd.concat(df_list, ignore_index=True))
-    refactoring.cut_frames()
-    len_after = len(pd.concat(df_list, ignore_index=True))
-    print('Dataframes cutted to same length: Lost ' + str(round((1.0 - len_after/len_before) * 100, 3))
-          + ' percent of data')
-    '''
 
 
 def print_keynumbers_logfiles():

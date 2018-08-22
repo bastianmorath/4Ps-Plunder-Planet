@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.metrics import (
@@ -25,6 +24,7 @@ import classifiers
 import features_factory as f_factory
 import hyperparameter_optimization
 import plots_helpers
+import plots_features
 import setup_dataframes as sd
 
 # High level functions
@@ -209,8 +209,8 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     y_true = list(itertools.chain.from_iterable(y_true_list))
     conf_mat = confusion_matrix(y_true, y_pred)
 
-    # if clf_name == 'Decision Tree':
-    #    plots_features.plot_graph_of_decision_classifier(model, X, y)
+    if clf_name == 'Random Forest':
+        plots_features.plot_graph_of_decision_classifier(model.estimators_[0], X, y)
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,
@@ -227,7 +227,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
             else 'roc_scores_' + clf_name + '_without_hp_tuning.pdf'
         _plot_roc_curve(list(itertools.chain.from_iterable(predicted_probas_list)), y_true, fn, 'ROC for ' + clf_name +
                         ' without hyperparameter tuning', plot_thresholds=False)
-        plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
+        # plot_precision_recall_curve(model, X, y, 'precision_recall_curve_' + clf_name)
 
     if do_write_to_file:
         # Write result to a file
@@ -391,7 +391,7 @@ def _plot_roc_curve(predicted_probas,  y, filename, title='ROC', plot_thresholds
         ax2.set_ylim([thresholds_[-1], thresholds_[0]])
         ax2.set_xlim([fpr_[0], fpr_[-1]])
 
-    plots_helpers.save_plot(plt, 'Performance/Roc Curves/', filename)
+    plots_helpers.save_plot(plt, 'Report/', filename)
 
 
 def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):

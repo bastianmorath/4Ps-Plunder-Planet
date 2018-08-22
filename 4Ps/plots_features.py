@@ -46,12 +46,13 @@ def plot_graph_of_decision_classifier(model, X, y):
     :param X: Feature matrix
     :param y: labels
 
-    Folder:     Features/
+    Folder:     Report/
     Plot name:  decision_tree_graph.pdf
 
     """
+    print('Plotting Decision Tree...')
 
-    params_decision_tree = {"max_depth": 2}
+    params_decision_tree = {"max_depth": 2, "class_weight":'balanced'}
     model.set_params(**params_decision_tree)
     model.fit(X, y)
 
@@ -77,7 +78,7 @@ def plot_graph_of_decision_classifier(model, X, y):
 
     os.remove(sd.working_directory_path + '/decision_tree_graph')
     os.rename(sd.working_directory_path + '/decision_tree_graph.pdf',
-              sd.working_directory_path + '/Plots/Features/decision_tree_graph.pdf')
+              sd.working_directory_path + '/Plots/report/decision_tree_graph.pdf')
 
 
 def _plot_feature_distributions(X):
