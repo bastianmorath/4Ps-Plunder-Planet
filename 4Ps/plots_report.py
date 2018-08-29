@@ -64,7 +64,7 @@ def generate_plots_for_report():
     model_factory.plot_roc_curves(True, True)
 
     # The following plots take a little longer, so only uncomment them if you really want them
-    
+
     """
     import leave_one_group_out_cv
     import window_optimization

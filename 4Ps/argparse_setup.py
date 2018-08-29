@@ -15,6 +15,14 @@ def get_argparse():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
+        "-r",
+        "--generate_plots_for_report",
+        action="store_true",
+        help="Generates plots that are used in the Bachelor Thesis report and stores it "
+             "in folder /Plots/Report",
+    )
+
+    parser.add_argument(
         "-p",
         "--performance_without_tuning",
         type=str,
@@ -39,9 +47,8 @@ def get_argparse():
         "--test_windows",
         type=int,
         nargs=3,
-        help="Trains and tests all classifiers with the given window sizes. Stores roc_auc score under "
-             "/Evaluation/Performance/Windows/"
-             "Note: Provide the windows in seconds",
+        help="Trains and tests all classifiers with the given window sizes. Provide the windows in seconds. "
+             "Stores roc_auc score under /Evaluation/Performance/Windows/",
         metavar=('hw_window', 'crash_window', 'gc_window'),
     )
 
@@ -75,14 +82,6 @@ def get_argparse():
         action="store_true",
         help="Generates different plots from the feature matrix (Look at main.py for details) and stores it "
              "in folder /Plots/Features",
-    )
-
-    parser.add_argument(
-        "-r",
-        "--generate_plots_for_report",
-        action="store_true",
-        help="Generates plots that are used in report and sotres it "
-             "in folder /Plots/Report",
     )
 
     parser.add_argument(
