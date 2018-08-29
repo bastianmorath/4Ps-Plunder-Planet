@@ -202,7 +202,7 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
 
     plt.bar(index, auc_scores_scenario_1, bar_width,
             color=plots_helpers.blue_color,
-            label='roc_auc normal CV',
+            label='10-fold cross-validation',
             yerr=auc_stds_scenario_1,
             error_kw={'elinewidth': line_width,
                       'capsize': 1.4,
@@ -211,17 +211,17 @@ def _plot_scores_normal_cv_vs_leaveone_group_out_cv(names, auc_scores_scenario_1
 
     plt.bar(index + bar_width, auc_scores_scenario_2, bar_width,
             color=plots_helpers.red_color,
-            label='roc_auc LeaveOneGroupOut CV',
+            label='Leave One Group Out cross-validation',
             yerr=auc_stds_scenario_2,
             error_kw={'elinewidth': line_width,
                       'capsize': 1.4,
                       'markeredgewidth': line_width},
             )
 
-    plt.ylabel('roc_auc')
+    plt.ylabel('AUC')
     plt.title('Performance when leaving one user out in training phase')
     plt.xticks(index + bar_width/2, names, rotation='vertical')
-    ax.set_ylim([0, 1.2])
+    ax.set_ylim([0, 1.0])
     plt.legend(prop={'size': 10})
 
     '''

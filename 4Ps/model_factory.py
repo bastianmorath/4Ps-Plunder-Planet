@@ -376,7 +376,7 @@ def _plot_roc_curve(predicted_probas,  y, filename, title='ROC', plot_thresholds
     plt.title(title)
     plt.plot(fpr_, tpr_, plots_helpers.blue_color, label='AUC = %0.2f' % roc_auc)
     plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1], c=plots_helpers.red_color,  ls='--')
+    plt.plot([0, 1], [0, 1], c='gray',  ls='--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')
@@ -463,7 +463,7 @@ def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
 
     plt.title('Roc curves')
     plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1], 'r--')
+    plt.plot([0, 1], [0, 1], c='gray', ls='--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')

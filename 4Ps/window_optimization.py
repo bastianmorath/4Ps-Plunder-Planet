@@ -25,7 +25,7 @@ def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_fil
     :param cw: Crash window size
     :param gradient_w: gradient window size
     :param verbose: Whether scores should be printed out
-    :param write_to_file: Whehter scores should be written to a file
+    :param write_to_file: Whether scores should be written to a file
 
     """
 
@@ -66,12 +66,12 @@ def test_all_windows():
         name2 = 'Gradient window (s)'
         filename = 'windows_const_hw.pdf'
     elif const_window == 'cw':
-        name1 = 'Heartrate window (s)'
+        name1 = 'Default window (s)'
         name2 = 'Gradient window (s)'
         filename = 'windows_const_cw.pdf'
     else:
         name1 = 'Crash window'
-        name2 = 'Heartrate window'
+        name2 = 'Default window'
         filename = 'windows_const_gradient_w.pdf'
 
     mean_scores = np.zeros((len(list_1), len(list_2)))
@@ -99,7 +99,7 @@ def test_all_windows():
 
                 roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
-                    create_curves=False)
+                                    create_curves=False)
 
                 print('const_cw')
                 print(roc_auc_mean, w1, const_w, w2)
@@ -113,7 +113,7 @@ def test_all_windows():
 
                 roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
-                    create_curves=False)
+                                    create_curves=False)
 
                 print('const_gradient_w')
                 print(roc_auc_mean, w1, w2, const_w)

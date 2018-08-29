@@ -38,7 +38,6 @@ def main(args):
     start = time.time()
 
     f_factory.use_reduced_features = not args.use_all_features
-
     assert (not (args.use_synthesized_data and args.leave_one_group_out)), \
         'Can\'t do leave_one_group_out with synthesized data'
 
@@ -83,14 +82,14 @@ def main(args):
         )
 
     if args.performance_without_tuning or args.performance_with_tuning:
-        # IMPORTANT: pre-set == True takes already tuned parameters if possible. Change if you always want to do tuning!
-        pre_set = True
+        pre_set = not args.do_not_use_pre_tuned_hyperparameters
 
         if args.performance_with_tuning:
             print("\n################# Calculating performance with hyperparameter tuning #################\n")
         else:
             print("\n################# Calculating performance without hyperparameter tuning #################\n")
 
+        # Note: The number of iterations in RandomizedSearchCV can be set in classifiers.py
         if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,

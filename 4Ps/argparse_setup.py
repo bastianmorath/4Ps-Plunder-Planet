@@ -95,6 +95,14 @@ def get_argparse():
     )
 
     parser.add_argument(
+        "-u",
+        "--do_not_use_pre_tuned_hyperparameters",
+        action='store_true',
+        help="There are some hyperparameters that were tuned on Euler and are used per default. If you want to tune "
+             "them manually/on your computer, use this flag"
+    )
+
+    parser.add_argument(
         "-a",
         "--use_all_features",
         action='store_true',
