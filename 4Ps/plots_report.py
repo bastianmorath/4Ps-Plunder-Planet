@@ -88,8 +88,8 @@ def _plot_difficulties():
     high = 0
     for idx, df in enumerate(sd.df_list):
         df = pl.transform_df_to_numbers(df)
-        df_num_resampled = hp.resample_dataframe(df, resolution)
-        ax.scatter(df_num_resampled['Time'], df_num_resampled['physDifficulty'], c=hp.green_color, alpha=0.3)
+        df_num_resampled = ph.resample_dataframe(df, resolution)
+        ax.scatter(df_num_resampled['Time'], df_num_resampled['physDifficulty'], c=ph.green_color, alpha=0.3)
         high += len(df_num_resampled[df_num_resampled['physDifficulty'] == 3])
         total += len(df_num_resampled)
 
@@ -100,7 +100,7 @@ def _plot_difficulties():
     plt.yticks([1, 2, 3], ['Low', 'Medium', 'High'])
     plt.title('Difficulties')
 
-    hp.save_plot(plt, 'Report/', 'difficulties.pdf')
+    ph.save_plot(plt, 'Report/', 'difficulties.pdf')
 
 
 def _plot_mean_value_of_heartrate_at_crash():
@@ -162,7 +162,7 @@ def _plot_mean_value_of_heartrate_at_crash():
     plt.legend(prop={'size': 6})
 
     filename = 'barplot_mean_heartrate_at_crash.pdf'
-    hp.save_plot(plt, 'Report/', filename)
+    ph.save_plot(plt, 'Report/', filename)
 
 
 def _plot_heartrate_change():
@@ -179,7 +179,7 @@ def _plot_heartrate_change():
 
     for idx, df in enumerate(sd.df_list):
         if not (df['Heartrate'] == -1).all():
-            resampled = hp.resample_dataframe(df, 1)
+            resampled = ph.resample_dataframe(df, 1)
             percentage_change = np.diff(resampled['Heartrate']) / resampled['Heartrate'][:-1] * 100.
             x = percentage_change[np.logical_not(np.isnan(percentage_change))]
             bpm_changes_over_thresh.append(len([i for i in x if i > thresh]))
@@ -194,13 +194,13 @@ def _plot_heartrate_change():
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))  # Only show whole numbers as difficulties
     plt.xticks(index, np.arange(1, 20), rotation='horizontal')
 
-    plt.bar(index, bpm_changes_over_thresh, color=hp.blue_color, width=0.25)
+    plt.bar(index, bpm_changes_over_thresh, color=ph.blue_color, width=0.25)
 
     ax.yaxis.grid(True, zorder=0, color='grey',  linewidth=0.3)
     ax.set_axisbelow(True)
     [i.set_linewidth(0.3) for i in ax.spines.values()]
 
-    hp.save_plot(plt, 'Report/', 'barplot_hr_change_thresh.pdf')
+    ph.save_plot(plt, 'Report/', 'barplot_hr_change_thresh.pdf')
 
 
 def _plot_feature_correlation_matrix(reduced_features=True):
@@ -237,9 +237,9 @@ def _plot_feature_correlation_matrix(reduced_features=True):
     cax = plt.gcf().axes[-1]
     cax.tick_params(labelsize=20)
     if reduced_features:
-        hp.save_plot(plt, 'Report/', 'correlation_matrix_reduced_features.pdf')
+        ph.save_plot(plt, 'Report/', 'correlation_matrix_reduced_features.pdf')
     else:
-        hp.save_plot(plt, 'Report/', 'correlation_matrix_all_features.pdf')
+        ph.save_plot(plt, 'Report/', 'correlation_matrix_all_features.pdf')
 
 
 def _plot_heartrate_and_events():
@@ -251,7 +251,7 @@ def _plot_heartrate_and_events():
     Plot name:  lineplot_hr_and_events.pdf
 
     """
-    setup_dataframes.setup(
+    sd.setup(
         fewer_data=False,  # Specify if we want fewer data (for debugging purposes...)
         normalize_heartrate=False,
         remove_tutorials=False  # We want tutorial to be exactly at 3 and 7.5 minutes!
@@ -263,10 +263,10 @@ def _plot_heartrate_and_events():
 
     # Plot Heartrate
     _, ax1 = plt.subplots()
-    ax1.plot(df['Time'], df['Heartrate'], hp.blue_color, linewidth=1.0, label='Heartrate')
+    ax1.plot(df['Time'], df['Heartrate'], ph.blue_color, linewidth=1.0, label='Heartrate')
     ax1.set_xlabel('Playing time (s)')
-    ax1.set_ylabel('Heartrate', color=hp.blue_color)
-    ax1.tick_params('y', colors=hp.blue_color)
+    ax1.set_ylabel('Heartrate', color=ph.blue_color)
+    ax1.tick_params('y', colors=ph.blue_color)
 
     times_crashes = [row['Time'] for _, row in sd.obstacle_df_list[idx].iterrows() if row['crash']]
     heartrate_crashes = [df[df['Time'] == row['Time']].iloc[0]['Heartrate']
@@ -294,4 +294,4 @@ def _plot_heartrate_and_events():
     plt.legend(by_label.values(), by_label.keys())
 
     filename = 'lineplot_hr_and_events.pdf'
-    hp.save_plot(plt, 'Report/', filename)
+    ph.save_plot(plt, 'Report/', filename)

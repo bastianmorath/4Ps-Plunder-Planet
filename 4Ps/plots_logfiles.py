@@ -212,7 +212,7 @@ def _plot_heartrate_change():
 
     """
 
-    bpm_changes = [] # Stores all percentage changes in HR per logfile
+    bpm_changes = []  # Stores all percentage changes in HR per logfile
 
     X = []
     for idx, df in enumerate(sd.df_list):
