@@ -8,14 +8,14 @@ Note: estimator_name is needed for RandomizedSearchCV and pipeline!
 
 from scipy.stats import randint as sp_randint
 from scipy.stats import uniform
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import (
     AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier
 )
-from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 import features_factory as f_factory
 

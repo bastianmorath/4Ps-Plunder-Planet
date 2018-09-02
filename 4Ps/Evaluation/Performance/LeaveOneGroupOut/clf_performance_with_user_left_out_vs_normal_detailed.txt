@@ -48,26 +48,26 @@ Is:		 Auc= 0.612, Recall = 0.732, Specificity= 0.478, Precision = 0.287, F1 = 0.
 
 ******** Scores for Random Forest (Windows:  20, 10, 30) ******** 
 
-	roc_auc: 0.641 (+-0.05), recall: 0.554 (+-0.14), specificity: 0.693 (+-0.11), precision: 0.310 (+-0.09), f1: 0.382 (+-0.07) 
+	roc_auc: 0.635 (+-0.05), recall: 0.567 (+-0.10), specificity: 0.666 (+-0.13), precision: 0.306 (+-0.09), f1: 0.382 (+-0.07) 
 
-	Confusion matrix: 	 [3567 1119] 
-				 [544 490]
+	Confusion matrix: 	 [3565 1121] 
+				 [548 486]
 
 
 
 
 roc_auc score for each user that was left out in training set and predicted on in test_set:
-Lo:		 Auc= 0.625, Recall = 0.526, Specificity= 0.704, Precision = 0.380, F1 = 0.441
-MH:		 Auc= 0.696, Recall = 0.738, Specificity= 0.601, Precision = 0.280, F1 = 0.406
-MK:		 Auc= 0.663, Recall = 0.690, Specificity= 0.589, Precision = 0.178, F1 = 0.282
-MR:		 Auc= 0.586, Recall = 0.317, Specificity= 0.848, Precision = 0.294, F1 = 0.305
-NK:		 Auc= 0.689, Recall = 0.470, Specificity= 0.828, Precision = 0.300, F1 = 0.366
-PG:		 Auc= 0.696, Recall = 0.598, Specificity= 0.736, Precision = 0.360, F1 = 0.450
-TW:		 Auc= 0.561, Recall = 0.495, Specificity= 0.655, Precision = 0.489, F1 = 0.492
-Un:		 Auc= 0.708, Recall = 0.747, Specificity= 0.584, Precision = 0.239, F1 = 0.362
-EK:		 Auc= 0.654, Recall = 0.481, Specificity= 0.799, Precision = 0.400, F1 = 0.437
-FM:		 Auc= 0.565, Recall = 0.337, Specificity= 0.777, Precision = 0.203, F1 = 0.253
-Is:		 Auc= 0.610, Recall = 0.690, Specificity= 0.502, Precision = 0.285, F1 = 0.403
+Lo:		 Auc= 0.626, Recall = 0.654, Specificity= 0.566, Precision = 0.342, F1 = 0.449
+MH:		 Auc= 0.696, Recall = 0.757, Specificity= 0.570, Precision = 0.270, F1 = 0.398
+MK:		 Auc= 0.664, Recall = 0.479, Specificity= 0.779, Precision = 0.218, F1 = 0.300
+MR:		 Auc= 0.587, Recall = 0.673, Specificity= 0.499, Precision = 0.211, F1 = 0.322
+NK:		 Auc= 0.657, Recall = 0.434, Specificity= 0.845, Precision = 0.305, F1 = 0.358
+PG:		 Auc= 0.709, Recall = 0.551, Specificity= 0.795, Precision = 0.400, F1 = 0.464
+TW:		 Auc= 0.550, Recall = 0.452, Specificity= 0.705, Precision = 0.506, F1 = 0.477
+Un:		 Auc= 0.673, Recall = 0.448, Specificity= 0.829, Precision = 0.315, F1 = 0.370
+EK:		 Auc= 0.663, Recall = 0.549, Specificity= 0.717, Precision = 0.351, F1 = 0.428
+FM:		 Auc= 0.577, Recall = 0.675, Specificity= 0.438, Precision = 0.168, F1 = 0.269
+Is:		 Auc= 0.586, Recall = 0.563, Specificity= 0.579, Precision = 0.278, F1 = 0.372
 
 ******** Scores for Naive Bayes (Windows:  20, 10, 30) ******** 
 

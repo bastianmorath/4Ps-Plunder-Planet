@@ -6,21 +6,20 @@ vs. LeaveOneGroupOut-Crossvalidation, i.e. training on all but one logfile, and 
 
 from __future__ import division  # s.t. division uses float result
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
-
+import matplotlib.pyplot as plt
 from sklearn.metrics import (
-    roc_curve, confusion_matrix, precision_score, recall_score, roc_auc_score, f1_score
+    f1_score, roc_curve, recall_score, roc_auc_score, precision_score,
+    confusion_matrix
 )
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
 
 import classifiers
-import features_factory as f_factory
 import model_factory
 import plots_helpers
+import features_factory as f_factory
 import setup_dataframes as sd
 
 threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc. with Youdens j-score)

@@ -5,27 +5,25 @@ from __future__ import division  # s.t. division uses float result
 
 import os
 import random
-
-import matplotlib.pyplot as plt
-import numpy as np
 import itertools
 
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.feature_selection import SelectFromModel
+import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.metrics import (
-    auc, roc_curve, confusion_matrix, precision_recall_curve, precision_score, recall_score, roc_auc_score, f1_score
+    auc, f1_score, roc_curve, recall_score, roc_auc_score, precision_score,
+    confusion_matrix, precision_recall_curve
 )
-from sklearn.model_selection import (
-    cross_validate, train_test_split,
-    KFold)
+from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import KFold, cross_validate, train_test_split
+from sklearn.feature_selection import SelectFromModel
 
 import classifiers
-import features_factory as f_factory
-import hyperparameter_optimization
 import plots_helpers
 import plots_features
+import features_factory as f_factory
 import setup_dataframes as sd
+import hyperparameter_optimization
 
 # High level functions
 

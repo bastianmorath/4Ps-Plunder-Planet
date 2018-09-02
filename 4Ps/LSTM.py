@@ -3,21 +3,22 @@ This module is responsible to for setting up, compiling, training and evaluating
 
 """
 
-import itertools
 import random
+import itertools
 
 import keras
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from keras import optimizers
-from keras.layers import LSTM, Dense, Dropout, Masking, TimeDistributed
-from keras.models import Sequential
-from keras.preprocessing import sequence
-from matplotlib.ticker import FormatStrFormatter
 from numpy import array
 from sklearn import metrics
+from keras.layers import LSTM, Dense, Dropout, Masking, TimeDistributed
+from keras.models import Sequential
 from sklearn.metrics import (
-    roc_auc_score, confusion_matrix, f1_score, roc_curve)
+    f1_score, roc_curve, roc_auc_score, confusion_matrix
+)
+from matplotlib.ticker import FormatStrFormatter
+from keras.preprocessing import sequence
 from sklearn.preprocessing import MinMaxScaler
 
 import model_factory

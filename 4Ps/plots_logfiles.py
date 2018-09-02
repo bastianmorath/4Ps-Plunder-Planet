@@ -3,19 +3,18 @@ This module is responsible for generating plots that are involved with statistic
 
 """
 
+import collections
 from collections import OrderedDict
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import collections
-
-from collections import OrderedDict
+import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
-import features_factory as f_factory
 import plots_helpers as hp
+import features_factory as f_factory
 import setup_dataframes as sd
+
 
 """
 Plots concerned with logfiles

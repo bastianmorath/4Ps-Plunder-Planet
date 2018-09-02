@@ -11,13 +11,11 @@ import time
 
 import matplotlib
 
-matplotlib.use('Agg')
-
 import LSTM
 import classifiers
+import plots_report
 import model_factory
 import argparse_setup
-import plots_report
 import plots_features as fp
 import plots_logfiles as lp
 import features_factory as f_factory
@@ -27,6 +25,9 @@ import window_optimization
 import leave_one_group_out_cv
 import hyperparameter_optimization
 
+matplotlib.use('Agg')
+
+
 
 def main(args):
     """
@@ -34,7 +35,7 @@ def main(args):
     :param args: ArgumentParser
 
     """
-
+    
     start = time.time()
 
     f_factory.use_reduced_features = not args.use_all_features

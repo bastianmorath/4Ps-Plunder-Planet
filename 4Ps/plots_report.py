@@ -5,29 +5,26 @@ This module generates most of the images used in the Bachloer Thesis report.
 
 from collections import OrderedDict
 
+import numpy as np
+import pandas as pd
+import seaborn as sb
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
-import plots_helpers as hp
-import numpy as np
-import seaborn as sb
-import pandas as pd
-
-import plots_logfiles as pl
-import setup_dataframes as sd
-import plots_helpers as ph
-import features_factory as f_factory
-import setup_dataframes
-import model_factory
 import classifiers
+import model_factory
+import plots_helpers as ph
+import plots_logfiles as pl
+import features_factory as f_factory
+import setup_dataframes as sd
 
 
 def generate_plots_for_report():
     """
     Generate all plots that are used in the report.
     Notes:
-        - There are some hyperparameters that were tuned on Euler and are used per default. If you want to tune "
-             "them manually/on your computer, use the flag -u (see main.py). The number of iterations used for
+        - There are some hyperparameters that were tuned on Euler and are used per default. If you want to tune
+             them "manually/on your computer", use the flag -u (see main.py). The number of iterations used for
              RandomizedSearchCV can be set in classifiers.py
         - Some plots were modified a little manually, such as removing titles or so.
 
@@ -53,27 +50,26 @@ def generate_plots_for_report():
     model_factory.get_performance(decision_tree_clf, 'Random Forest', X, y, None,
                                   verbose=False, create_curves=False)
 
-    # Plot roc_curve of Nearest Neighbor (J-Index in report was added manually..)
+    # Plot ROC curve of Nearest Neighbor classifier (J-Index in report was added manually...)
     print('Plotting ROC curve of Nearest Neighbor classifier...')
 
     nearest_neighbor_clf = classifiers.get_cclassifier_with_name('Nearest Neighbor', X, y).tuned_clf
     model_factory.get_performance(nearest_neighbor_clf, 'Nearest Neighbor', X, y, None,
                                   verbose=False, create_curves=True)
 
-    # Plot roc curve of all classifiers
+    # Plot ROC curve of all classifiers
     model_factory.plot_roc_curves(True, True)
 
     # The following plots take a little longer, so only uncomment them if you really want them
 
-    """
     import leave_one_group_out_cv
     import window_optimization
 
     leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
         X, y, False, reduced_features=True, reduced_classifiers=True
     )
+
     window_optimization.test_all_windows()
-    """
 
 
 def _plot_difficulties():

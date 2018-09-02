@@ -5,19 +5,18 @@ This module is responsible for generating plots that are involved with features
 
 import os
 
-import graphviz
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
-
+import graphviz
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from sklearn import tree
 from sklearn.preprocessing import MinMaxScaler
 
 import classifiers
-import features_factory as f_factory
 import plots_helpers as hp
+import features_factory as f_factory
 import setup_dataframes as sd
 
 

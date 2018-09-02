@@ -3,14 +3,13 @@ This module is responsible to generate features from the data/logfiles
 
 """
 
-import itertools
 import os
+import math
+import itertools
 from pathlib import Path
 
-import math
 import numpy as np
 import pandas as pd
-
 from scipy import stats
 
 import setup_dataframes as sd
@@ -414,7 +413,6 @@ def _get_hr_slope_column(idx):
             last_x_seconds_df = _df_from_to(max(0, row['Time'] - gradient_w), row['Time'], df)
 
             slope, _ = np.polyfit(last_x_seconds_df['Time'], last_x_seconds_df['Heartrate'], 1)
-
             return slope if not math.isnan(slope) else compute_slope(df.iloc[1])
 
     return sd.obstacle_df_list[idx].apply(compute_slope, axis=1)

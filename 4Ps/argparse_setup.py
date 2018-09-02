@@ -119,7 +119,8 @@ def get_argparse():
         "-n",
         "--do_not_normalize_heartrate",
         action="store_true",
-        help="Do not normalize heartrate (e.g. if you want plots or values with real heartrate)",
+        help="Do not normalize heartrate (e.g. if you want plots or values with real heartrate). Note that for "
+             "the feature matrices, we always enforce normalization.",
     )
 
     parser.add_argument(
