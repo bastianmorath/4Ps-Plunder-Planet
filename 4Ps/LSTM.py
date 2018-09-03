@@ -20,6 +20,7 @@ from sklearn.metrics import (
 from matplotlib.ticker import FormatStrFormatter
 from keras.preprocessing import sequence
 from sklearn.preprocessing import MinMaxScaler
+from custom_transformers import FindCorrelation
 
 import model_factory
 import plots_helpers
@@ -419,6 +420,12 @@ def _split_into_train_test_val_data(X_splitted, y_splitted, size_test_set=3, siz
     X_train = [scaler.transform(X) for X in X_train]
     X_test = [scaler.transform(X) for X in X_test]
     X_val = [scaler.transform(X) for X in X_val]
+
+    corr = FindCorrelation(threshold=0.9)
+    corr.fit(np.concatenate(X_train))
+    X_train = [corr.transform(X) for X in X_train]
+    X_test = [corr.transform(X) for X in X_test]
+    X_val = [corr.transform(X) for X in X_val]
 
     return X_train, y_train, X_test, y_test, X_val, y_val
 

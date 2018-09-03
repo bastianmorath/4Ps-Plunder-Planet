@@ -28,14 +28,14 @@ import hyperparameter_optimization
 matplotlib.use('Agg')
 
 
-
 def main(args):
     """
     Call '$ python main.py -h' to see how to use this module
     :param args: ArgumentParser
 
     """
-    
+    red_ft = False
+
     start = time.time()
 
     f_factory.use_reduced_features = not args.use_all_features
@@ -49,7 +49,7 @@ def main(args):
 
         X, y = f_factory.get_feature_matrix_and_label(
             verbose=True, use_cached_feature_matrix=False, save_as_pickle_file=False,
-            reduced_features=f_factory.use_reduced_features
+            reduced_features=red_ft
         )
 
     else:
@@ -63,7 +63,7 @@ def main(args):
                 verbose=True,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                reduced_features=f_factory.use_reduced_features,
+                reduced_features=red_ft,
                 use_boxcox=False
         )
 
@@ -84,7 +84,6 @@ def main(args):
 
     if args.performance_without_tuning or args.performance_with_tuning:
         pre_set = not args.do_not_use_pre_tuned_hyperparameters
-
         if args.performance_with_tuning:
             print("\n################# Calculating performance with hyperparameter tuning #################\n")
         else:
@@ -94,28 +93,31 @@ def main(args):
         if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
-                                                     reduced_clfs=True, pre_set=pre_set)
+                                                     reduced_clfs=red_ft, pre_set=pre_set)
         else:
             X_old = X
             y_old = y
             if (args.performance_with_tuning == 'Naive Bayes') or (args.performance_without_tuning == 'Naive Bayes'):
                 X, y = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=True,
-                                                              save_as_pickle_file=True, use_boxcox=True)
+                                                              save_as_pickle_file=True, use_boxcox=True,
+                                                              reduced_features=red_ft)
 
             if args.performance_with_tuning:
                 clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
                     X, y, clf_name=args.performance_with_tuning, pre_set=pre_set,
                 )
-                _, _, _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf, args.performance_with_tuning, X,
-                                                                                  y, tuned_params, verbose=True,
-                                                                                  do_write_to_file=False)
+
+                _, _, _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(clf,
+                                                                                        args.performance_with_tuning, X,
+                                                                                        y, tuned_params, verbose=True,
+                                                                                        do_write_to_file=False)
             else:
                 model = classifiers.get_cclassifier_with_name(args.performance_without_tuning, X, y)
 
                 _, _, _, _, _, _, _, _, _, _, _, report = model_factory.get_performance(model.clf,
-                                                                                  args.performance_without_tuning,
-                                                                                  X, y, verbose=True,
-                                                                                  do_write_to_file=False)
+                                                                                        args.performance_without_tuning,
+                                                                                        X, y, verbose=True,
+                                                                                        do_write_to_file=False)
             X = X_old
             y = y_old
 
@@ -124,7 +126,7 @@ def main(args):
     if args.leave_one_group_out:
         print("\n################# Leave one out #################\n")
         leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
-            X, y, True, reduced_features=f_factory.use_reduced_features, reduced_classifiers=True
+            X, y, True, reduced_features=red_ft, reduced_classifiers=True
         )
 
     if args.evaluate_lstm:

@@ -33,16 +33,17 @@ def generate_plots_for_report():
     _plot_heartrate_change()
     _plot_difficulties()
     _plot_mean_value_of_heartrate_at_crash()
-    _plot_feature_correlation_matrix(reduced_features=True)
+    _plot_feature_correlation_matrix(reduced_features=False)
     _plot_heartrate_and_events()
 
     X, y = f_factory.get_feature_matrix_and_label(
         verbose=False,
         use_cached_feature_matrix=True,
         save_as_pickle_file=True,
-        reduced_features=True,
+        reduced_features=False,
         use_boxcox=False
     )
+    print(X.shape)
 
     # Plot example of a Decision Tree by taking first tree of tuned random forest
     decision_tree_clf = classifiers.get_cclassifier_with_name('Random Forest', X, y).tuned_clf
@@ -61,7 +62,7 @@ def generate_plots_for_report():
     model_factory.plot_roc_curves(True, True)
 
     # The following plots take a little longer, so only uncomment them if you really want them
-
+    """
     import leave_one_group_out_cv
     import window_optimization
 
@@ -70,6 +71,7 @@ def generate_plots_for_report():
     )
 
     window_optimization.test_all_windows()
+    """
 
 
 def _plot_difficulties():
@@ -160,7 +162,6 @@ def _plot_mean_value_of_heartrate_at_crash():
     plt.title('Average value of Heartrate when crash or not crash')
     plt.xticks(index + bar_width / 2, np.arange(1, 20), rotation='horizontal')
     plt.legend(prop={'size': 6})
-
     filename = 'barplot_mean_heartrate_at_crash.pdf'
     ph.save_plot(plt, 'Report/', filename)
 
@@ -277,6 +278,7 @@ def _plot_heartrate_and_events():
     times_repairing = [row['Time'] for _, row in df.iterrows() if row['Gamemode'] == 'BROKENSHIP']
     hr_max = df['Heartrate'].max()
     hr_min = df['Heartrate'].min()
+
     for xc in times_repairing:
         plt.vlines(x=xc, ymin=hr_min, ymax=hr_max+0.2, color='y', linewidth=1, label='Ship broken')
 

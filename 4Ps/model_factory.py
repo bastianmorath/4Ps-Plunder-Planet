@@ -17,6 +17,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold, cross_validate, train_test_split
 from sklearn.feature_selection import SelectFromModel
+from custom_transformers import FindCorrelation
 
 import classifiers
 import plots_helpers
@@ -76,7 +77,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
         names.append(clf_name)
 
         if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
-            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True)
+            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, False)
             roc_auc, roc_auc_std, recall, recall_std, specificity, specificity_std, precision, precision_std, \
                 f1, f1_std, conf_mat, _ = get_performance(clf, clf_name, X_n, y_n, create_curves=create_curves)
         else:
@@ -164,6 +165,10 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 
         X_train = scaler.fit_transform(X_train)  # Fit and transform on trainig set, then transform test set too
         X_test = scaler.transform(X_test)
+
+        corr = FindCorrelation(threshold=0.9)
+        X_train = corr.fit(X_train).transform(X_train)
+        X_test = corr.transform(X_test)
 
         model.fit(X_train, y_train)
 
@@ -408,7 +413,7 @@ def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
                 verbose=False,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                reduced_features=True,
+                reduced_features=False,
                 use_boxcox=False
         )
 
@@ -442,6 +447,10 @@ def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
 
             X_train = scaler.fit_transform(X_train)  # Fit and transform on trainig set, then transform test set too
             X_test = scaler.transform(X_test)
+
+            corr = FindCorrelation(threshold=0.9)
+            X_train = corr.fit(X_train).transform(X_train)
+            X_test = corr.transform(X_test)
 
             clf.fit(X_train, y_train)
 
@@ -503,10 +512,19 @@ def plot_precision_recall_curve(classifier, X, y, filename):
     :param y:           labels
     :param filename:    Name of the file the plot should be stored to
 
+
     """
 
     # allows to add probability output to classifiers which implement decision_function()
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    scaler = MinMaxScaler(feature_range=(0, 1))
+
+    X_train = scaler.fit_transform(X_train)  # Fit and transform on trainig set, then transform test set too
+    X_test = scaler.transform(X_test)
+
+    corr = FindCorrelation(threshold=0.9)
+    X_train = corr.fit(X_train).transform(X_train)
+    X_test = corr.transform(X_test)
     classifier.fit(X_train, y_train)
 
     decision_fct = getattr(classifier, "decision_function", None)

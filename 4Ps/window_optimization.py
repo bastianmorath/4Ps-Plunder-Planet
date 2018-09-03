@@ -33,7 +33,7 @@ def performance_score_for_windows(hw, cw, gradient_w, verbose=True, write_to_fil
 
     X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                   save_as_pickle_file=True, h_window=hw, c_window=cw,
-                                                  gradient_window=gradient_w)
+                                                  gradient_window=gradient_w, reduced_features=False)
     auc_mean_scores, auc_std_scores, s = model_factory.\
         calculate_performance_of_classifiers(X, y, tune_hyperparameters=False,
                                              reduced_clfs=False, do_write_to_file=False)
@@ -55,7 +55,7 @@ def test_all_windows():
     """
     print("\n################# Testing all window sizes #################\n")
 
-    const_window = 'cw'
+    const_window = 'gradient_w'
 
     const_w = 10
     list_1 = [5, 10, 20, 30, 50, 60]
@@ -75,39 +75,35 @@ def test_all_windows():
         filename = 'windows_const_gradient_w.pdf'
 
     mean_scores = np.zeros((len(list_1), len(list_2)))
-    model_name = 'SVM'
+    model_name = 'Nearest Neighbor'
     for idx_w1, w1 in enumerate(list_1):
         for idx_w2, w2 in enumerate(list_2):
             if const_window == 'hw':
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=const_w, c_window=w1,
-                                                              gradient_window=w2)
+                                                              gradient_window=w2, reduced_features=False)
                 model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
                 roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name,  X, y, tuned_params_keys=None, verbose=False,
                                     create_curves=False)
 
-                print('const_hw')
-                print(roc_auc_mean, const_w, w1, w2)
                 mean_scores[idx_w1][idx_w2] = roc_auc_mean
             elif const_window == 'cw':
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=const_w,
-                                                              gradient_window=w2)
+                                                              gradient_window=w2, reduced_features=False)
                 model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
                 roc_auc_mean, roc_auc_std, _, _, _, _, _, _, _, _, _, _ = model_factory. \
                     get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
                                     create_curves=False)
 
-                print('const_cw')
-                print(roc_auc_mean, w1, const_w, w2)
                 mean_scores[idx_w1][idx_w2] = roc_auc_mean
             else:
                 X, y = f_factory.get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, h_window=w1, c_window=w2,
-                                                              gradient_window=const_w)
+                                                              gradient_window=const_w, reduced_features=False)
 
                 model = classifiers.get_cclassifier_with_name(model_name, X, y).tuned_clf
 
@@ -115,8 +111,6 @@ def test_all_windows():
                     get_performance(model, model_name, X, y, tuned_params_keys=None, verbose=False,
                                     create_curves=False)
 
-                print('const_gradient_w')
-                print(roc_auc_mean, w1, w2, const_w)
                 mean_scores[idx_w1][idx_w2] = roc_auc_mean
 
     mean_scores = np.fliplr(np.flipud(mean_scores))  # Flip to plot it correctly

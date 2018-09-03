@@ -32,7 +32,7 @@ _path_all_features_boxcox = sd.working_directory_path + '/Pickle/all_features_bo
 
 
 def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, save_as_pickle_file=False,
-                                 use_boxcox=False, reduced_features=True,
+                                 use_boxcox=False, reduced_features=False,
                                  h_window=hw, c_window=cw, gradient_window=gradient_w):
 
     """

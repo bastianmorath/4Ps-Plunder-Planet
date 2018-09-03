@@ -14,7 +14,8 @@ from sklearn.metrics import (
     confusion_matrix
 )
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict
+from sklearn.model_selection import LeaveOneGroupOut, cross_val_predict, train_test_split
+from custom_transformers import FindCorrelation
 
 import classifiers
 import model_factory
@@ -25,7 +26,7 @@ import setup_dataframes as sd
 threshold_tuning = True  # Whether optimal threshold of ROC should be used (calc. with Youdens j-score)
 
 
-def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=True,
+def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=True, reduced_features=False,
                                                  reduced_classifiers=True, pre_set=True):
     """
     Plots a barchart with the mean roc_auc score for each classfier in two scenarios:
@@ -75,7 +76,8 @@ def clf_performance_with_user_left_out_vs_normal(X, y, plot_auc_score_per_user=T
             feature_selection = 'selected' if reduced_features else 'all'
             X_nb, y_nb = f_factory.get_feature_matrix_and_label(verbose=False,
                                                                 use_cached_feature_matrix=feature_selection,
-                                                                save_as_pickle_file=True, use_boxcox=True)
+                                                                save_as_pickle_file=True, use_boxcox=True,
+                                                                reduced_features=False)
             classifier.fit(X_nb, y_nb)
 
             auc_mean, auc_std = _apply_cv_per_user_model(classifier, name,
@@ -124,6 +126,10 @@ def _apply_cv_per_user_model(model, clf_name, X, y, plot_auc_score_per_user=True
 
         X_train = scaler.fit_transform(X_train)  # Fit and transform on trainig set, then transform test set too
         X_test = scaler.transform(X_test)
+
+        corr = FindCorrelation(threshold=0.9)
+        X_train = corr.fit(X_train).transform(X_train)
+        X_test = corr.transform(X_test)
 
         model.fit(X_train, y_train)
 

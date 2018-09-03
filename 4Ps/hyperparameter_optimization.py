@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RandomizedSearchCV
+from custom_transformers import FindCorrelation
 
 import classifiers
 import model_factory
@@ -82,7 +83,9 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True, 
             print('Doing RandomizedSearchCV with n_iter=' + str(c_classifier.num_iter) + ' for ' + clf_name + '...')
             start = time.time()
             scaler = MinMaxScaler(feature_range=(0, 1))
-            p = make_pipeline(scaler, c_classifier.clf)
+            corr = FindCorrelation(threshold=0.9)
+
+            p = make_pipeline(scaler, corr, c_classifier.clf)
             params = dict((c_classifier.estimator_name + '__' + key, value) for (key, value) in
                           c_classifier.tuned_params.items())
             clf = RandomizedSearchCV(p, params, cv=3,
@@ -95,8 +98,9 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True, 
             if verbose:
                 _report(clf.cv_results_)
 
-            return clf.best_estimator_, model_factory.get_tuned_params_dict(clf.best_estimator_,
-                                                                            list(params.keys()))
+            clf = clf.best_estimator_.steps[2][1]  # Unwrap pieline object
+
+            return clf, model_factory.get_tuned_params_dict(clf, list(c_classifier.tuned_params.keys()))
 
 
 def _plot_heat_map_of_grid_search(cv_results, Classifier):
