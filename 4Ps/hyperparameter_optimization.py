@@ -66,9 +66,9 @@ def get_tuned_clf_and_tuned_hyperparameters(X, y, clf_name='svm', verbose=True, 
 
     if clf_name == 'Naive Bayes':  # Naive Bayes doesn't have any hyperparameters to tune
         if synthesized_data.synthesized_data_enabled:
-            X_n, y_n = f_factory.get_feature_matrix_and_label(False, False, True, True, f_factory.use_reduced_features)
+            X_n, y_n = f_factory.get_feature_matrix_and_label(False, False, True, True, False)
         else:
-            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, f_factory.use_reduced_features)
+            X_n, y_n = f_factory.get_feature_matrix_and_label(True, True, True, True, False)
 
         c_classifier.clf.fit(X_n, y_n)
 

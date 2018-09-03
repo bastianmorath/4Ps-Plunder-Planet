@@ -55,7 +55,7 @@ def test_all_windows():
     """
     print("\n################# Testing all window sizes #################\n")
 
-    const_window = 'gradient_w'
+    const_window = 'cw'
 
     const_w = 10
     list_1 = [5, 10, 20, 30, 50, 60]

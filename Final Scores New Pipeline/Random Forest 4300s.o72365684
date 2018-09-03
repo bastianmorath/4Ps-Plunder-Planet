@@ -1,0 +1,69 @@
+Sender: LSF System <lsfadmin@eu-ms-018-08>
+Subject: Job 72365684: <python main.py -ut 'Random Forest'> in cluster <euler> Done
+
+Job <python main.py -ut 'Random Forest'> was submitted from host <eu-login-05-ng> by user <morathba> in cluster <euler> at Mon Sep  3 18:23:24 2018.
+Job was executed on host(s) <eu-ms-018-08>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Mon Sep  3 18:23:34 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Mon Sep  3 18:23:34 2018.
+Terminated at Mon Sep  3 19:35:50 2018.
+Results reported at Mon Sep  3 19:35:50 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -ut 'Random Forest'
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   4333.74 sec.
+    Max Memory :                                 394 MB
+    Average Memory :                             385.86 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               630.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   4355 sec.
+    Turnaround time :                            4346 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=5000 for Random Forest...
+Time elapsed for hyperparameter tuning: 4325.920799970627
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.634 (std: 0.015)
+		Parameters: {'randomforestclassifier__min_samples_leaf': 47, 'randomforestclassifier__n_estimators': 52}
+	Model with rank: 2
+		Mean validation score: 0.632 (std: 0.009)
+		Parameters: {'randomforestclassifier__min_samples_leaf': 44, 'randomforestclassifier__n_estimators': 38}
+	Model with rank: 3
+		Mean validation score: 0.631 (std: 0.011)
+		Parameters: {'randomforestclassifier__min_samples_leaf': 46, 'randomforestclassifier__n_estimators': 74}
+
+Calculating performance of Random Forest...
+Plotting Decision Tree...
+Barchart plot saved in file Plots/Performance/feature_importances.pdf
+Decison Tree could not be plotted
+
+******** Scores for Random Forest (Windows:  20, 10, 30) ******** 
+
+	Hyperparameters: {'min_samples_leaf': 47, 'n_estimators': 52},
+	roc_auc: 0.648 (+-0.07), recall: 0.560 (+-0.13), specificity: 0.691 (+-0.13), precision: 0.297 (+-0.08), f1: 0.374 (+-0.07) 
+
+	Confusion matrix: 	 [3226 1460] 
+				 [472 562]
+
+
+Time elapsed: 4330.814020872116

@@ -16,7 +16,6 @@ import setup_dataframes as sd
 import synthesized_data
 
 feature_names = []  # Set below
-use_reduced_features = True
 
 _verbose = True
 
@@ -64,7 +63,6 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
     globals()['gradient_w'] = gradient_window
 
     globals()['use_cached_feature_matrix'] = use_cached_feature_matrix
-    globals()['use_reduced_features'] = reduced_features
     globals()['_verbose'] = verbose
 
     matrix = pd.DataFrame()
@@ -96,7 +94,7 @@ def get_feature_matrix_and_label(verbose=True, use_cached_feature_matrix=True, s
         matrix['last_obstacle_crash'] = _get_last_obstacle_crash_feature()  # cw
         matrix['timedelta_to_last_obst'] = _get_timedelta_to_last_obst_feature(do_normalize=False)
 
-        if not use_reduced_features:
+        if not reduced_features:
 
             matrix['max_hr'] = _get_standard_feature('max', 'Heartrate')  # hw
             matrix['min_hr'] = _get_standard_feature('min', 'Heartrate')  # hw

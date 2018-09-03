@@ -43,7 +43,6 @@ def generate_plots_for_report():
         reduced_features=False,
         use_boxcox=False
     )
-    print(X.shape)
 
     # Plot example of a Decision Tree by taking first tree of tuned random forest
     decision_tree_clf = classifiers.get_cclassifier_with_name('Random Forest', X, y).tuned_clf
@@ -62,7 +61,7 @@ def generate_plots_for_report():
     model_factory.plot_roc_curves(True, True)
 
     # The following plots take a little longer, so only uncomment them if you really want them
-    """
+
     import leave_one_group_out_cv
     import window_optimization
 
@@ -70,8 +69,7 @@ def generate_plots_for_report():
         X, y, False, reduced_features=True, reduced_classifiers=True
     )
 
-    window_optimization.test_all_windows()
-    """
+    # window_optimization.test_all_windows()
 
 
 def _plot_difficulties():

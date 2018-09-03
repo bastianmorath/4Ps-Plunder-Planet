@@ -1,0 +1,66 @@
+Sender: LSF System <lsfadmin@eu-ms-005-05>
+Subject: Job 72365302: <python main.py -ut 'Nearest Neighbor'> in cluster <euler> Done
+
+Job <python main.py -ut 'Nearest Neighbor'> was submitted from host <eu-login-05-ng> by user <morathba> in cluster <euler> at Mon Sep  3 17:59:11 2018.
+Job was executed on host(s) <eu-ms-005-05>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Mon Sep  3 18:08:08 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Mon Sep  3 18:08:08 2018.
+Terminated at Mon Sep  3 18:16:09 2018.
+Results reported at Mon Sep  3 18:16:09 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -ut 'Nearest Neighbor'
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   479.15 sec.
+    Max Memory :                                 483 MB
+    Average Memory :                             384.00 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               541.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   482 sec.
+    Turnaround time :                            1018 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=150 for Nearest Neighbor...
+Time elapsed for hyperparameter tuning: 473.134535074234
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.639 (std: 0.012)
+		Parameters: {'kneighborsclassifier__metric': 'minkowski', 'kneighborsclassifier__n_neighbors': 690}
+	Model with rank: 2
+		Mean validation score: 0.639 (std: 0.012)
+		Parameters: {'kneighborsclassifier__metric': 'minkowski', 'kneighborsclassifier__n_neighbors': 693}
+	Model with rank: 3
+		Mean validation score: 0.638 (std: 0.014)
+		Parameters: {'kneighborsclassifier__metric': 'euclidean', 'kneighborsclassifier__n_neighbors': 748}
+
+Calculating performance of Nearest Neighbor...
+
+******** Scores for Nearest Neighbor (Windows:  20, 10, 30) ******** 
+
+	Hyperparameters: {'n_neighbors': 690, 'metric': 'minkowski'},
+	roc_auc: 0.645 (+-0.06), recall: 0.633 (+-0.20), specificity: 0.620 (+-0.22), precision: 0.299 (+-0.10), f1: 0.377 (+-0.08) 
+
+	Confusion matrix: 	 [2895 1791] 
+				 [385 649]
+
+
+Time elapsed: 476.8299038410187

@@ -40,7 +40,7 @@ def calculate_performance_of_classifiers(X, y, tune_hyperparameters=False, reduc
     :param X:                       Feature matrix
     :param y:                       labels
     :param tune_hyperparameters:    Whether or not hyperparameter should be tuned
-    :param reduced_clfs:            All classifiers or only SVM, Nearest Neighbor, Random Forest and Naive Bayes
+    :param reduced_clfs:            All classifiers, or only SVM, Nearest Neighbor, Random Forest and Naive Bayes
     :param create_barchart:         Create a barchart consisting of the roc_auc scores
     :param create_curves:           Create roc_curves and precision_recall curve
     :param do_write_to_file:        Write summary of performance into a file (optional)
@@ -213,7 +213,10 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
     conf_mat = confusion_matrix(y_true, y_pred)
 
     if clf_name == 'Random Forest':
-        plots_features.plot_graph_of_decision_classifier(model.estimators_[0], X, y)
+        try:
+            plots_features.plot_graph_of_decision_classifier(model.estimators_[0], X, y)
+        except:
+            print('Decison Tree could not be plotted')
 
     if tuned_params_keys is None:
         s = create_string_from_scores(clf_name, roc_auc_mean, roc_auc_std, recall_mean, recall_std,

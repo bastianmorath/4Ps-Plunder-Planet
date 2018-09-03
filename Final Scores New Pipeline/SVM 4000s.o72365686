@@ -1,0 +1,66 @@
+Sender: LSF System <lsfadmin@eu-ms-017-21>
+Subject: Job 72365686: <python main.py -ut 'SVM'> in cluster <euler> Done
+
+Job <python main.py -ut 'SVM'> was submitted from host <eu-login-05-ng> by user <morathba> in cluster <euler> at Mon Sep  3 18:23:31 2018.
+Job was executed on host(s) <eu-ms-017-21>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Mon Sep  3 18:24:05 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Mon Sep  3 18:24:05 2018.
+Terminated at Mon Sep  3 19:34:16 2018.
+Results reported at Mon Sep  3 19:34:16 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -ut 'SVM'
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   4264.87 sec.
+    Max Memory :                                 481 MB
+    Average Memory :                             380.17 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               543.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                4
+    Run time :                                   4211 sec.
+    Turnaround time :                            4245 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Calculating performance with hyperparameter tuning #################
+
+Doing RandomizedSearchCV with n_iter=300 for SVM...
+Time elapsed for hyperparameter tuning: 4125.868187189102
+******** Scores of best 3 hyperparameter configurations ********
+	Model with rank: 1
+		Mean validation score: 0.650 (std: 0.032)
+		Parameters: {'svc__C': 1.7548701069044732, 'svc__degree': 2, 'svc__gamma': 0.13314731151500947, 'svc__kernel': 'rbf'}
+	Model with rank: 2
+		Mean validation score: 0.641 (std: 0.023)
+		Parameters: {'svc__C': 13.253285411294524, 'svc__degree': 1, 'svc__gamma': 0.10672075646842583, 'svc__kernel': 'rbf'}
+	Model with rank: 3
+		Mean validation score: 0.635 (std: 0.024)
+		Parameters: {'svc__C': 1.2157794379427287, 'svc__degree': 1, 'svc__gamma': 0.46162797074930495, 'svc__kernel': 'rbf'}
+
+Calculating performance of SVM...
+
+******** Scores for SVM (Windows:  20, 10, 30) ******** 
+
+	Hyperparameters: {'C': 1.7548701069044732, 'gamma': 0.13314731151500947, 'degree': 2, 'kernel': 'rbf'},
+	roc_auc: 0.641 (+-0.06), recall: 0.491 (+-0.12), specificity: 0.763 (+-0.09), precision: 0.322 (+-0.07), f1: 0.382 (+-0.08) 
+
+	Confusion matrix: 	 [3585 1101] 
+				 [511 523]
+
+
+Time elapsed: 4204.994032621384

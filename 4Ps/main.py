@@ -10,6 +10,7 @@ from __future__ import print_function
 import time
 
 import matplotlib
+matplotlib.use('Agg')  # TODO: Must be at the very beginning!
 
 import LSTM
 import classifiers
@@ -25,8 +26,6 @@ import window_optimization
 import leave_one_group_out_cv
 import hyperparameter_optimization
 
-matplotlib.use('Agg')
-
 
 def main(args):
     """
@@ -38,7 +37,6 @@ def main(args):
 
     start = time.time()
 
-    f_factory.use_reduced_features = not args.use_all_features
     assert (not (args.use_synthesized_data and args.leave_one_group_out)), \
         'Can\'t do leave_one_group_out with synthesized data'
 
@@ -93,7 +91,7 @@ def main(args):
         if args.performance_without_tuning == 'all' or args.performance_with_tuning == 'all':
             model_factory. \
                 calculate_performance_of_classifiers(X, y, tune_hyperparameters=args.performance_with_tuning,
-                                                     reduced_clfs=red_ft, pre_set=pre_set)
+                                                     reduced_clfs=True, pre_set=pre_set)
         else:
             X_old = X
             y_old = y

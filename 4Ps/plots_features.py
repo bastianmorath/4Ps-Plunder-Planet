@@ -28,9 +28,9 @@ def generate_plots_about_features(X, y):
     :param y: labels
 
     """
+    _plot_timedelta_vs_obstacle_scatter(X, y)
 
     _plot_crashes_vs_timedelta(X)
-    _plot_timedelta_vs_obstacle_scatter(X, y)  # TODO: Some plots are not necessary I think...
     _plot_feature_distributions(X)
     _plot_mean_value_of_feature_at_crash(X, y)
     for i in range(0, len(f_factory.feature_names)):
@@ -73,11 +73,15 @@ def plot_graph_of_decision_classifier(model, X, y):
         proportion=True,
         special_characters=True,
     )
+
     graphviz.render('dot', 'pdf', 'decision_tree_graph')
 
     os.remove(sd.working_directory_path + '/decision_tree_graph')
+    if not os.path.exists(sd.working_directory_path + '/Plots/Report/'):
+        os.makedirs(sd.working_directory_path + '/Plots/Report/')
+
     os.rename(sd.working_directory_path + '/decision_tree_graph.pdf',
-              sd.working_directory_path + '/Plots/report/decision_tree_graph.pdf')
+              sd.working_directory_path + '/Plots/Report/decision_tree_graph.pdf')
 
 
 def _plot_feature_distributions(X):
@@ -311,15 +315,15 @@ def _plot_timedelta_vs_obstacle_scatter(X, y):
             y = label_lists[i]
             plt.title('Timedelta vs crash plot for logfile ' + sd.names_logfiles[i])
 
-        g = sb.jointplot(X[:, 0], X[:, 1], kind='reg')
+        g = sb.jointplot(X[:, 9], X[:, 8], kind='reg')
 
         g.ax_joint.cla()
         plt.sca(g.ax_joint)
 
         colors = [hp.red_color if i == 1 else hp.green_color for i in y]
-        plt.scatter(X[:, 0], X[:, 1], c=colors, alpha=0.3, s=150)
+        plt.scatter(X[:, 9], X[:, 8], c=colors, alpha=0.3, s=150)
         plt.xticks([0, 1], ['False', 'True'])
-        plt.ylim([np.mean(X[:, 1]) - 3 * np.std(X[:, 1]), np.mean(X[:, 1]) + 3 * np.std(X[:, 1])])
+        plt.ylim([np.mean(X[:, 8]) - 3 * np.std(X[:, 8]), np.mean(X[:, 8]) + 3 * np.std(X[:, 8])]) # Achse fixen!
         plt.ylabel('Time to last obstacle')
         plt.xlabel('Crash at last obstacle')
         green_patch = mpatches.Patch(color=hp.green_color, label='no crash')

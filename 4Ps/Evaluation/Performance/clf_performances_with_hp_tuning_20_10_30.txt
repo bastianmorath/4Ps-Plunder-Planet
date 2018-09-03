@@ -1,36 +1,36 @@
 
 ******** Scores for SVM (Windows:  20, 10, 30) ******** 
 
-	Hyperparameters: {'C': 30.9, 'gamma': 0.086497, 'degree': 1, 'kernel': 'rbf'},
-	roc_auc: 0.638 (+-0.02), recall: 0.514 (+-0.03), specificity: 0.726 (+-0.73), precision: 0.296 (+-0.05) 
+	Hyperparameters: {'C': 1.75487, 'gamma': 0.1331473, 'degree': 2, 'kernel': 'rbf'},
+	roc_auc: 0.641 (+-0.06), recall: 0.491 (+-0.12), specificity: 0.763 (+-0.76), precision: 0.322 (+-0.07), f1: 0.382 (+-0.08) 
 
-	Confusion matrix: 	 [3400 1286] 
-				 [506 528]
+	Confusion matrix: 	 [3585 1101] 
+				 [511 523]
 
 
 ******** Scores for Nearest Neighbor (Windows:  20, 10, 30) ******** 
 
-	Hyperparameters: {'n_neighbors': 768, 'metric': 'minkowski'},
-	roc_auc: 0.647 (+-0.01), recall: 0.459 (+-0.08), specificity: 0.789 (+-0.79), precision: 0.332 (+-0.02) 
+	Hyperparameters: {'n_neighbors': 702, 'metric': 'minkowski'},
+	roc_auc: 0.645 (+-0.06), recall: 0.631 (+-0.20), specificity: 0.622 (+-0.62), precision: 0.304 (+-0.10), f1: 0.378 (+-0.08) 
 
-	Confusion matrix: 	 [3704  982] 
-				 [549 485]
+	Confusion matrix: 	 [2906 1780] 
+				 [386 648]
 
 
 ******** Scores for Random Forest (Windows:  20, 10, 30) ******** 
 
-	Hyperparameters: {'min_samples_leaf': 49, 'n_estimators': 124},
-	roc_auc: 0.651 (+-0.01), recall: 0.606 (+-0.06), specificity: 0.638 (+-0.64), precision: 0.275 (+-0.05) 
+	Hyperparameters: {'min_samples_leaf': 47, 'n_estimators': 52},
+	roc_auc: 0.638 (+-0.07), recall: 0.629 (+-0.14), specificity: 0.607 (+-0.61), precision: 0.280 (+-0.08), f1: 0.376 (+-0.07) 
 
-	Confusion matrix: 	 [2989 1697] 
-				 [412 622]
+	Confusion matrix: 	 [2868 1818] 
+				 [368 666]
 
 
 ******** Scores for Naive Bayes (Windows:  20, 10, 30) ******** 
 
 	Hyperparameters: {},
-	roc_auc: 0.627 (+-0.02), recall: 0.476 (+-0.11), specificity: 0.738 (+-0.74), precision: 0.292 (+-0.05) 
+	roc_auc: 0.634 (+-0.07), recall: 0.497 (+-0.20), specificity: 0.739 (+-0.74), precision: 0.309 (+-0.08), f1: 0.356 (+-0.09) 
 
-	Confusion matrix: 	 [3449 1237] 
-				 [555 479]
+	Confusion matrix: 	 [3454 1232] 
+				 [530 504]
 

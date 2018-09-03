@@ -27,7 +27,7 @@ reduced_names = ['SVM', 'Nearest Neighbor', 'Random Forest', 'Naive Bayes']
 # RandomizedSearchCV parameter space is defined such that all classifiers should approximately take
 # the same amount of time. With 'random_search_multiplier', one can increase or decrease the space linearily.
 # multiplier = 1 -> ca. 50 seconds per classifier on i5 MacBook Pro 2017 and Euler cluster
-_random_search_multiplier = 1
+_random_search_multiplier = 100
 
 
 def get_cclassifier_with_name(clf_name, X, y):
@@ -88,7 +88,7 @@ class CSVM(CClassifier):
         CClassifier.__init__(self, X, y)
         self.clf = SVC(class_weight='balanced', probability=True, cache_size=1500)
         self.tuned_clf = SVC(class_weight='balanced', probability=True, cache_size=1500,
-                             C=16.7523, gamma=0.05147, kernel='rbf', degree=2)
+                             C=1.75487, gamma=0.1331473, kernel='rbf', degree=2)
 
 
 class CRandomForest(CClassifier):
@@ -105,7 +105,7 @@ class CRandomForest(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = RandomForestClassifier(class_weight="balanced")
-        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=48, n_estimators=16)
+        self.tuned_clf = RandomForestClassifier(class_weight="balanced", min_samples_leaf=47, n_estimators=52)
         self.tuned_params = {'min_samples_leaf': CRandomForest.param3,
                              'n_estimators': CRandomForest.param4}
 
@@ -124,7 +124,7 @@ class CNearestNeighbors(CClassifier):
     def __init__(self, X, y):
         CClassifier.__init__(self, X, y)
         self.clf = KNeighborsClassifier(weights='distance')
-        self.tuned_clf = KNeighborsClassifier(weights='distance', n_neighbors=768)
+        self.tuned_clf = KNeighborsClassifier(weights='distance', n_neighbors=702)
 
 
 class CNaiveBayes(CClassifier):
