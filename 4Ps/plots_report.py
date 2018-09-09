@@ -26,7 +26,7 @@ def generate_plots_for_report():
         - There are some hyperparameters that were tuned on Euler and are used per default. If you want to tune
              them "manually/on your computer", use the flag -u (see main.py). The number of iterations used for
              RandomizedSearchCV can be set in classifiers.py
-        - Some plots were modified a little manually, such as removing titles or so.
+        - Some plots were modified manually for the report, such as removing titles
 
     """
 
@@ -61,7 +61,7 @@ def generate_plots_for_report():
     model_factory.plot_roc_curves(True, True)
 
     # The following plots take a little longer, so only uncomment them if you really want them
-
+    '''
     import leave_one_group_out_cv
     import window_optimization
 
@@ -70,6 +70,7 @@ def generate_plots_for_report():
     )
 
     # window_optimization.test_all_windows()
+    '''
 
 
 def _plot_difficulties():

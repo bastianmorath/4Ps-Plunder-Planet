@@ -175,6 +175,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         predicted_probas = model.predict_proba(X_test)
         predicted_probas_list.append(predicted_probas[:, 1])
 
+
         fpr, tpr, thresholds = roc_curve(y_test, predicted_probas[:, 1])
         threshold = cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
 
@@ -214,6 +215,7 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
 
     if clf_name == 'Random Forest':
         try:
+            print(X)
             plots_features.plot_graph_of_decision_classifier(model.estimators_[0], X, y)
         except:
             print('Decison Tree could not be plotted')

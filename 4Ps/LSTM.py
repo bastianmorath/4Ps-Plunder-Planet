@@ -170,7 +170,7 @@ def _generate_lstm_classifier(shape):
     model.add(TimeDistributed(Dense(2, activation='softmax')))
 
     adam = optimizers.adam(lr=0.0003, decay=0.000004, amsgrad=False)
-    model.compile(loss='categorical_crossentropy', optimizer=adam, sample_weight_mode='temporal')
+    model.compile(loss='categorical_crossentropy', optimizer=adam,sample_weight_mode='temporal')
     '''
     from keras.utils import plot_model
     plot_model(model,

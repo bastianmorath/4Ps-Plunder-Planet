@@ -27,7 +27,7 @@ reduced_names = ['SVM', 'Nearest Neighbor', 'Random Forest', 'Naive Bayes']
 # RandomizedSearchCV parameter space is defined such that all classifiers should approximately take
 # the same amount of time. With 'random_search_multiplier', one can increase or decrease the space linearily.
 # multiplier = 1 -> ca. 50 seconds per classifier on i5 MacBook Pro 2017 and Euler cluster
-_random_search_multiplier = 100
+_random_search_multiplier = 1
 
 
 def get_cclassifier_with_name(clf_name, X, y):
