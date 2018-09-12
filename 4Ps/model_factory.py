@@ -177,7 +177,6 @@ def get_performance(model, clf_name, X, y, tuned_params_keys=None, verbose=True,
         predicted_probas = model.predict_proba(X_test)
         predicted_probas_list.append(predicted_probas[:, 1])
 
-
         fpr, tpr, thresholds = roc_curve(y_test, predicted_probas[:, 1])
         threshold = cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
 
@@ -472,7 +471,7 @@ def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
 
     # Also add LSTM scores:
     clf_names.append("LSTM")
-    fpr, tpr, roc_auc = LSTM.create_roc_curve(X, y, 50)
+    fpr, tpr, roc_auc = LSTM.create_roc_curve(X, y, 130)
     fprs.append(fpr)
     tprs.append(tpr)
     roc_aucs.append(roc_auc)

@@ -59,8 +59,6 @@ def generate_plots_for_report():
     model_factory.get_performance(nearest_neighbor_clf, 'Nearest Neighbor', X, y, None,
                                   verbose=False, create_curves=True)
 
-
-
     # The following plots take a little longer, so only uncomment them if you really want them
     '''
     import leave_one_group_out_cv

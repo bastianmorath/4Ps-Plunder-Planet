@@ -65,7 +65,7 @@ def get_argparse():
         "--evaluate_lstm",
         type=int,
         nargs=1,
-        help="Compile, train and evaluate an LSTM newtwork with n_epochs epochs",
+        help="Compile, train and evaluate an LSTM network with n_epochs epochs",
         metavar='n_epochs',
     )
 
@@ -99,13 +99,6 @@ def get_argparse():
         action='store_true',
         help="There are some hyperparameters that were tuned on Euler and are used per default. If you want to tune "
              "them manually/on your computer, use this flag"
-    )
-
-    parser.add_argument(
-        "-a",
-        "--use_all_features",
-        action='store_true',
-        help="Do not do feature selection with cross_correlation matrix, but use all features instead"
     )
 
     parser.add_argument(

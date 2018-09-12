@@ -10,7 +10,7 @@ from __future__ import print_function
 import time
 
 import matplotlib
-matplotlib.use('Agg')  # TODO: Must be at the very beginning!
+matplotlib.use('Agg')  # Must be at the very beginning!
 
 import LSTM
 import classifiers
@@ -33,7 +33,6 @@ def main(args):
     :param args: ArgumentParser
 
     """
-    red_ft = False
 
     start = time.time()
 
@@ -47,7 +46,7 @@ def main(args):
 
         X, y = f_factory.get_feature_matrix_and_label(
             verbose=True, use_cached_feature_matrix=False, save_as_pickle_file=False,
-            reduced_features=red_ft
+            reduced_features=False
         )
 
     else:
@@ -61,7 +60,7 @@ def main(args):
                 verbose=True,
                 use_cached_feature_matrix=True,
                 save_as_pickle_file=True,
-                reduced_features=red_ft,
+                reduced_features=False,
                 use_boxcox=False
         )
 
@@ -98,7 +97,7 @@ def main(args):
             if (args.performance_with_tuning == 'Naive Bayes') or (args.performance_without_tuning == 'Naive Bayes'):
                 X, y = f_factory.get_feature_matrix_and_label(verbose=False, use_cached_feature_matrix=True,
                                                               save_as_pickle_file=True, use_boxcox=True,
-                                                              reduced_features=red_ft)
+                                                              reduced_features=False)
 
             if args.performance_with_tuning:
                 clf, tuned_params = hyperparameter_optimization.get_tuned_clf_and_tuned_hyperparameters(
@@ -124,15 +123,13 @@ def main(args):
     if args.leave_one_group_out:
         print("\n################# Leave one out #################\n")
         leave_one_group_out_cv.clf_performance_with_user_left_out_vs_normal(
-            X, y, True, reduced_features=red_ft, reduced_classifiers=True
+            X, y, True, reduced_features=False, reduced_classifiers=True
         )
 
     if args.evaluate_lstm:
         print("\n################# Get trained LSTM #################\n")
-        # LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
+        LSTM.get_performance_of_lstm_classifier(X, y, n_epochs=args.evaluate_lstm[0])
         # LSTM.get_finalscore(X, y, n_epochs=args.evaluate_lstm[0])
-        LSTM.create_roc_curve(X, y, n_epochs=args.evaluate_lstm[0])
-
 
     if args.generate_plots_about_features:
         print("\n################# Generate plots about features #################\n")
