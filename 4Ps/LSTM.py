@@ -15,8 +15,8 @@ from sklearn import metrics
 from keras.layers import LSTM, Dense, Dropout, Masking, TimeDistributed
 from keras.models import Sequential
 from sklearn.metrics import (
-    f1_score, roc_curve, roc_auc_score, confusion_matrix
-)
+    f1_score, roc_curve, roc_auc_score, confusion_matrix,
+    auc)
 from matplotlib.ticker import FormatStrFormatter
 from keras.preprocessing import sequence
 from sklearn.preprocessing import MinMaxScaler
@@ -256,21 +256,34 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
     _f1_scores = []
     _specificity_scores = []
     _recall_scores = []
+
     for idx, X in enumerate(X_test_list):
         # We need to predict on maxlen, and can then take the first len(X_original) values
         length_old = len(X)
         X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
         X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
-        # predictions = lstm_model.predict_classes(X_padded, batch_size=16, verbose=0).ravel()
+
         probas = lstm_model.predict_proba(X_padded, batch_size=16, verbose=0)
         predictions_probas = [b for (a, b) in probas[0][:length_old]]
+
         y_true = y_test_list[idx]
 
         fpr, tpr, thresholds = roc_curve(y_true, predictions_probas)
+
+        plt.figure()
+        plt.plot(fpr, tpr, label='LSTM' + ' (AUC = %0.2f)' % metrics.roc_auc_score(y_true, predictions_probas))
+        plt.title('Roc curve LSTM')
+        plt.legend(loc='lower right')
+        plt.plot([0, 1], [0, 1], c='gray', ls='--')
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+
+        plots_helpers.save_plot(plt, 'LSTM/', 'roc_curve_lstm_' + str(idx) + '.pdf')
+
         threshold = model_factory.cutoff_youdens_j(fpr, tpr, thresholds) if threshold_tuning else 0.5
         y_pred = [1 if p > threshold else 0 for p in predictions_probas]
-
-        #  y_pred = predictions[:length_old]
 
         y_pred_list.append(y_pred)  # Remove predictions for padded values
 
@@ -291,6 +304,60 @@ def _calculate_performance(X_test_list, y_test_list, lstm_model):
           np.mean(_precision_scores), np.std(_precision_scores), np.mean(_f1_scores), np.std(_f1_scores), conf_mat))
 
     return _roc_auc_scores, _recall_scores, _specificity_scores, _precision_scores, _f1_scores
+
+
+def create_roc_curve(X, y, n_epochs):
+    """
+    Trains a lstm network on all but one logfile, and evaluates on the left out logfile. This is repeated for all files
+    and the tpr and fpr are collected and returned.
+    Can be used in model_factory.plot_roc_curves to also include the ROC curve of the LSTM classifier
+
+    :param X: Feature matrix
+    :param y: Labels
+    :param n_epochs: Number of epochs
+
+    :return list of fprs, list of tprs
+    """
+
+    X_list, y_list = _get_splitted_up_feature_matrix_and_labels(X, y)
+    globals()["_maxlen"] = max(len(fm) for fm in X_list)
+
+    predicted_probas_list = []
+
+    for idx, X_test in enumerate(X_list):
+        X_train = X_list[:idx] + X_list[idx + 1:]
+        y_train = y_list[:idx] + y_list[idx + 1:]
+
+        # Scaling: Fit on training set only, then transform all
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaler.fit(np.concatenate(X_train))
+        X_train = [scaler.transform(X) for X in X_train]
+        X_test = scaler.transform(X_test)
+
+        corr = FindCorrelation(threshold=0.9)
+        corr.fit(np.concatenate(X_train))
+        X_train = [corr.transform(X) for X in X_train]
+        X_test = corr.transform(X_test)
+
+        X_lstm, y_lstm = _get_reshaped_matrices(X_train, y_train)
+        model = _generate_lstm_classifier((X_lstm.shape[1], X_lstm.shape[2]))
+
+        lstm_model = _fit_lstm(model, X_lstm, y_lstm, n_epochs, False)
+
+        # We need to predict on maxlen, and can then take the first len(X_original) values
+        length_old = len(X_test)
+        X_reshaped = X_test.reshape(1, X_test.shape[0], X_test.shape[1])
+        X_padded = sequence.pad_sequences(X_reshaped, maxlen=_maxlen, padding='post', dtype='float64')
+
+        probas = lstm_model.predict_proba(X_padded, batch_size=16, verbose=0)
+        predicted_probas = [b for (a, b) in probas[0][:length_old]]
+
+        predicted_probas_list.append(predicted_probas)
+
+    fpr, tpr, _ = roc_curve(y, list(itertools.chain.from_iterable(predicted_probas_list)))
+    roc_auc = auc(fpr, tpr)
+
+    return fpr, tpr, roc_auc
 
 
 """

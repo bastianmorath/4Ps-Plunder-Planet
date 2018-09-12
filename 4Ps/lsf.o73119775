@@ -1,0 +1,68 @@
+Sender: LSF System <lsfadmin@eu-ms-014-01>
+Subject: Job 73119775: <python main.py -r> in cluster <euler> Done
+
+Job <python main.py -r> was submitted from host <eu-login-04-ng> by user <morathba> in cluster <euler> at Wed Sep 12 09:24:26 2018.
+Job was executed on host(s) <eu-ms-014-01>, in queue <normal.4h>, as user <morathba> in cluster <euler> at Wed Sep 12 09:25:12 2018.
+</cluster/home/morathba> was used as the home directory.
+</cluster/home/morathba/4Ps-Plunder-Planet/4Ps> was used as the working directory.
+Started at Wed Sep 12 09:25:12 2018.
+Terminated at Wed Sep 12 09:30:06 2018.
+Results reported at Wed Sep 12 09:30:06 2018.
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python main.py -r
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   402.08 sec.
+    Max Memory :                                 1088 MB
+    Average Memory :                             619.75 MB
+    Total Requested Memory :                     1024.00 MB
+    Delta Memory :                               -64.00 MB
+    Max Swap :                                   -
+    Max Processes :                              3
+    Max Threads :                                9
+    Run time :                                   300 sec.
+    Turnaround time :                            340 sec.
+
+The output (if any) follows:
+
+Using TensorFlow backend.
+WARNING:tensorflow:Variable *= will be deprecated. Use variable.assign_mul if you want assignment to the variable value or 'x = x * y' if you want a new python Tensor object.
+2018-09-12 09:26:35.694999: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+Feature matrix already cached!
+Feature matrix and labels created!
+
+################# Generate plots for report #################
+
+Hyperparameters for SVM already got tuned, taking those pre-set parameters
+Hyperparameters for Nearest Neighbor already got tuned, taking those pre-set parameters
+Hyperparameters for Random Forest already got tuned, taking those pre-set parameters
+Feature matrix already cached!
+Feature matrix and labels created!
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Compiling lstm network...
+Time elapsed: 286.60162377357483

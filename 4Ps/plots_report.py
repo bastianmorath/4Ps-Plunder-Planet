@@ -29,6 +29,8 @@ def generate_plots_for_report():
         - Some plots were modified manually for the report, such as removing titles
 
     """
+    # Plot ROC curve of all classifiers
+    model_factory.plot_roc_curves(True, True)
 
     _plot_heartrate_change()
     _plot_difficulties()
@@ -57,8 +59,7 @@ def generate_plots_for_report():
     model_factory.get_performance(nearest_neighbor_clf, 'Nearest Neighbor', X, y, None,
                                   verbose=False, create_curves=True)
 
-    # Plot ROC curve of all classifiers
-    model_factory.plot_roc_curves(True, True)
+
 
     # The following plots take a little longer, so only uncomment them if you really want them
     '''
@@ -71,6 +72,7 @@ def generate_plots_for_report():
 
     # window_optimization.test_all_windows()
     '''
+
 
 
 def _plot_difficulties():
@@ -231,7 +233,7 @@ def _plot_feature_correlation_matrix(reduced_features=True):
     cmap = sb.diverging_palette(220, 10, as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
     ax.tick_params(labelsize=20)
-    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=False, xticklabels=f_factory.feature_names,
+    sb.heatmap(corr, mask=mask, cmap=cmap, center=0, annot=True, xticklabels=f_factory.feature_names,
                yticklabels=f_factory.feature_names, square=True,
                linewidths=0.0, cbar_kws={"shrink": .6}, vmin=-1, vmax=1)
     cax = plt.gcf().axes[-1]

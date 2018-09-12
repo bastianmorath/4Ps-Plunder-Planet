@@ -25,6 +25,8 @@ import plots_features
 import features_factory as f_factory
 import setup_dataframes as sd
 import hyperparameter_optimization
+import LSTM
+
 
 # High level functions
 
@@ -404,7 +406,7 @@ def _plot_roc_curve(predicted_probas,  y, filename, title='ROC', plot_thresholds
 
 def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
     """
-    Plots roc_curves for all classifier in one single plots
+    Plots roc_curves for all classifier in one single plot
 
     :param hyperparameter_tuning: Do hyperparameter tuning
     :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those instead of tuning
@@ -467,6 +469,13 @@ def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
         fprs.append(fpr)
         tprs.append(tpr)
         roc_aucs.append(roc_auc)
+
+    # Also add LSTM scores:
+    clf_names.append("LSTM")
+    fpr, tpr, roc_auc = LSTM.create_roc_curve(X, y, 50)
+    fprs.append(fpr)
+    tprs.append(tpr)
+    roc_aucs.append(roc_auc)
 
     plt.figure()
 
