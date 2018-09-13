@@ -29,8 +29,9 @@ def generate_plots_for_report():
         - Some plots were modified manually for the report, such as removing titles
 
     """
+    
     # Plot ROC curve of all classifiers
-    model_factory.plot_roc_curves(True, True)
+    model_factory.plot_roc_curves(True, True, with_lstm=False)
 
     _plot_heartrate_change()
     _plot_difficulties()
@@ -70,7 +71,6 @@ def generate_plots_for_report():
 
     # window_optimization.test_all_windows()
     '''
-
 
 
 def _plot_difficulties():

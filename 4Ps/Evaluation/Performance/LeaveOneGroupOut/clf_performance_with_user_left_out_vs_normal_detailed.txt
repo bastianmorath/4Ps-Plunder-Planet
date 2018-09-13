@@ -1,0 +1,93 @@
+
+
+******** Scores for SVM (Windows:  20, 10, 30) ******** 
+
+	roc_auc: 0.631 (+-0.05), recall: 0.539 (+-0.12), specificity: 0.701 (+-0.11), precision: 0.314 (+-0.08), f1: 0.385 (+-0.07) 
+
+	Confusion matrix: 	 [4663   23] 
+				 [1027    7]
+
+
+
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.616, Recall = 0.538, Specificity= 0.664, Precision = 0.356, F1 = 0.429
+MH:		 Auc= 0.683, Recall = 0.598, Specificity= 0.723, Precision = 0.312, F1 = 0.410
+MK:		 Auc= 0.664, Recall = 0.549, Specificity= 0.710, Precision = 0.196, F1 = 0.289
+MR:		 Auc= 0.581, Recall = 0.297, Specificity= 0.846, Precision = 0.278, F1 = 0.287
+NK:		 Auc= 0.641, Recall = 0.349, Specificity= 0.900, Precision = 0.354, F1 = 0.352
+PG:		 Auc= 0.699, Recall = 0.606, Specificity= 0.789, Precision = 0.416, F1 = 0.494
+TW:		 Auc= 0.553, Recall = 0.495, Specificity= 0.640, Precision = 0.479, F1 = 0.487
+Un:		 Auc= 0.686, Recall = 0.678, Specificity= 0.646, Precision = 0.251, F1 = 0.366
+EK:		 Auc= 0.640, Recall = 0.594, Specificity= 0.686, Precision = 0.345, F1 = 0.436
+FM:		 Auc= 0.571, Recall = 0.494, Specificity= 0.641, Precision = 0.188, F1 = 0.272
+Is:		 Auc= 0.610, Recall = 0.732, Specificity= 0.466, Precision = 0.283, F1 = 0.408
+
+******** Scores for Nearest Neighbor (Windows:  20, 10, 30) ******** 
+
+	roc_auc: 0.639 (+-0.05), recall: 0.547 (+-0.18), specificity: 0.695 (+-0.15), precision: 0.314 (+-0.09), f1: 0.381 (+-0.08) 
+
+	Confusion matrix: 	 [4679    7] 
+				 [1030    4]
+
+
+
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.614, Recall = 0.526, Specificity= 0.681, Precision = 0.363, F1 = 0.429
+MH:		 Auc= 0.687, Recall = 0.673, Specificity= 0.644, Precision = 0.285, F1 = 0.400
+MK:		 Auc= 0.682, Recall = 0.803, Specificity= 0.496, Precision = 0.170, F1 = 0.281
+MR:		 Auc= 0.583, Recall = 0.307, Specificity= 0.838, Precision = 0.274, F1 = 0.290
+NK:		 Auc= 0.668, Recall = 0.386, Specificity= 0.869, Precision = 0.317, F1 = 0.348
+PG:		 Auc= 0.709, Recall = 0.638, Specificity= 0.718, Precision = 0.360, F1 = 0.460
+TW:		 Auc= 0.571, Recall = 0.516, Specificity= 0.619, Precision = 0.475, F1 = 0.495
+Un:		 Auc= 0.675, Recall = 0.586, Specificity= 0.724, Precision = 0.271, F1 = 0.371
+EK:		 Auc= 0.658, Recall = 0.436, Specificity= 0.851, Precision = 0.450, F1 = 0.443
+FM:		 Auc= 0.561, Recall = 0.289, Specificity= 0.811, Precision = 0.205, F1 = 0.240
+Is:		 Auc= 0.621, Recall = 0.859, Specificity= 0.389, Precision = 0.288, F1 = 0.431
+
+******** Scores for Random Forest (Windows:  20, 10, 30) ******** 
+
+	roc_auc: 0.641 (+-0.05), recall: 0.501 (+-0.08), specificity: 0.731 (+-0.06), precision: 0.313 (+-0.09), f1: 0.374 (+-0.07) 
+
+	Confusion matrix: 	 [3586 1100] 
+				 [568 466]
+
+
+
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.621, Recall = 0.487, Specificity= 0.721, Precision = 0.376, F1 = 0.425
+MH:		 Auc= 0.699, Recall = 0.505, Specificity= 0.807, Precision = 0.355, F1 = 0.417
+MK:		 Auc= 0.660, Recall = 0.535, Specificity= 0.710, Precision = 0.192, F1 = 0.283
+MR:		 Auc= 0.590, Recall = 0.307, Specificity= 0.846, Precision = 0.284, F1 = 0.295
+NK:		 Auc= 0.699, Recall = 0.614, Specificity= 0.684, Precision = 0.234, F1 = 0.339
+PG:		 Auc= 0.709, Recall = 0.591, Specificity= 0.753, Precision = 0.373, F1 = 0.457
+TW:		 Auc= 0.555, Recall = 0.452, Specificity= 0.683, Precision = 0.488, F1 = 0.469
+Un:		 Auc= 0.696, Recall = 0.517, Specificity= 0.773, Precision = 0.285, F1 = 0.367
+EK:		 Auc= 0.658, Recall = 0.549, Specificity= 0.740, Precision = 0.371, F1 = 0.442
+FM:		 Auc= 0.590, Recall = 0.530, Specificity= 0.615, Precision = 0.188, F1 = 0.278
+Is:		 Auc= 0.574, Recall = 0.423, Specificity= 0.704, Precision = 0.291, F1 = 0.345
+
+******** Scores for Naive Bayes (Windows:  20, 10, 30) ******** 
+
+	roc_auc: 0.636 (+-0.04), recall: 0.533 (+-0.10), specificity: 0.712 (+-0.10), precision: 0.317 (+-0.10), f1: 0.383 (+-0.07) 
+
+	Confusion matrix: 	 [4055  631] 
+				 [697 337]
+
+
+
+
+roc_auc score for each user that was left out in training set and predicted on in test_set:
+Lo:		 Auc= 0.616, Recall = 0.487, Specificity= 0.704, Precision = 0.362, F1 = 0.415
+MH:		 Auc= 0.686, Recall = 0.636, Specificity= 0.707, Precision = 0.313, F1 = 0.420
+MK:		 Auc= 0.652, Recall = 0.493, Specificity= 0.768, Precision = 0.215, F1 = 0.299
+MR:		 Auc= 0.578, Recall = 0.277, Specificity= 0.864, Precision = 0.289, F1 = 0.283
+NK:		 Auc= 0.660, Recall = 0.542, Specificity= 0.720, Precision = 0.233, F1 = 0.326
+PG:		 Auc= 0.699, Recall = 0.606, Specificity= 0.746, Precision = 0.372, F1 = 0.461
+TW:		 Auc= 0.576, Recall = 0.505, Specificity= 0.683, Precision = 0.516, F1 = 0.511
+Un:		 Auc= 0.689, Recall = 0.609, Specificity= 0.712, Precision = 0.270, F1 = 0.375
+EK:		 Auc= 0.644, Recall = 0.459, Specificity= 0.836, Precision = 0.439, F1 = 0.449
+FM:		 Auc= 0.585, Recall = 0.627, Specificity= 0.511, Precision = 0.177, F1 = 0.277
+Is:		 Auc= 0.609, Recall = 0.620, Specificity= 0.579, Precision = 0.297, F1 = 0.402

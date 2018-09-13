@@ -403,12 +403,13 @@ def _plot_roc_curve(predicted_probas,  y, filename, title='ROC', plot_thresholds
     plots_helpers.save_plot(plt, 'Report/', filename)
 
 
-def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
+def plot_roc_curves(hyperparameter_tuning=False, pre_set=True, with_lstm=False):
     """
     Plots roc_curves for all classifier in one single plot
 
     :param hyperparameter_tuning: Do hyperparameter tuning
     :param pre_set: Some classifiers have pre_tuned parameters (on Euler). Take those instead of tuning
+    :param with_lstm: Also include ROC of LSTM network (takes a little time...)
 
     Folder:     Report/
     Plot name:  roc_curves.pdf
@@ -470,11 +471,12 @@ def plot_roc_curves(hyperparameter_tuning=False, pre_set=True):
         roc_aucs.append(roc_auc)
 
     # Also add LSTM scores:
-    clf_names.append("LSTM")
-    fpr, tpr, roc_auc = LSTM.create_roc_curve(X, y, 130)
-    fprs.append(fpr)
-    tprs.append(tpr)
-    roc_aucs.append(roc_auc)
+    if with_lstm:
+        clf_names.append("LSTM")
+        fpr, tpr, roc_auc = LSTM.create_roc_curve(X, y, 130)
+        fprs.append(fpr)
+        tprs.append(tpr)
+        roc_aucs.append(roc_auc)
 
     plt.figure()
 
